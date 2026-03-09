@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  elo       Int      @default(1000)
+  wins      Int      @default(0)
+  losses    Int      @default(0)
+  draws     Int      @default(0)
+  rank      String   @default("Bronze")
+  createdAt DateTime @default(now())
+  matches1  Match[]  @relation("Player1")
+  matches2  Match[]  @relation("Player2")
+}
+
+model Challenge {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  language    String
+  buggyCode   String
+  fixedCode   String
+  hint        String?
+  difficulty  Int
+  category    String
+  matches     Match[]
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  player1Id   Int
+  player2Id   Int?
+  challengeId Int
+  winnerId    Int?
+  isVsBot     Boolean  @default(false)
+  player1Time Int?
+  player2Time Int?
+  player1Elo  Int
+  player2Elo  Int
+  eloChange   Int      @default(0)
+  status      String   @default("in_progress")
+  createdAt   DateTime @default(now())
+  player1     User      @relation("Player1", fields: [player1Id], references: [id])
+  player2     User?     @relation("Player2", fields: [player2Id], references: [id])
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
+}
