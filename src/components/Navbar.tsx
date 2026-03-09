@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getPlayer } from "@/lib/storage";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const match = document.cookie.match(/(?:^|; )username=([^;]*)/);
-    if (match) setUsername(decodeURIComponent(match[1]));
+    const player = getPlayer();
+    if (player) setUsername(player.username);
   }, []);
 
   return (
@@ -16,16 +17,12 @@ export function Navbar() {
       <Link href="/" className="text-[var(--neon-green)] glow-green text-sm no-underline hover:text-[var(--neon-yellow)] transition-colors">
         BugRacer
       </Link>
-
       <div className="flex items-center gap-4">
         <Link href="/lobby" className="text-[var(--neon-blue)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
           PLAY
         </Link>
-        <Link href="/leaderboard" className="text-[var(--neon-blue)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
-          RANKS
-        </Link>
         {username ? (
-          <Link href={`/profile/${username}`} className="text-[var(--neon-yellow)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
+          <Link href="/profile" className="text-[var(--neon-yellow)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
             {username}
           </Link>
         ) : (

@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { RankBadge } from "./RankBadge";
 import { RetroButton } from "./RetroButton";
-import type { MatchResult } from "@/types";
-import { getRankFromElo } from "@/lib/elo";
+import { getPlayer } from "@/lib/storage";
+import { BOT_PLAYER } from "@/lib/bot";
+import type { GameResult } from "@/lib/gameEngine";
 
 interface ResultsScreenProps {
-  result: MatchResult;
-  playerId: number;
-  playerUsername: string;
-  opponentUsername: string;
+  result: GameResult;
   onPlayAgain: () => void;
   onBackToLobby: () => void;
 }
@@ -41,39 +39,27 @@ function Confetti() {
   );
 }
 
-export function ResultsScreen({
-  result,
-  playerId,
-  playerUsername,
-  opponentUsername,
-  onPlayAgain,
-  onBackToLobby,
-}: ResultsScreenProps) {
+export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScreenProps) {
   const [showDetails, setShowDetails] = useState(false);
-
-  const isWinner = result.winnerId === playerId;
-  const isDraw = result.isDraw;
-  const isPlayer1 = result.player1NewElo !== undefined;
-
-  const myNewElo = playerId === result.winnerId || isPlayer1 ? result.player1NewElo : result.player2NewElo;
-  const myEloChange = isWinner ? result.eloChange : isDraw ? 0 : -result.eloChange;
+  const player = getPlayer();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowDetails(true), 1000);
     return () => clearTimeout(timer);
   }, []);
 
+  const myEloChange = result.won ? result.eloChange : result.draw ? 0 : -result.eloChange;
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 text-center">
-      {isWinner && <Confetti />}
+      {result.won && <Confetti />}
 
-      {/* Victory/Defeat/Draw Banner */}
       <div className="mb-8 slide-up">
-        {isDraw ? (
+        {result.draw ? (
           <div className="text-3xl text-[var(--neon-yellow)] glow-blue pulse-neon mb-2">
             DRAW!
           </div>
-        ) : isWinner ? (
+        ) : result.won ? (
           <>
             <div className="text-3xl text-[var(--neon-green)] glow-green mb-2">
               VICTORY!
@@ -94,26 +80,24 @@ export function ResultsScreen({
         )}
       </div>
 
-      {/* Match details */}
       {showDetails && (
         <div className="nes-container is-dark mb-6 slide-up">
           <div className="flex justify-between items-center mb-4">
             <div className="text-left">
-              <div className="text-[10px] text-[var(--neon-blue)] mb-1">{playerUsername}</div>
+              <div className="text-[10px] text-[var(--neon-blue)] mb-1">{player?.username || "You"}</div>
               <div className="text-[8px] text-[var(--text-dim)]">
-                Time: {result.player1Time ? `${(result.player1Time / 1000).toFixed(1)}s` : "DNF"}
+                Time: {result.playerTime ? `${(result.playerTime / 1000).toFixed(1)}s` : "DNF"}
               </div>
             </div>
             <div className="text-[var(--neon-yellow)] text-xs">VS</div>
             <div className="text-right">
-              <div className="text-[10px] text-[var(--neon-pink)] mb-1">{opponentUsername}</div>
+              <div className="text-[10px] text-[var(--neon-pink)] mb-1">{BOT_PLAYER.username}</div>
               <div className="text-[8px] text-[var(--text-dim)]">
-                Time: {result.player2Time ? `${(result.player2Time / 1000).toFixed(1)}s` : "DNF"}
+                Time: {result.botTime ? `${(result.botTime / 1000).toFixed(1)}s` : "DNF"}
               </div>
             </div>
           </div>
 
-          {/* ELO Change */}
           <div className="border-t-2 border-[var(--text-dim)] pt-4">
             <div className="text-[8px] text-[var(--text-dim)] mb-2">ELO CHANGE</div>
             <div className="flex items-center justify-center gap-4">
@@ -124,17 +108,16 @@ export function ResultsScreen({
               >
                 {myEloChange > 0 ? "+" : ""}{myEloChange}
               </span>
-              <span className="text-[8px] text-[var(--text-dim)]">→</span>
-              <span className="text-[var(--neon-yellow)] text-sm">{myNewElo}</span>
+              <span className="text-[8px] text-[var(--text-dim)]">&rarr;</span>
+              <span className="text-[var(--neon-yellow)] text-sm">{result.newElo}</span>
             </div>
             <div className="mt-2">
-              <RankBadge rank={getRankFromElo(myNewElo)} size="md" />
+              <RankBadge rank={result.newRank} size="md" />
             </div>
           </div>
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex justify-center gap-4 slide-up">
         <RetroButton variant="success" onClick={onPlayAgain}>
           PLAY AGAIN

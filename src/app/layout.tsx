@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "BugRacer - Competitive Bug Fixing Game",
-  description: "Race to fix the bugs! Competitive coding game with ELO matchmaking.",
+  description: "Race to fix the bugs! Competitive coding game vs bot.",
 };
 
 export default function RootLayout({

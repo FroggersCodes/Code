@@ -3,16 +3,9 @@
   "version": "1.0.0",
   "description": "Competitive bug-fixing racing game",
   "scripts": {
-    "dev": "ts-node --project tsconfig.server.json server.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production ts-node --project tsconfig.server.json server.ts",
-    "db:migrate": "npx prisma migrate dev",
-    "db:seed": "npx prisma db seed",
-    "db:studio": "npx prisma studio",
-    "postinstall": "npx prisma generate"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "start": "next start"
   },
   "repository": {
     "type": "git",
@@ -24,29 +17,18 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
     "@codemirror/lang-python": "^6.2.1",
-    "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@uiw/react-codemirror": "^4.25.8",
     "autoprefixer": "^10.4.27",
-    "cookie": "^1.1.1",
-    "express": "^5.2.1",
     "nes.css": "^2.2.1",
     "next": "^14.2.35",
     "postcss": "^8.5.8",
-    "prisma": "^5.22.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3"
-  },
-  "devDependencies": {
-    "@types/cookie": "^0.6.0",
-    "@types/express": "^5.0.6",
-    "ts-node": "^10.9.2"
   }
 }

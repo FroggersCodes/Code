@@ -19,35 +19,6 @@ export interface ChallengeData {
   category: string;
 }
 
-export interface MatchData {
-  id: number;
-  player1: Player;
-  player2: Player | null;
-  challenge: ChallengeData;
-  isVsBot: boolean;
-  status: string;
-}
-
-export interface GameState {
-  matchId: number;
-  challenge: ChallengeData;
-  timeRemaining: number;
-  player1: { id: number; username: string; elo: number; rank: string; submitted: boolean; solved: boolean };
-  player2: { id: number; username: string; elo: number; rank: string; submitted: boolean; solved: boolean };
-  isVsBot: boolean;
-}
-
-export interface MatchResult {
-  matchId: number;
-  winnerId: number | null;
-  player1Time: number | null;
-  player2Time: number | null;
-  eloChange: number;
-  player1NewElo: number;
-  player2NewElo: number;
-  isDraw: boolean;
-}
-
 export type RankTier = "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond";
 
 export const RANK_THRESHOLDS: Record<RankTier, { min: number; max: number }> = {
@@ -65,21 +36,3 @@ export const RANK_COLORS: Record<RankTier, string> = {
   Platinum: "#00d4ff",
   Diamond: "#ff0066",
 };
-
-// Socket.io event types
-export interface ServerToClientEvents {
-  match_found: (data: { matchId: number; opponent: Player }) => void;
-  game_start: (state: GameState) => void;
-  opponent_progress: (data: { typing: boolean; submitCount: number }) => void;
-  opponent_solved: (data: { time: number }) => void;
-  game_end: (result: MatchResult) => void;
-  queue_position: (position: number) => void;
-  error: (message: string) => void;
-}
-
-export interface ClientToServerEvents {
-  join_queue: (data: { userId: number; mode: "pvp" | "bot" }) => void;
-  leave_queue: () => void;
-  code_submit: (data: { matchId: number; code: string }) => void;
-  typing_update: (data: { matchId: number; typing: boolean }) => void;
-}

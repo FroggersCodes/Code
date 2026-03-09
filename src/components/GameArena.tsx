@@ -5,122 +5,98 @@ import { CodeEditor } from "./CodeEditor";
 import { PlayerCard } from "./PlayerCard";
 import { Timer } from "./Timer";
 import { RetroButton } from "./RetroButton";
-import type { GameState } from "@/types";
-import { getSocket } from "@/lib/socket";
+import { submitCode, timeUp, setOnBotSolve } from "@/lib/gameEngine";
+import { getPlayer } from "@/lib/storage";
+import { BOT_PLAYER } from "@/lib/bot";
+import type { LocalGameState, GameResult } from "@/lib/gameEngine";
 
 interface GameArenaProps {
-  gameState: GameState;
-  playerId: number;
-  onGameEnd: () => void;
+  game: LocalGameState;
+  onGameResult: (result: GameResult) => void;
 }
 
-export function GameArena({ gameState, playerId, onGameEnd }: GameArenaProps) {
-  const [code, setCode] = useState(gameState.challenge.buggyCode);
+export function GameArena({ game, onGameResult }: GameArenaProps) {
+  const [code, setCode] = useState(game.challenge.buggyCode);
   const [submitted, setSubmitted] = useState(false);
   const [solved, setSolved] = useState(false);
   const [opponentSolved, setOpponentSolved] = useState(false);
-  const [opponentTyping, setOpponentTyping] = useState(false);
   const [showError, setShowError] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [shake, setShake] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [botTyping, setBotTyping] = useState(true);
+  const resultSent = useRef(false);
 
-  const isPlayer1 = playerId === gameState.player1.id;
-  const myInfo = isPlayer1 ? gameState.player1 : gameState.player2;
-  const opponentInfo = isPlayer1 ? gameState.player2 : gameState.player1;
+  const player = getPlayer();
 
   useEffect(() => {
-    const socket = getSocket();
+    // Simulate bot typing
+    const typingInterval = setInterval(() => {
+      setBotTyping((prev) => !prev);
+    }, 2000 + Math.random() * 3000);
 
-    socket.on("opponent_progress", (data) => {
-      setOpponentTyping(data.typing);
-      if (data.submitCount > 0) {
-        setOpponentTyping(false);
-      }
-    });
-
-    socket.on("opponent_solved", () => {
+    // Listen for bot solving
+    setOnBotSolve(() => {
       setOpponentSolved(true);
+      setBotTyping(false);
+      // End the game after a brief moment
+      setTimeout(() => {
+        if (!resultSent.current) {
+          resultSent.current = true;
+          setGameEnded(true);
+          const result = timeUp();
+          onGameResult(result);
+        }
+      }, 1500);
     });
 
-    socket.on("game_end", () => {
-      setGameEnded(true);
-      setTimeout(onGameEnd, 1500);
-    });
+    return () => clearInterval(typingInterval);
+  }, [onGameResult]);
 
-    return () => {
-      socket.off("opponent_progress");
-      socket.off("opponent_solved");
-      socket.off("game_end");
-    };
-  }, [onGameEnd]);
-
-  const handleCodeChange = useCallback(
-    (value: string) => {
-      setCode(value);
-      setShowError(false);
-
-      const socket = getSocket();
-      socket.emit("typing_update", { matchId: gameState.matchId, typing: true });
-
-      if (typingTimeout.current) clearTimeout(typingTimeout.current);
-      typingTimeout.current = setTimeout(() => {
-        socket.emit("typing_update", { matchId: gameState.matchId, typing: false });
-      }, 2000);
-    },
-    [gameState.matchId]
-  );
+  const handleCodeChange = useCallback((value: string) => {
+    setCode(value);
+    setShowError(false);
+  }, []);
 
   const handleSubmit = useCallback(() => {
     if (submitted && solved) return;
+    if (gameEnded) return;
 
     setSubmitted(true);
     setShake(true);
     setTimeout(() => setShake(false), 500);
 
-    const socket = getSocket();
-    socket.emit("code_submit", { matchId: gameState.matchId, code });
+    const { correct, result } = submitCode(code);
 
-    // If the submission was wrong, the server won't respond with game_end
-    // We'll show an error after a short delay if no success
-    setTimeout(() => {
-      if (!solved && !gameEnded) {
+    if (correct && result) {
+      setSolved(true);
+      resultSent.current = true;
+      setGameEnded(true);
+      onGameResult(result);
+    } else {
+      setTimeout(() => {
         setShowError(true);
         setSubmitted(false);
-      }
-    }, 500);
-  }, [code, gameState.matchId, submitted, solved, gameEnded]);
+      }, 300);
+    }
+  }, [code, submitted, solved, gameEnded, onGameResult]);
 
   const handleTimeUp = useCallback(() => {
-    if (!gameEnded) {
+    if (!gameEnded && !resultSent.current) {
+      resultSent.current = true;
       setGameEnded(true);
-      setTimeout(onGameEnd, 1500);
+      const result = timeUp();
+      onGameResult(result);
     }
-  }, [gameEnded, onGameEnd]);
-
-  // Listen for successful solve (game_end with us as winner)
-  useEffect(() => {
-    const socket = getSocket();
-    const handleEnd = (result: { winnerId: number | null }) => {
-      if (result.winnerId === playerId) {
-        setSolved(true);
-      }
-    };
-    socket.on("game_end", handleEnd);
-    return () => {
-      socket.off("game_end", handleEnd);
-    };
-  }, [playerId]);
+  }, [gameEnded, onGameResult]);
 
   return (
     <div className={`max-w-7xl mx-auto px-4 py-4 ${shake ? "shake" : ""}`}>
-      {/* Top bar: Timer + Players */}
       <div className="flex items-center justify-between mb-4">
         <PlayerCard
-          username={myInfo.username}
-          elo={myInfo.elo}
-          rank={myInfo.rank}
+          username={player?.username || "You"}
+          elo={player?.elo || 1000}
+          rank={player?.rank || "Silver"}
           isYou={true}
           solved={solved}
         />
@@ -128,33 +104,32 @@ export function GameArena({ gameState, playerId, onGameEnd }: GameArenaProps) {
         <Timer duration={90} onTimeUp={handleTimeUp} started={true} />
 
         <PlayerCard
-          username={opponentInfo.username}
-          elo={opponentInfo.elo}
-          rank={opponentInfo.rank}
+          username={BOT_PLAYER.username}
+          elo={BOT_PLAYER.elo}
+          rank={BOT_PLAYER.rank}
           isYou={false}
           solved={opponentSolved}
-          typing={opponentTyping}
+          typing={botTyping && !opponentSolved && !gameEnded}
         />
       </div>
 
-      {/* Challenge info */}
       <div className="nes-container is-dark mb-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[var(--neon-yellow)] text-xs">
-            {gameState.challenge.title}
+            {game.challenge.title}
           </h2>
           <span className="text-[8px] text-[var(--text-dim)]">
-            {gameState.challenge.language.toUpperCase()} | DIFF: {"*".repeat(gameState.challenge.difficulty)}
+            {game.challenge.language.toUpperCase()} | DIFF: {"*".repeat(game.challenge.difficulty)}
           </span>
         </div>
         <p className="text-[10px] text-[var(--text-primary)] leading-relaxed">
-          {gameState.challenge.description}
+          {game.challenge.description}
         </p>
-        {gameState.challenge.hint && (
+        {game.challenge.hint && (
           <div className="mt-2">
             {showHint ? (
               <p className="text-[8px] text-[var(--neon-purple)]">
-                HINT: {gameState.challenge.hint}
+                HINT: {game.challenge.hint}
               </p>
             ) : (
               <button
@@ -169,17 +144,15 @@ export function GameArena({ gameState, playerId, onGameEnd }: GameArenaProps) {
         )}
       </div>
 
-      {/* Code editor */}
       <div className="mb-4">
         <CodeEditor
           value={code}
-          language={gameState.challenge.language}
+          language={game.challenge.language}
           onChange={handleCodeChange}
           readOnly={gameEnded || solved}
         />
       </div>
 
-      {/* Submit area */}
       <div className="flex items-center justify-between">
         <div>
           {showError && (
@@ -202,7 +175,6 @@ export function GameArena({ gameState, playerId, onGameEnd }: GameArenaProps) {
         </RetroButton>
       </div>
 
-      {/* Opponent solved overlay */}
       {opponentSolved && !solved && !gameEnded && (
         <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
           <div className="text-[var(--neon-pink)] glow-pink text-lg animate-bounce">
