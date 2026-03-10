@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { RankBadge } from "./RankBadge";
 import { RetroButton } from "./RetroButton";
 import { getPlayer } from "@/lib/storage";
-import { BOT_PLAYER } from "@/lib/bot";
 import type { GameResult } from "@/lib/gameEngine";
 
 interface ResultsScreenProps {
@@ -49,6 +48,7 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScr
   }, []);
 
   const myEloChange = result.won ? result.eloChange : result.draw ? 0 : -result.eloChange;
+  const opponentTime = result.opponentTime ?? result.botTime;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 text-center">
@@ -91,9 +91,9 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScr
             </div>
             <div className="text-[var(--neon-yellow)] text-xs">VS</div>
             <div className="text-right">
-              <div className="text-[10px] text-[var(--neon-pink)] mb-1">{BOT_PLAYER.username}</div>
+              <div className="text-[10px] text-[var(--neon-pink)] mb-1">{result.opponentName}</div>
               <div className="text-[8px] text-[var(--text-dim)]">
-                Time: {result.botTime ? `${(result.botTime / 1000).toFixed(1)}s` : "DNF"}
+                Time: {opponentTime ? `${(opponentTime / 1000).toFixed(1)}s` : "DNF"}
               </div>
             </div>
           </div>

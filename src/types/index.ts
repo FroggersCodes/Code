@@ -36,3 +36,20 @@ export const RANK_COLORS: Record<RankTier, string> = {
   Platinum: "#00d4ff",
   Diamond: "#ff0066",
 };
+
+export interface OnlineOpponent {
+  username: string;
+  elo: number;
+  rank: string;
+}
+
+export interface MultiplayerResult {
+  won: boolean;
+  draw: boolean;
+  playerTime: number | null;
+  opponentTime: number | null;
+  opponentName: string;
+  eloChange: number;
+  newElo: number;
+  newRank: string;
+}
