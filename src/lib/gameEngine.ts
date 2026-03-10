@@ -21,6 +21,8 @@ export interface GameResult {
   draw: boolean;
   playerTime: number | null;
   botTime: number | null;
+  opponentTime: number | null;
+  opponentName: string;
   eloChange: number;
   newElo: number;
   newRank: string;
@@ -143,6 +145,8 @@ function endGame(): GameResult {
     draw,
     playerTime: currentGame.playerSolveTime,
     botTime: currentGame.botSolveTime,
+    opponentTime: currentGame.botSolveTime,
+    opponentName: BOT_PLAYER.username,
     eloChange: change,
     newElo: newRatingA,
     newRank,

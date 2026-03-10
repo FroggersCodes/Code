@@ -98,7 +98,7 @@ export default function ProfilePage() {
                     {match.won ? "WIN" : match.draw ? "DRAW" : "LOSS"}
                   </span>
                   <span className="text-[var(--text-primary)]">vs {match.opponentName}</span>
-                  <span className="text-[8px] text-[var(--text-dim)]">[BOT]</span>
+                  <span className="text-[8px] text-[var(--text-dim)]">{match.isVsBot ? "[BOT]" : "[ONLINE]"}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-[8px] text-[var(--text-dim)]">

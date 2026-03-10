@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Competitive bug-fixing racing game",
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx --tsconfig tsconfig.json server.ts",
     "build": "next build",
-    "start": "next start"
+    "start": "NODE_ENV=production tsx --tsconfig tsconfig.json server.ts"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwindcss": "^4.2.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.19.4",
     "typescript": "^5.9.3"
   }
 }
