@@ -3,9 +3,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap");
 
 :root {
-  --bg-dark: #0a0a0a;
-  --bg-surface: #111111;
-  --bg-elevated: #1a1a1a;
+  --bg-dark: #1a1a2e;
+  --bg-surface: #252540;
+  --bg-elevated: #2e2e50;
   --accent-red: #ff0033;
   --accent-red-dim: #cc0022;
   --accent-red-bright: #ff3355;
@@ -13,11 +13,11 @@
   --accent-green: #00ff66;
   --accent-yellow: #ffcc00;
   --accent-orange: #ff6600;
-  --text-primary: #e0e0e0;
-  --text-dim: #555555;
-  --text-muted: #333333;
-  --border-color: #222222;
-  --border-red: rgba(255, 0, 51, 0.3);
+  --text-primary: #f0f0f5;
+  --text-dim: #8888aa;
+  --text-muted: #555577;
+  --border-color: #3a3a5c;
+  --border-red: rgba(255, 0, 51, 0.4);
 }
 
 * {
@@ -34,7 +34,7 @@ body {
   font-size: 14px;
   line-height: 1.6;
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 0, 51, 0.03) 0%, transparent 60%);
+    radial-gradient(ellipse at 50% 0%, rgba(255, 0, 51, 0.06) 0%, transparent 60%);
 }
 
 /* Subtle grid background */
@@ -48,8 +48,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255, 0, 51, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 0, 51, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(255, 0, 51, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 51, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -252,16 +252,16 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: var(--bg-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
+  background: var(--text-dim);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-dim);
+  background: var(--text-primary);
 }
 
 /* Selection */

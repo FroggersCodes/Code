@@ -3,10 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, createPlayer } from "@/lib/storage";
+import { getPlayer, signUp, login } from "@/lib/storage";
+
+type AuthTab = "login" | "signup";
 
 export default function HomePage() {
+  const [tab, setTab] = useState<AuthTab>("login");
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
   const [error, setError] = useState("");
@@ -20,21 +25,50 @@ export default function HomePage() {
     }
   }, []);
 
-  const handleLogin = () => {
+  const handleSubmit = () => {
+    setError("");
     const trimmed = username.trim();
     if (!trimmed) return;
+
     if (trimmed.length < 2 || trimmed.length > 20) {
       setError("Username must be 2-20 characters");
       return;
     }
     const sanitized = trimmed.replace(/[^a-zA-Z0-9_-]/g, "");
     if (!sanitized) {
-      setError("Invalid characters");
+      setError("Invalid characters in username");
       return;
     }
-    createPlayer(sanitized);
-    setLoggedIn(true);
-    setCurrentUser(sanitized);
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (tab === "signup") {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+      const result = signUp(sanitized, password);
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setLoggedIn(true);
+      setCurrentUser(result.username);
+    } else {
+      const result = login(sanitized, password);
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setLoggedIn(true);
+      setCurrentUser(result.username);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSubmit();
   };
 
   return (
@@ -69,32 +103,84 @@ export default function HomePage() {
       ) : (
         <div className="text-center slide-up w-full max-w-sm">
           <div className="hacker-card hacker-card-red">
-            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
-              ENTER CALLSIGN
+            {/* Tab switcher */}
+            <div className="flex mb-6 border-b border-[var(--border-color)]">
+              <button
+                onClick={() => { setTab("login"); setError(""); }}
+                className={`flex-1 pb-2 text-xs tracking-wider transition-colors ${
+                  tab === "login"
+                    ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
+                    : "text-[var(--text-dim)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                LOG IN
+              </button>
+              <button
+                onClick={() => { setTab("signup"); setError(""); }}
+                className={`flex-1 pb-2 text-xs tracking-wider transition-colors ${
+                  tab === "signup"
+                    ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
+                    : "text-[var(--text-dim)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                SIGN UP
+              </button>
             </div>
-            <div className="mb-4">
+
+            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+              {tab === "signup" ? "CREATE ACCOUNT" : "ENTER CREDENTIALS"}
+            </div>
+
+            <div className="mb-3">
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                onKeyDown={handleKeyDown}
                 placeholder="username_"
                 maxLength={20}
                 className="hacker-input"
               />
             </div>
+
+            <div className="mb-3">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="password_"
+                className="hacker-input"
+              />
+            </div>
+
+            {tab === "signup" && (
+              <div className="mb-3">
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="confirm_password_"
+                  className="hacker-input"
+                />
+              </div>
+            )}
+
             {error && (
               <div className="text-xs text-[var(--accent-red)] mb-3">{error}</div>
             )}
+
             <RetroButton
               variant="success"
-              onClick={handleLogin}
-              disabled={!username.trim()}
+              onClick={handleSubmit}
+              disabled={!username.trim() || !password}
               className="w-full"
             >
-              INITIALIZE
+              {tab === "signup" ? "CREATE ACCOUNT" : "INITIALIZE"}
             </RetroButton>
           </div>
+
           <div className="mt-8 text-xs text-[var(--text-muted)] space-y-1.5">
             <div className="text-[var(--text-dim)]">$ fix bugs faster than the bot</div>
             <div className="text-[var(--text-dim)]">$ climb the elo rankings</div>
