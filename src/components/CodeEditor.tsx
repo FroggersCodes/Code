@@ -18,7 +18,6 @@ interface CodeEditorProps {
 export function CodeEditor({ value, language, onChange, readOnly }: CodeEditorProps) {
   const [extensions, setExtensions] = useState<any[]>([]);
 
-  // Dynamically load language support
   const loadExtensions = useCallback(async () => {
     const exts = [];
     if (language === "javascript") {
@@ -31,19 +30,18 @@ export function CodeEditor({ value, language, onChange, readOnly }: CodeEditorPr
     setExtensions(exts);
   }, [language]);
 
-  // Load extensions on mount
   useState(() => {
     loadExtensions();
   });
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-1 px-1">
-        <span className="text-[8px] text-[var(--neon-blue)]">
+      <div className="flex items-center justify-between mb-1.5 px-1">
+        <span className="text-xs text-[var(--accent-red)] tracking-wider">
           {language === "javascript" ? "// JAVASCRIPT" : "# PYTHON"}
         </span>
         {readOnly && (
-          <span className="text-[8px] text-[var(--text-dim)]">READ ONLY</span>
+          <span className="text-xs text-[var(--text-muted)]">LOCKED</span>
         )}
       </div>
       <CodeMirrorEditor

@@ -40,11 +40,9 @@ export default function LobbyPage() {
     }
     setPlayer(p);
 
-    // Check if multiplayer server is available by trying to connect
     import("@/lib/socket").then(({ connectSocket, getSocket }) => {
       const socket = connectSocket();
       const timeout = setTimeout(() => {
-        // If not connected after 2s, server isn't available
         if (!socket.connected) {
           socket.disconnect();
           setServerAvailable(false);
@@ -64,7 +62,6 @@ export default function LobbyPage() {
     });
   }, [router]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (queueTimerRef.current) clearInterval(queueTimerRef.current);
@@ -91,7 +88,6 @@ export default function LobbyPage() {
     setQueueTime(0);
     setShowBotFallback(false);
 
-    // Start queue timer
     queueTimerRef.current = setInterval(() => {
       setQueueTime((prev) => {
         if (prev >= 30) {
@@ -101,7 +97,6 @@ export default function LobbyPage() {
       });
     }, 1000);
 
-    // Listen for match
     setOnMatchFound((game: MultiplayerGameState) => {
       if (queueTimerRef.current) {
         clearInterval(queueTimerRef.current);
@@ -144,21 +139,24 @@ export default function LobbyPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
-      <h1 className="text-xl text-[var(--neon-green)] glow-green mb-8">
+      <h1
+        className="text-lg text-[var(--accent-red)] glow-red mb-8 tracking-widest font-bold"
+        style={{ fontFamily: "'Orbitron', sans-serif" }}
+      >
         BATTLE LOBBY
       </h1>
 
       {state === "idle" && mode === "select" && (
-        <div className="text-center slide-up">
-          <div className="nes-container is-dark mb-6">
-            <div className="text-[10px] text-[var(--text-dim)] mb-2">PLAYER</div>
-            <div className="text-[var(--neon-yellow)] text-sm mb-2">{player.username}</div>
-            <div className="mb-6">
+        <div className="text-center slide-up w-full max-w-md">
+          <div className="hacker-card hacker-card-red mb-6">
+            <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider">PLAYER</div>
+            <div className="text-[var(--text-primary)] text-base mb-2 font-bold">{player.username}</div>
+            <div className="flex items-center justify-center gap-3 mb-6">
               <RankBadge rank={player.rank} size="md" />
-              <span className="text-[10px] text-[var(--neon-yellow)] ml-2">{player.elo} ELO</span>
+              <span className="text-xs text-[var(--text-dim)]">{player.elo} ELO</span>
             </div>
-            <div className="mb-4">
-              <div className="text-[8px] text-[var(--text-dim)] mb-3">SELECT MODE</div>
+            <div className="mb-2">
+              <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">SELECT MODE</div>
               <div className="flex justify-center gap-4">
                 {serverAvailable && (
                   <RetroButton variant="primary" onClick={handleStartOnline}>
@@ -171,7 +169,7 @@ export default function LobbyPage() {
               </div>
             </div>
           </div>
-          <div className="text-[8px] text-[var(--text-dim)]">
+          <div className="text-xs text-[var(--text-dim)]">
             {serverAvailable ? "Challenge a real player or fight the bot" : "Bot difficulty scales with your rank"}
           </div>
         </div>
@@ -179,25 +177,22 @@ export default function LobbyPage() {
 
       {state === "queuing" && mode === "bot" && (
         <div className="text-center slide-up">
-          <div className="nes-container is-dark mb-6 inline-block">
-            <div className="text-[var(--neon-green)] glow-green text-sm mb-4">
+          <div className="hacker-card hacker-card-red inline-block">
+            <div className="text-[var(--accent-red)] glow-red text-sm mb-4 tracking-wider">
               INITIALIZING BOT...
             </div>
-            <div className="mb-4">
-              <div className="flex justify-center gap-2 mb-2">
-                {[0, 1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-4 h-4"
-                    style={{
-                      backgroundColor: "var(--neon-green)",
-                      border: "2px solid var(--neon-green)",
-                      animation: "pulse-neon 1s ease-in-out infinite",
-                      animationDelay: i * 0.2 + "s",
-                    }}
-                  />
-                ))}
-              </div>
+            <div className="flex justify-center gap-2 mb-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 rounded-sm"
+                  style={{
+                    backgroundColor: "var(--accent-red)",
+                    animation: "pulse-glow 1s ease-in-out infinite",
+                    animationDelay: i * 0.2 + "s",
+                  }}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -205,35 +200,32 @@ export default function LobbyPage() {
 
       {state === "queuing" && mode === "online" && (
         <div className="text-center slide-up">
-          <div className="nes-container is-dark mb-6 inline-block">
-            <div className="text-[var(--neon-blue)] glow-blue text-sm mb-4">
+          <div className="hacker-card hacker-card-red inline-block min-w-[300px]">
+            <div className="text-[var(--accent-red)] glow-red text-sm mb-4 tracking-wider">
               SEARCHING FOR OPPONENT...
             </div>
-            <div className="mb-4">
-              <div className="flex justify-center gap-2 mb-2">
-                {[0, 1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-4 h-4"
-                    style={{
-                      backgroundColor: "var(--neon-blue)",
-                      border: "2px solid var(--neon-blue)",
-                      animation: "pulse-neon 1s ease-in-out infinite",
-                      animationDelay: i * 0.2 + "s",
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="text-[10px] text-[var(--text-dim)] mt-3">
-                {queueTime}s elapsed
-              </div>
+            <div className="flex justify-center gap-2 mb-3">
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 rounded-sm"
+                  style={{
+                    backgroundColor: "var(--accent-red)",
+                    animation: "pulse-glow 1s ease-in-out infinite",
+                    animationDelay: i * 0.2 + "s",
+                  }}
+                />
+              ))}
+            </div>
+            <div className="text-xs text-[var(--text-dim)] mb-4">
+              {queueTime}s elapsed
             </div>
             <RetroButton variant="error" onClick={handleCancelQueue}>
               CANCEL
             </RetroButton>
             {showBotFallback && (
-              <div className="mt-4 border-t-2 border-[var(--text-dim)] pt-4">
-                <div className="text-[10px] text-[var(--neon-yellow)] mb-3">
+              <div className="mt-4 border-t border-[var(--border-color)] pt-4">
+                <div className="text-xs text-[var(--accent-yellow)] mb-3">
                   NO OPPONENTS FOUND
                 </div>
                 <RetroButton variant="success" onClick={handleBotFallback}>
@@ -247,23 +239,25 @@ export default function LobbyPage() {
 
       {state === "matched" && mode === "bot" && (
         <div className="text-center slide-up">
-          <div className="text-[var(--neon-yellow)] text-lg glow-blue mb-6 flash">
-            MATCH FOUND!
+          <div className="text-[var(--accent-red)] text-xl glow-red mb-6 flash font-bold tracking-wider"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}
+          >
+            MATCH FOUND
           </div>
-          <div className="nes-container is-dark">
+          <div className="hacker-card hacker-card-red">
             <div className="flex items-center justify-between gap-8">
               <div>
-                <div className="text-[10px] text-[var(--neon-blue)] mb-2">{player.username}</div>
+                <div className="text-xs text-[var(--text-primary)] mb-2">{player.username}</div>
                 <RankBadge rank={player.rank} size="md" />
               </div>
-              <div className="text-[var(--neon-yellow)] text-xl pulse-neon">VS</div>
+              <div className="text-[var(--accent-red)] text-xl pulse-glow font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>VS</div>
               <div>
-                <div className="text-[10px] text-[var(--neon-pink)] mb-2">{BOT_PLAYER.username}</div>
+                <div className="text-xs text-[var(--text-dim)] mb-2">{BOT_PLAYER.username}</div>
                 <RankBadge rank={BOT_PLAYER.rank} size="md" />
               </div>
             </div>
           </div>
-          <div className="mt-4 text-[8px] text-[var(--neon-green)] pulse-neon">
+          <div className="mt-4 text-xs text-[var(--accent-red)] pulse-glow tracking-wider">
             LOADING CHALLENGE...
           </div>
         </div>
@@ -271,23 +265,25 @@ export default function LobbyPage() {
 
       {state === "matched" && mode === "online" && opponent && (
         <div className="text-center slide-up">
-          <div className="text-[var(--neon-yellow)] text-lg glow-blue mb-6 flash">
-            MATCH FOUND!
+          <div className="text-[var(--accent-red)] text-xl glow-red mb-6 flash font-bold tracking-wider"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}
+          >
+            MATCH FOUND
           </div>
-          <div className="nes-container is-dark">
+          <div className="hacker-card hacker-card-red">
             <div className="flex items-center justify-between gap-8">
               <div>
-                <div className="text-[10px] text-[var(--neon-blue)] mb-2">{player.username}</div>
+                <div className="text-xs text-[var(--text-primary)] mb-2">{player.username}</div>
                 <RankBadge rank={player.rank} size="md" />
               </div>
-              <div className="text-[var(--neon-yellow)] text-xl pulse-neon">VS</div>
+              <div className="text-[var(--accent-red)] text-xl pulse-glow font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>VS</div>
               <div>
-                <div className="text-[10px] text-[var(--neon-pink)] mb-2">{opponent.username}</div>
+                <div className="text-xs text-[var(--text-dim)] mb-2">{opponent.username}</div>
                 <RankBadge rank={opponent.rank} size="md" />
               </div>
             </div>
           </div>
-          <div className="mt-4 text-[8px] text-[var(--neon-green)] pulse-neon">
+          <div className="mt-4 text-xs text-[var(--accent-red)] pulse-glow tracking-wider">
             LOADING CHALLENGE...
           </div>
         </div>

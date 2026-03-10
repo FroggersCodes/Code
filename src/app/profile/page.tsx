@@ -35,78 +35,76 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="nes-container is-dark mb-6 text-center slide-up">
-        <div className="text-xl text-[var(--neon-blue)] glow-blue mb-3">
+      <div className="hacker-card hacker-card-red mb-6 text-center slide-up">
+        <div className="text-lg text-[var(--text-primary)] mb-2 font-bold">
           {player.username}
         </div>
         <div className="mb-3">
           <RankBadge rank={player.rank} size="lg" />
         </div>
-        <div className="text-2xl text-[var(--neon-yellow)] mb-4">
-          {player.elo} ELO
+        <div className="text-2xl text-[var(--accent-red)] glow-red mb-6 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          {player.elo} <span className="text-sm text-[var(--text-dim)]">ELO</span>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-4 gap-4 text-center mb-6">
           <div>
-            <div className="text-[8px] text-[var(--text-dim)]">WINS</div>
-            <div className="text-sm text-[var(--neon-green)]">{player.wins}</div>
+            <div className="text-xs text-[var(--text-dim)] mb-1">WINS</div>
+            <div className="text-base text-[var(--accent-green)]">{player.wins}</div>
           </div>
           <div>
-            <div className="text-[8px] text-[var(--text-dim)]">LOSSES</div>
-            <div className="text-sm text-[var(--neon-pink)]">{player.losses}</div>
+            <div className="text-xs text-[var(--text-dim)] mb-1">LOSSES</div>
+            <div className="text-base text-[var(--accent-red)]">{player.losses}</div>
           </div>
           <div>
-            <div className="text-[8px] text-[var(--text-dim)]">DRAWS</div>
-            <div className="text-sm text-[var(--text-primary)]">{player.draws}</div>
+            <div className="text-xs text-[var(--text-dim)] mb-1">DRAWS</div>
+            <div className="text-base text-[var(--text-primary)]">{player.draws}</div>
           </div>
           <div>
-            <div className="text-[8px] text-[var(--text-dim)]">WIN %</div>
-            <div className="text-sm text-[var(--neon-yellow)]">{winRate}%</div>
+            <div className="text-xs text-[var(--text-dim)] mb-1">WIN %</div>
+            <div className="text-base text-[var(--accent-yellow)]">{winRate}%</div>
           </div>
         </div>
-        <div className="mt-4">
-          <RetroButton variant="error" onClick={handleLogout}>
-            LOGOUT
-          </RetroButton>
-        </div>
+        <RetroButton variant="error" onClick={handleLogout}>
+          LOGOUT
+        </RetroButton>
       </div>
 
-      <div className="nes-container is-dark slide-up">
-        <h2 className="text-xs text-[var(--neon-green)] mb-4">MATCH HISTORY</h2>
+      <div className="hacker-card slide-up">
+        <h2 className="text-sm text-[var(--accent-red)] mb-4 tracking-wider font-bold">MATCH HISTORY</h2>
         {matches.length === 0 ? (
-          <div className="text-[10px] text-[var(--text-dim)] text-center">
+          <div className="text-xs text-[var(--text-dim)] text-center py-4">
             NO MATCHES YET
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {matches.map((match) => (
               <div
                 key={match.id}
-                className={`flex items-center justify-between text-[10px] p-2 border-l-4 ${
+                className={`flex items-center justify-between text-xs p-3 border-l-2 ${
                   match.won
-                    ? "border-[var(--neon-green)]"
+                    ? "border-[var(--accent-green)] bg-[rgba(0,255,102,0.03)]"
                     : match.draw
-                    ? "border-[var(--neon-yellow)]"
-                    : "border-[var(--neon-pink)]"
+                    ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.03)]"
+                    : "border-[var(--accent-red)] bg-[rgba(255,0,51,0.03)]"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-[8px] ${
-                      match.won ? "text-[var(--neon-green)]" : match.draw ? "text-[var(--neon-yellow)]" : "text-[var(--neon-pink)]"
+                    className={`text-xs font-bold ${
+                      match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--accent-yellow)]" : "text-[var(--accent-red)]"
                     }`}
                   >
-                    {match.won ? "WIN" : match.draw ? "DRAW" : "LOSS"}
+                    {match.won ? "W" : match.draw ? "D" : "L"}
                   </span>
                   <span className="text-[var(--text-primary)]">vs {match.opponentName}</span>
-                  <span className="text-[8px] text-[var(--text-dim)]">{match.isVsBot ? "[BOT]" : "[ONLINE]"}</span>
+                  <span className="text-xs text-[var(--text-muted)]">{match.isVsBot ? "BOT" : "ONLINE"}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[8px] text-[var(--text-dim)]">
+                  <span className="text-xs text-[var(--text-dim)]">
                     {match.challengeLanguage.toUpperCase()}
                   </span>
                   <span
-                    className={`text-[8px] ${
-                      match.won ? "text-[var(--neon-green)]" : match.draw ? "text-[var(--text-dim)]" : "text-[var(--neon-pink)]"
+                    className={`text-xs font-bold ${
+                      match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--text-dim)]" : "text-[var(--accent-red)]"
                     }`}
                   >
                     {match.won ? "+" : match.draw ? "" : "-"}{match.eloChange}

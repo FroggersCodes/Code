@@ -13,21 +13,35 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-darker)] border-b-4 border-[var(--neon-blue)] px-4 py-2 flex items-center justify-between">
-      <Link href="/" className="text-[var(--neon-green)] glow-green text-sm no-underline hover:text-[var(--neon-yellow)] transition-colors">
-        BugRacer
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-between backdrop-blur-sm" style={{ backgroundColor: "rgba(17,17,17,0.92)" }}>
+      <Link
+        href="/"
+        className="text-[var(--accent-red)] text-sm font-bold tracking-widest no-underline hover:text-[var(--accent-red-bright)] transition-colors"
+        style={{ fontFamily: "'Orbitron', sans-serif" }}
+      >
+        BUGRACER
       </Link>
-      <div className="flex items-center gap-4">
-        <Link href="/lobby" className="text-[var(--neon-blue)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
-          PLAY
+      <div className="flex items-center gap-6">
+        <Link
+          href="/lobby"
+          className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
+        >
+          Play
         </Link>
         {username ? (
-          <Link href="/profile" className="text-[var(--neon-yellow)] text-[10px] no-underline hover:text-[var(--neon-pink)] transition-colors">
+          <Link
+            href="/profile"
+            className="text-[var(--text-primary)] text-xs no-underline hover:text-[var(--accent-red)] transition-colors flex items-center gap-2"
+          >
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-red)] inline-block" />
             {username}
           </Link>
         ) : (
-          <Link href="/" className="text-[var(--text-dim)] text-[10px] no-underline">
-            LOGIN
+          <Link
+            href="/"
+            className="text-[var(--text-dim)] text-xs no-underline hover:text-[var(--text-primary)] transition-colors"
+          >
+            Login
           </Link>
         )}
       </div>
