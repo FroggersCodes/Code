@@ -1,6 +1,7 @@
 export interface Player {
   id: number;
   username: string;
+  passwordHash: string;
   elo: number;
   rank: string;
   wins: number;
