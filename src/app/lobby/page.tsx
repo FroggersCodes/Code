@@ -28,6 +28,7 @@ export default function LobbyPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [queueTime, setQueueTime] = useState(0);
   const [showBotFallback, setShowBotFallback] = useState(false);
+  const [serverAvailable, setServerAvailable] = useState(false);
   const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const router = useRouter();
 
@@ -38,6 +39,29 @@ export default function LobbyPage() {
       return;
     }
     setPlayer(p);
+
+    // Check if multiplayer server is available by trying to connect
+    import("@/lib/socket").then(({ connectSocket, getSocket }) => {
+      const socket = connectSocket();
+      const timeout = setTimeout(() => {
+        // If not connected after 2s, server isn't available
+        if (!socket.connected) {
+          socket.disconnect();
+          setServerAvailable(false);
+        }
+      }, 2000);
+      socket.on("connect", () => {
+        clearTimeout(timeout);
+        setServerAvailable(true);
+      });
+      socket.on("connect_error", () => {
+        clearTimeout(timeout);
+        socket.disconnect();
+        setServerAvailable(false);
+      });
+    }).catch(() => {
+      setServerAvailable(false);
+    });
   }, [router]);
 
   // Cleanup on unmount
@@ -136,9 +160,11 @@ export default function LobbyPage() {
             <div className="mb-4">
               <div className="text-[8px] text-[var(--text-dim)] mb-3">SELECT MODE</div>
               <div className="flex justify-center gap-4">
-                <RetroButton variant="primary" onClick={handleStartOnline}>
-                  VS PLAYER
-                </RetroButton>
+                {serverAvailable && (
+                  <RetroButton variant="primary" onClick={handleStartOnline}>
+                    VS PLAYER
+                  </RetroButton>
+                )}
                 <RetroButton variant="success" onClick={handleStartBot}>
                   VS BOT
                 </RetroButton>
@@ -146,7 +172,7 @@ export default function LobbyPage() {
             </div>
           </div>
           <div className="text-[8px] text-[var(--text-dim)]">
-            Challenge a real player or fight the bot
+            {serverAvailable ? "Challenge a real player or fight the bot" : "Bot difficulty scales with your rank"}
           </div>
         </div>
       )}

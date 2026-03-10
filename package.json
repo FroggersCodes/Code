@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx --tsconfig tsconfig.json server.ts",
     "build": "next build",
+    "build:static": "STATIC_EXPORT=true next build",
     "start": "NODE_ENV=production tsx --tsconfig tsconfig.json server.ts"
   },
   "repository": {
