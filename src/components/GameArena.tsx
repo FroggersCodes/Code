@@ -51,7 +51,7 @@ export function GameArena(props: GameArenaProps) {
   const [gameEnded, setGameEnded] = useState(false);
   const [shake, setShake] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [opponentTyping, setOpponentTyping] = useState(!isMultiplayer); // bot starts "typing"
+  const [opponentTyping, setOpponentTyping] = useState(!isMultiplayer);
   const [disconnected, setDisconnected] = useState(false);
   const resultSent = useRef(false);
   const typingRef = useRef(false);
@@ -68,16 +68,13 @@ export function GameArena(props: GameArenaProps) {
     ? props.multiplayerConfig!.opponent.rank
     : BOT_PLAYER.rank;
 
-  // Bot mode effects
   useEffect(() => {
     if (isMultiplayer) return;
 
-    // Simulate bot typing
     const typingInterval = setInterval(() => {
       setOpponentTyping((prev) => !prev);
     }, 2000 + Math.random() * 3000);
 
-    // Listen for bot solving
     setOnBotSolve(() => {
       setOpponentSolved(true);
       setOpponentTyping(false);
@@ -94,7 +91,6 @@ export function GameArena(props: GameArenaProps) {
     return () => clearInterval(typingInterval);
   }, [isMultiplayer]);
 
-  // Multiplayer mode effects
   useEffect(() => {
     if (!isMultiplayer) return;
 
@@ -144,7 +140,6 @@ export function GameArena(props: GameArenaProps) {
     setCode(value);
     setShowError(false);
 
-    // Send typing status in multiplayer mode
     if (isMultiplayer && props.multiplayerConfig) {
       const isTyping = value !== code;
       if (isTyping !== typingRef.current) {
@@ -164,8 +159,6 @@ export function GameArena(props: GameArenaProps) {
 
     if (isMultiplayer) {
       submitMultiplayerCode(props.multiplayerConfig!.roomId, code);
-      // Result comes via socket event (setOnSubmitResult)
-      // Reset submitted after a brief delay if not solved
       setTimeout(() => {
         setSubmitted(false);
       }, 500);
@@ -189,7 +182,6 @@ export function GameArena(props: GameArenaProps) {
     if (!gameEnded && !resultSent.current) {
       if (isMultiplayer) {
         sendTimeout(props.multiplayerConfig!.roomId);
-        // Game end comes via socket event
       } else {
         resultSent.current = true;
         setGameEnded(true);
@@ -222,28 +214,28 @@ export function GameArena(props: GameArenaProps) {
         />
       </div>
 
-      <div className="nes-container is-dark mb-4">
+      <div className="hacker-card hacker-card-red mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[var(--neon-yellow)] text-xs">
+          <h2 className="text-[var(--accent-red)] text-sm font-bold tracking-wider">
             {challengeData.title}
           </h2>
-          <span className="text-[8px] text-[var(--text-dim)]">
-            {challengeData.language.toUpperCase()} | DIFF: {"*".repeat(challengeData.difficulty)}
+          <span className="text-xs text-[var(--text-dim)]">
+            {challengeData.language.toUpperCase()} | {"*".repeat(challengeData.difficulty)}
           </span>
         </div>
-        <p className="text-[10px] text-[var(--text-primary)] leading-relaxed">
+        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
           {challengeData.description}
         </p>
         {challengeData.hint && (
-          <div className="mt-2">
+          <div className="mt-3">
             {showHint ? (
-              <p className="text-[8px] text-[var(--neon-purple)]">
+              <p className="text-xs text-[var(--accent-yellow)]">
                 HINT: {challengeData.hint}
               </p>
             ) : (
               <button
                 onClick={() => setShowHint(true)}
-                className="text-[8px] text-[var(--text-dim)] hover:text-[var(--neon-purple)] transition-colors cursor-pointer bg-transparent border-none"
+                className="text-xs text-[var(--text-dim)] hover:text-[var(--accent-yellow)] transition-colors cursor-pointer bg-transparent border-none"
                 style={{ fontFamily: "inherit" }}
               >
                 [ SHOW HINT ]
@@ -265,13 +257,13 @@ export function GameArena(props: GameArenaProps) {
       <div className="flex items-center justify-between">
         <div>
           {showError && (
-            <span className="text-[10px] text-[var(--neon-pink)] glow-pink flash">
-              INCORRECT FIX! TRY AGAIN
+            <span className="text-xs text-[var(--accent-red)] glow-red flash font-bold">
+              INCORRECT FIX — TRY AGAIN
             </span>
           )}
           {solved && (
-            <span className="text-[10px] text-[var(--neon-green)] glow-green">
-              BUG SQUASHED!
+            <span className="text-xs text-[var(--accent-green)] glow-green font-bold">
+              BUG SQUASHED
             </span>
           )}
         </div>
@@ -286,16 +278,18 @@ export function GameArena(props: GameArenaProps) {
 
       {opponentSolved && !solved && !gameEnded && (
         <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
-          <div className="text-[var(--neon-pink)] glow-pink text-lg animate-bounce">
-            OPPONENT SOLVED IT!
+          <div className="text-[var(--accent-red)] glow-red text-lg animate-bounce font-bold tracking-wider"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}
+          >
+            OPPONENT SOLVED IT
           </div>
         </div>
       )}
 
       {disconnected && !gameEnded && (
         <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
-          <div className="text-[var(--neon-yellow)] glow-blue text-lg animate-bounce">
-            OPPONENT DISCONNECTED!
+          <div className="text-[var(--accent-yellow)] text-lg animate-bounce font-bold tracking-wider">
+            OPPONENT DISCONNECTED
           </div>
         </div>
       )}

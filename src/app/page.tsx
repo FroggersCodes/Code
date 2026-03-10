@@ -40,37 +40,37 @@ export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
       <div className="text-center mb-12 slide-up">
-        <h1 className="text-4xl text-[var(--neon-green)] glow-green mb-4">
-          BugRacer
+        <h1
+          className="text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
+          style={{ fontFamily: "'Orbitron', sans-serif" }}
+        >
+          BUGRACER
         </h1>
-        <div className="text-[10px] text-[var(--neon-blue)] glow-blue mb-2">
-          COMPETITIVE BUG FIXING
-        </div>
-        <div className="text-[8px] text-[var(--text-dim)]">
-          RACE TO SQUASH THE BUGS
+        <div className="text-xs text-[var(--text-dim)] tracking-[0.3em] uppercase">
+          Competitive Bug Fixing
         </div>
       </div>
 
       {loggedIn ? (
-        <div className="text-center slide-up">
-          <div className="nes-container is-dark mb-6">
-            <div className="text-[10px] text-[var(--text-dim)] mb-2">WELCOME BACK</div>
-            <div className="text-[var(--neon-yellow)] text-sm mb-4">{currentUser}</div>
+        <div className="text-center slide-up w-full max-w-sm">
+          <div className="hacker-card hacker-card-red mb-6">
+            <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider">WELCOME BACK</div>
+            <div className="text-[var(--accent-red)] text-lg mb-6 font-bold">{currentUser}</div>
             <div className="flex flex-col gap-3">
               <RetroButton variant="success" onClick={() => router.push("/lobby")}>
                 PLAY NOW
               </RetroButton>
-              <RetroButton variant="warning" onClick={() => router.push("/profile")}>
+              <RetroButton variant="primary" onClick={() => router.push("/profile")}>
                 MY PROFILE
               </RetroButton>
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-center slide-up">
-          <div className="nes-container is-dark">
-            <div className="text-[10px] text-[var(--neon-blue)] mb-4">
-              ENTER YOUR CALLSIGN
+        <div className="text-center slide-up w-full max-w-sm">
+          <div className="hacker-card hacker-card-red">
+            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+              ENTER CALLSIGN
             </div>
             <div className="mb-4">
               <input
@@ -78,34 +78,34 @@ export default function HomePage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder="Username"
+                placeholder="username_"
                 maxLength={20}
-                className="w-full bg-[var(--bg-dark)] border-4 border-[var(--neon-blue)] text-[var(--neon-green)] p-2 text-[10px] focus:outline-none focus:border-[var(--neon-green)]"
-                style={{ fontFamily: "inherit" }}
+                className="hacker-input"
               />
             </div>
             {error && (
-              <div className="text-[8px] text-[var(--neon-pink)] mb-2">{error}</div>
+              <div className="text-xs text-[var(--accent-red)] mb-3">{error}</div>
             )}
             <RetroButton
               variant="success"
               onClick={handleLogin}
               disabled={!username.trim()}
+              className="w-full"
             >
-              START
+              INITIALIZE
             </RetroButton>
           </div>
-          <div className="mt-8 text-[8px] text-[var(--text-dim)]">
-            <div>{">>>"} FIX BUGS FASTER THAN THE BOT</div>
-            <div>{">>>"} CLIMB THE ELO RANKINGS</div>
-            <div>{">>>"} JAVASCRIPT &amp; PYTHON CHALLENGES</div>
+          <div className="mt-8 text-xs text-[var(--text-muted)] space-y-1.5">
+            <div className="text-[var(--text-dim)]">$ fix bugs faster than the bot</div>
+            <div className="text-[var(--text-dim)]">$ climb the elo rankings</div>
+            <div className="text-[var(--text-dim)]">$ javascript &amp; python challenges</div>
           </div>
         </div>
       )}
 
-      <div className="fixed bottom-4 left-0 right-0 text-center">
-        <div className="text-[8px] text-[var(--text-dim)] pulse-neon">
-          INSERT COIN TO CONTINUE
+      <div className="fixed bottom-6 left-0 right-0 text-center">
+        <div className="text-xs text-[var(--text-muted)] pulse-glow tracking-widest">
+          READY_
         </div>
       </div>
     </div>

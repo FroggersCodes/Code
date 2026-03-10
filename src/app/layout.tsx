@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "nes.css/css/nes.min.css";
 import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
@@ -17,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-screen pt-14 relative z-10">{children}</main>
       </body>
     </html>
   );

@@ -43,7 +43,6 @@ function GameContent() {
     return interval;
   }, []);
 
-  // Bot mode init
   useEffect(() => {
     if (mode !== "bot") return;
 
@@ -57,7 +56,6 @@ function GameContent() {
     return () => clearInterval(interval);
   }, [mode, router, startCountdown]);
 
-  // Multiplayer mode init
   useEffect(() => {
     if (mode !== "multiplayer" || !roomId) return;
 
@@ -123,7 +121,7 @@ function GameContent() {
       {phase === "waiting" && (
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
-            <div className="text-[var(--neon-green)] text-sm pulse-neon">
+            <div className="text-[var(--accent-red)] text-sm pulse-glow tracking-wider">
               {mode === "multiplayer" ? "WAITING FOR OPPONENT..." : "LOADING MATCH..."}
             </div>
           </div>
@@ -135,15 +133,17 @@ function GameContent() {
           <div className="text-center">
             {countdown > 0 ? (
               <div
-                className="text-6xl text-[var(--neon-yellow)] glow-blue"
+                className="text-6xl text-[var(--accent-red)] glow-red font-black"
                 key={countdown}
-                style={{ animation: "pulse-neon 0.5s ease-in-out" }}
+                style={{ fontFamily: "'Orbitron', sans-serif", animation: "pulse-glow 0.5s ease-in-out" }}
               >
                 {countdown}
               </div>
             ) : (
-              <div className="text-4xl text-[var(--neon-green)] glow-green flash">
-                FIX THE BUG!
+              <div className="text-4xl text-[var(--accent-green)] glow-green flash font-black tracking-wider"
+                style={{ fontFamily: "'Orbitron', sans-serif" }}
+              >
+                FIX THE BUG
               </div>
             )}
           </div>
@@ -180,7 +180,7 @@ export default function GamePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-[var(--neon-green)] text-sm pulse-neon">LOADING...</div>
+        <div className="text-[var(--accent-red)] text-sm pulse-glow tracking-wider">LOADING...</div>
       </div>
     }>
       <GameContent />

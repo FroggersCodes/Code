@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 interface TimerProps {
-  duration: number; // in seconds
+  duration: number;
   onTimeUp: () => void;
   started: boolean;
 }
@@ -36,15 +36,16 @@ export function Timer({ duration, onTimeUp, started }: TimerProps) {
 
   return (
     <div className={`text-center ${isCritical ? "shake" : ""}`}>
-      <div className="text-[8px] text-[var(--text-dim)] mb-1">TIME</div>
+      <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider">TIME</div>
       <div
-        className={`text-2xl font-bold ${
+        className={`text-2xl font-bold tracking-widest ${
           isCritical
-            ? "text-[var(--neon-pink)] glow-pink"
+            ? "text-[var(--accent-red)] glow-red"
             : isLow
-            ? "text-[var(--neon-yellow)] pulse-neon"
-            : "text-[var(--neon-green)] glow-green"
+            ? "text-[var(--accent-yellow)] pulse-glow"
+            : "text-[var(--text-primary)]"
         }`}
+        style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
       </div>
