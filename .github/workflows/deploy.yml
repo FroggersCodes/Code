@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [master]
+    branches: [claude/bug-fixing-game-app-0xFzu]
   workflow_dispatch:
 
 permissions:
