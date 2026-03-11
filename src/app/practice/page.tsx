@@ -423,20 +423,27 @@ function PracticePageInner() {
 
           {/* Action buttons */}
           {setupSubview === "main" && (
-            <div className="flex gap-3">
-              <RetroButton variant="error" onClick={() => router.push("/")} className="flex-1">
-                BACK
-              </RetroButton>
-              <RetroButton variant="success" onClick={handleSoloStart} className="flex-1">
-                NEW PRACTICE
-              </RetroButton>
-              <RetroButton
-                variant="primary"
-                onClick={() => setSetupSubview("join_input")}
-                className="flex-1"
-              >
-                JOIN PRACTICE
-              </RetroButton>
+            <div className="space-y-2">
+              <div className="flex gap-3">
+                <RetroButton variant="error" onClick={() => router.push("/")} className="flex-1">
+                  BACK
+                </RetroButton>
+                <RetroButton variant="success" onClick={handleSoloStart} className="flex-1">
+                  SOLO PRACTICE
+                </RetroButton>
+              </div>
+              <div className="flex gap-3">
+                <RetroButton variant="primary" onClick={handleCreateRoom} className="flex-1">
+                  CREATE ROOM
+                </RetroButton>
+                <RetroButton
+                  variant="primary"
+                  onClick={() => setSetupSubview("join_input")}
+                  className="flex-1"
+                >
+                  JOIN ROOM
+                </RetroButton>
+              </div>
             </div>
           )}
         </div>
