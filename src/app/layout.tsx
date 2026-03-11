@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import { MatrixRain } from "@/components/MatrixRain";
 
 export const metadata: Metadata = {
   title: "BugRacer - Competitive Bug Fixing Game",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <MatrixRain />
         <Navbar />
         <main className="min-h-screen pt-14 relative z-10">{children}</main>
       </body>
