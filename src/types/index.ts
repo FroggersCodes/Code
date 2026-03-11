@@ -56,3 +56,16 @@ export interface MultiplayerResult {
   newElo: number;
   newRank: string;
 }
+
+export interface PracticeConfig {
+  language: "javascript" | "python";
+  difficulty: 1 | 2 | 3 | null; // null = any
+  timeLimit: number; // seconds
+  mode: "solo" | "invite";
+}
+
+export interface PracticeOpponent {
+  username: string;
+  elo: number;
+  rank: string;
+}

@@ -28,6 +28,63 @@ interface GameRoom {
 const rooms = new Map<string, GameRoom>();
 const playerRooms = new Map<string, string>(); // socketId -> roomId
 
+// ─── Practice rooms ────────────────────────────────────────────────────────
+interface PracticeRoom {
+  id: string;
+  code: string;
+  host: { socketId: string; username: string; elo: number; rank: string };
+  guest: { socketId: string; username: string; elo: number; rank: string } | null;
+  challenge: FullChallenge | null;
+  timeLimit: number; // seconds
+  language: string;
+  difficulty: number | null;
+  hostTime: number | null;
+  guestTime: number | null;
+  startTime: number;
+  started: boolean;
+  ended: boolean;
+}
+
+const practiceRooms = new Map<string, PracticeRoom>();
+const practiceRoomsByCode = new Map<string, string>(); // code -> roomId
+const playerPracticeRooms = new Map<string, string>(); // socketId -> roomId
+
+function generatePracticeCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return practiceRoomsByCode.has(code) ? generatePracticeCode() : code;
+}
+
+function getChallengeForPractice(language: string, difficulty: number | null): FullChallenge {
+  const { CHALLENGES } = require("../lib/challenges");
+  let pool = CHALLENGES.filter((c: FullChallenge) => c.language === language);
+  if (difficulty !== null) pool = pool.filter((c: FullChallenge) => c.difficulty === difficulty);
+  if (pool.length === 0) pool = CHALLENGES;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function endPracticeGame(room: PracticeRoom, io: Server): void {
+  if (room.ended) return;
+  room.ended = true;
+
+  io.to(room.host.socketId).emit("practice:end", {
+    playerTime: room.hostTime,
+    opponentTime: room.guestTime,
+  });
+  if (room.guest) {
+    io.to(room.guest.socketId).emit("practice:end", {
+      playerTime: room.guestTime,
+      opponentTime: room.hostTime,
+    });
+  }
+
+  playerPracticeRooms.delete(room.host.socketId);
+  if (room.guest) playerPracticeRooms.delete(room.guest.socketId);
+  practiceRoomsByCode.delete(room.code);
+  practiceRooms.delete(room.id);
+}
+
 // Leaderboard: username -> stats
 interface LeaderboardEntry {
   username: string;
@@ -309,13 +366,155 @@ export function setupSocketHandlers(io: Server): void {
       }
     });
 
+    // ─── Practice room events ────────────────────────────────────────────────
+    socket.on(
+      "practice:create",
+      (data: { language: string; difficulty: number | null; timeLimit: number; username: string; elo: number; rank: string }) => {
+        const code = generatePracticeCode();
+        const roomId = `practice_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        const room: PracticeRoom = {
+          id: roomId,
+          code,
+          host: { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank },
+          guest: null,
+          challenge: null,
+          timeLimit: data.timeLimit,
+          language: data.language,
+          difficulty: data.difficulty,
+          hostTime: null,
+          guestTime: null,
+          startTime: 0,
+          started: false,
+          ended: false,
+        };
+        practiceRooms.set(roomId, room);
+        practiceRoomsByCode.set(code, roomId);
+        playerPracticeRooms.set(socket.id, roomId);
+        socket.emit("practice:created", { code, roomId });
+      }
+    );
+
+    socket.on(
+      "practice:join",
+      (data: { code: string; username: string; elo: number; rank: string }) => {
+        const roomId = practiceRoomsByCode.get(data.code.toUpperCase());
+        if (!roomId) {
+          socket.emit("practice:error", { message: "Room not found. Check the code and try again." });
+          return;
+        }
+        const room = practiceRooms.get(roomId);
+        if (!room || room.started || room.ended) {
+          socket.emit("practice:error", { message: "This room is no longer available." });
+          return;
+        }
+        if (room.guest) {
+          socket.emit("practice:error", { message: "This room is already full." });
+          return;
+        }
+        room.guest = { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank };
+        playerPracticeRooms.set(socket.id, roomId);
+        // Notify host that opponent joined
+        io.to(room.host.socketId).emit("practice:opponent-joined", {
+          username: data.username,
+          elo: data.elo,
+          rank: data.rank,
+        });
+        // Notify guest of host info
+        socket.emit("practice:opponent-joined", {
+          username: room.host.username,
+          elo: room.host.elo,
+          rank: room.host.rank,
+        });
+      }
+    );
+
+    socket.on("practice:start", (data: { roomId: string }) => {
+      const room = practiceRooms.get(data.roomId);
+      if (!room || room.started || room.ended) return;
+      if (socket.id !== room.host.socketId) return; // only host can start
+      if (!room.guest) return; // need opponent
+
+      room.started = true;
+      room.startTime = Date.now();
+      room.challenge = getChallengeForPractice(room.language, room.difficulty);
+
+      // Strip fixedCode before sending to clients
+      const { fixedCode, ...challengeData } = room.challenge;
+      void fixedCode; // server keeps fixedCode for validation
+
+      io.to(room.host.socketId).emit("practice:begin", {
+        roomId: room.id,
+        challenge: challengeData,
+        timeLimit: room.timeLimit,
+      });
+      io.to(room.guest!.socketId).emit("practice:begin", {
+        roomId: room.id,
+        challenge: challengeData,
+        timeLimit: room.timeLimit,
+      });
+
+      // Auto-end after time limit + buffer
+      setTimeout(() => {
+        if (!room.ended) endPracticeGame(room, io);
+      }, room.timeLimit * 1000 + 5000);
+    });
+
+    socket.on("practice:submit", (data: { roomId: string; code: string }) => {
+      const room = practiceRooms.get(data.roomId);
+      if (!room || !room.started || room.ended || !room.challenge) return;
+
+      const isHost = socket.id === room.host.socketId;
+      const alreadySolved = isHost ? room.hostTime !== null : room.guestTime !== null;
+      if (alreadySolved) return;
+
+      const correct = validateSubmission(data.code, room.challenge.fixedCode);
+      socket.emit("practice:submit-result", { correct });
+
+      if (correct) {
+        const solveTime = Date.now() - room.startTime;
+        if (isHost) room.hostTime = solveTime;
+        else room.guestTime = solveTime;
+
+        const opponent = isHost ? room.guest : room.host;
+        if (opponent) {
+          io.to(opponent.socketId).emit("practice:opponent-solved", { time: solveTime });
+        }
+
+        // If both done, end
+        if (room.hostTime !== null && room.guestTime !== null) {
+          endPracticeGame(room, io);
+        }
+      }
+    });
+
+    socket.on("practice:timeout", (data: { roomId: string }) => {
+      const room = practiceRooms.get(data.roomId);
+      if (!room || !room.started || room.ended) return;
+
+      const isHost = socket.id === room.host.socketId;
+      // Mark as timed out (null solve time stays null)
+      if (isHost && room.hostTime === null) room.hostTime = -1; // sentinel for timeout
+      else if (!isHost && room.guestTime === null) room.guestTime = -1;
+
+      // If both accounted for, end
+      if (room.hostTime !== null && room.guestTime !== null) {
+        endPracticeGame(room, io);
+      }
+    });
+
+    socket.on("practice:leave", (data: { roomId: string }) => {
+      const room = practiceRooms.get(data.roomId);
+      if (!room || room.ended) return;
+      endPracticeGame(room, io);
+    });
+
     socket.on("disconnect", () => {
       console.log(`Player disconnected: ${socket.id}`);
 
       // Remove from matchmaking queue
       removeFromQueue(socket.id);
 
-      // Handle active game forfeit
+      // Handle active ranked game forfeit
       const roomId = playerRooms.get(socket.id);
       if (roomId) {
         const room = rooms.get(roomId);
@@ -328,6 +527,15 @@ export function setupSocketHandlers(io: Server): void {
             room.solves.set(opponent.socketId, room.startTime > 0 ? Date.now() - room.startTime : 0);
             endGame(room, io);
           }
+        }
+      }
+
+      // Handle practice room disconnect
+      const practiceRoomId = playerPracticeRooms.get(socket.id);
+      if (practiceRoomId) {
+        const pRoom = practiceRooms.get(practiceRoomId);
+        if (pRoom && !pRoom.ended) {
+          endPracticeGame(pRoom, io);
         }
       }
     });
