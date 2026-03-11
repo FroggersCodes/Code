@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
 import { getPlayer } from "@/lib/storage";
+import { getTitleLabel } from "@/lib/titles";
 import { startBotGame } from "@/lib/gameEngine";
 import { BOT_PLAYER } from "@/lib/bot";
 import {
@@ -24,7 +25,7 @@ export default function LobbyPage() {
   const [mode, setMode] = useState<GameMode>("select");
   const [state, setState] = useState<LobbyState>("idle");
   const [player, setPlayer] = useState<Player | null>(null);
-  const [opponent, setOpponent] = useState<{ username: string; elo: number; rank: string } | null>(null);
+  const [opponent, setOpponent] = useState<{ username: string; elo: number; rank: string; title?: string | null } | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [queueTime, setQueueTime] = useState(0);
   const [showBotFallback, setShowBotFallback] = useState(false);
@@ -355,13 +356,19 @@ export default function LobbyPage() {
           </div>
           <div className="hacker-card hacker-card-red">
             <div className="flex items-center justify-between gap-8">
-              <div>
-                <div className="text-xs text-[var(--text-primary)] mb-2">{player.username}</div>
+              <div className="text-center">
+                <div className="text-xs text-[var(--text-primary)] mb-1">{player.username}</div>
+                {getTitleLabel(player.title) && (
+                  <div className="text-[10px] text-[var(--accent-yellow)] tracking-wider mb-1" style={{ fontFamily: "'Orbitron', sans-serif" }}>{getTitleLabel(player.title)}</div>
+                )}
                 <RankBadge rank={player.rank} size="md" />
               </div>
               <div className="text-[var(--accent-red)] text-xl pulse-glow font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>VS</div>
-              <div>
-                <div className="text-xs text-[var(--text-dim)] mb-2">{opponent.username}</div>
+              <div className="text-center">
+                <div className="text-xs text-[var(--text-dim)] mb-1">{opponent.username}</div>
+                {getTitleLabel(opponent.title) && (
+                  <div className="text-[10px] text-[var(--accent-yellow)] tracking-wider mb-1" style={{ fontFamily: "'Orbitron', sans-serif" }}>{getTitleLabel(opponent.title)}</div>
+                )}
                 <RankBadge rank={opponent.rank} size="md" />
               </div>
             </div>

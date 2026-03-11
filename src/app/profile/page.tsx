@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle } from "@/lib/storage";
+import { TITLES, getTitleLabel } from "@/lib/titles";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
 
-type Tab = "stats" | "history";
+type Tab = "stats" | "history" | "titles";
 
 function EloChart({ points }: { points: number[] }) {
   if (points.length < 2) return null;
@@ -63,7 +64,8 @@ export default function ProfilePage() {
       router.push("/");
       return;
     }
-    setPlayer(p);
+    checkAndUnlockTitles();
+    setPlayer(getPlayer()!); // re-read after potential unlock
     setMatches(getMatches());
   }, [router]);
 
@@ -118,7 +120,12 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Player header */}
       <div className="hacker-card hacker-card-red mb-4 text-center slide-up">
-        <div className="text-lg text-[var(--text-primary)] mb-2 font-bold">{player.username}</div>
+        <div className="text-lg text-[var(--text-primary)] mb-1 font-bold">{player.username}</div>
+        {getTitleLabel(player.title) && (
+          <div className="text-xs text-[var(--accent-yellow)] tracking-wider mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            {getTitleLabel(player.title)}
+          </div>
+        )}
         <div className="mb-3"><RankBadge rank={player.rank} size="lg" /></div>
         <div className="text-2xl text-[var(--accent-red)] glow-red mb-4 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
           {player.elo} <span className="text-sm text-[var(--text-dim)]">ELO</span>
@@ -135,7 +142,8 @@ export default function ProfilePage() {
       {/* Tabs */}
       <div className="flex border-b border-[var(--border-color)] mb-4">
         <TabBtn id="stats" label="STATS" />
-        <TabBtn id="history" label="MATCH HISTORY" />
+        <TabBtn id="titles" label="TITLES" />
+        <TabBtn id="history" label="HISTORY" />
       </div>
 
       {/* STATS TAB */}
@@ -205,6 +213,52 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TITLES TAB */}
+      {tab === "titles" && (
+        <div className="hacker-card slide-up">
+          <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+            UNLOCKED {(player.unlockedTitles ?? []).length}/{TITLES.length} — CLICK TO EQUIP
+          </div>
+          <div className="space-y-2">
+            {TITLES.map((t) => {
+              const unlocked = (player.unlockedTitles ?? []).includes(t.id);
+              const equipped = player.title === t.id;
+              return (
+                <button
+                  key={t.id}
+                  disabled={!unlocked}
+                  onClick={() => {
+                    equipTitle(equipped ? null : t.id);
+                    setPlayer(getPlayer()!);
+                  }}
+                  className={`w-full text-left p-3 border rounded transition-all ${
+                    equipped
+                      ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.06)]"
+                      : unlocked
+                      ? "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)] cursor-pointer"
+                      : "border-[var(--border-color)] bg-[var(--bg-dark)] opacity-40 cursor-not-allowed"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-xs font-bold mb-0.5 ${equipped ? "text-[var(--accent-yellow)]" : unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}
+                        style={{ fontFamily: equipped ? "'Orbitron', sans-serif" : undefined }}
+                      >
+                        {unlocked ? t.label : "???"}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-dim)]">{t.description}</div>
+                    </div>
+                    {equipped && <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider">EQUIPPED</span>}
+                    {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
+                    {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

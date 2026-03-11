@@ -7,6 +7,8 @@ export interface Player {
   wins: number;
   losses: number;
   draws: number;
+  title: string | null;
+  unlockedTitles: string[];
 }
 
 export interface ChallengeData {
@@ -44,6 +46,7 @@ export interface OnlineOpponent {
   username: string;
   elo: number;
   rank: string;
+  title?: string | null;
 }
 
 export interface MultiplayerResult {
@@ -68,4 +71,5 @@ export interface PracticeOpponent {
   username: string;
   elo: number;
   rank: string;
+  title?: string | null;
 }

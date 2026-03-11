@@ -12,6 +12,7 @@ import {
   type PracticeResult,
 } from "@/lib/practiceEngine";
 import { getPlayer } from "@/lib/storage";
+import { getTitleLabel } from "@/lib/titles";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import type { FullChallenge } from "@/lib/challenges";
 import type { PracticeConfig, PracticeOpponent } from "@/types";
@@ -121,8 +122,8 @@ function PracticePageInner() {
 
     socket.on(
       "practice:opponent-joined",
-      (data: { username: string; elo: number; rank: string; config?: { language: string; difficulty: number | null; timeLimit: number } }) => {
-        setOpponent({ username: data.username, elo: data.elo, rank: data.rank });
+      (data: { username: string; elo: number; rank: string; title?: string | null; config?: { language: string; difficulty: number | null; timeLimit: number } }) => {
+        setOpponent({ username: data.username, elo: data.elo, rank: data.rank, title: data.title ?? null });
         if (data.config) {
           setWaitingConfig(data.config);
           setConfig((c) => ({ ...c, language: data.config!.language as "javascript" | "python", difficulty: data.config!.difficulty as 1 | 2 | 3 | null, timeLimit: data.config!.timeLimit }));
@@ -179,6 +180,7 @@ function PracticePageInner() {
       username: player.username,
       elo: player.elo,
       rank: player.rank,
+      title: player.title ?? null,
     });
   }, [player, config, setupSocket]);
 
@@ -191,6 +193,7 @@ function PracticePageInner() {
         username: player.username,
         elo: player.elo,
         rank: player.rank,
+        title: player.title ?? null,
       });
       setPageState("waiting");
       setIsHost(false);
@@ -496,12 +499,19 @@ function PracticePageInner() {
 
             {opponent && (
               <div className="mt-3">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <RankBadge rank={opponent.rank} size="sm" />
-                  <span className="text-sm text-[var(--text-primary)] font-bold">
-                    {opponent.username}
-                  </span>
-                  <span className="text-xs text-[var(--text-dim)]">{opponent.elo} ELO</span>
+                <div className="flex flex-col items-center gap-1 mb-3">
+                  <div className="flex items-center gap-2">
+                    <RankBadge rank={opponent.rank} size="sm" />
+                    <span className="text-sm text-[var(--text-primary)] font-bold">
+                      {opponent.username}
+                    </span>
+                    <span className="text-xs text-[var(--text-dim)]">{opponent.elo} ELO</span>
+                  </div>
+                  {getTitleLabel(opponent.title) && (
+                    <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                      {getTitleLabel(opponent.title)}
+                    </span>
+                  )}
                 </div>
                 {isHost && (
                   <RetroButton variant="success" onClick={handleStartGame} className="w-full">

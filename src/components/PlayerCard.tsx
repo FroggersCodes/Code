@@ -6,12 +6,13 @@ interface PlayerCardProps {
   username: string;
   elo: number;
   rank: string;
+  title?: string | null;
   isYou?: boolean;
   solved?: boolean;
   typing?: boolean;
 }
 
-export function PlayerCard({ username, elo, rank, isYou, solved, typing }: PlayerCardProps) {
+export function PlayerCard({ username, elo, rank, title, isYou, solved, typing }: PlayerCardProps) {
   return (
     <div
       className={`p-3 border rounded ${
@@ -22,7 +23,7 @@ export function PlayerCard({ username, elo, rank, isYou, solved, typing }: Playe
           : "border-[var(--border-color)]"
       } bg-[var(--bg-surface)]`}
     >
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1">
         <span className={`text-xs font-bold ${isYou ? "text-[var(--accent-red)]" : "text-[var(--text-dim)]"}`}>
           {isYou ? ">" : "#"}
         </span>
@@ -30,6 +31,11 @@ export function PlayerCard({ username, elo, rank, isYou, solved, typing }: Playe
           {username}
         </span>
       </div>
+      {title && (
+        <div className="text-[10px] text-[var(--accent-yellow)] tracking-wider mb-2 pl-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          {title}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <RankBadge rank={rank} size="sm" />
         <span className="text-[var(--text-dim)] text-xs">{elo}</span>

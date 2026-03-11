@@ -32,8 +32,8 @@ const playerRooms = new Map<string, string>(); // socketId -> roomId
 interface PracticeRoom {
   id: string;
   code: string;
-  host: { socketId: string; username: string; elo: number; rank: string };
-  guest: { socketId: string; username: string; elo: number; rank: string } | null;
+  host: { socketId: string; username: string; elo: number; rank: string; title?: string | null };
+  guest: { socketId: string; username: string; elo: number; rank: string; title?: string | null } | null;
   challenge: FullChallenge | null;
   timeLimit: number; // seconds
   language: string;
@@ -210,11 +210,11 @@ function createRoom(p1: QueuedPlayer, p2: QueuedPlayer, io: Server): void {
   // Notify both players
   io.to(p1.socketId).emit("match:found", {
     roomId,
-    opponent: { username: p2.username, elo: p2.elo, rank: p2.rank },
+    opponent: { username: p2.username, elo: p2.elo, rank: p2.rank, title: p2.title },
   });
   io.to(p2.socketId).emit("match:found", {
     roomId,
-    opponent: { username: p1.username, elo: p1.elo, rank: p1.rank },
+    opponent: { username: p1.username, elo: p1.elo, rank: p1.rank, title: p1.title },
   });
 }
 
@@ -256,7 +256,7 @@ export function setupSocketHandlers(io: Server): void {
       socket.emit("leaderboard:data", entries);
     });
 
-    socket.on("queue:join", (data: { username: string; elo: number; rank: string }) => {
+    socket.on("queue:join", (data: { username: string; elo: number; rank: string; title?: string | null }) => {
       // Also update leaderboard when joining queue
       if (data.username && !leaderboard.has(data.username.toLowerCase())) {
         leaderboard.set(data.username.toLowerCase(), {
@@ -274,6 +274,7 @@ export function setupSocketHandlers(io: Server): void {
         username: data.username,
         elo: data.elo,
         rank: data.rank,
+        title: data.title ?? null,
         joinedAt: Date.now(),
       });
 
@@ -369,13 +370,13 @@ export function setupSocketHandlers(io: Server): void {
     // ─── Practice room events ────────────────────────────────────────────────
     socket.on(
       "practice:create",
-      (data: { language: string; difficulty: number | null; timeLimit: number; username: string; elo: number; rank: string }) => {
+      (data: { language: string; difficulty: number | null; timeLimit: number; username: string; elo: number; rank: string; title?: string | null }) => {
         const code = generatePracticeCode();
         const roomId = `practice_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
         const room: PracticeRoom = {
           id: roomId,
           code,
-          host: { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank },
+          host: { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank, title: data.title ?? null },
           guest: null,
           challenge: null,
           timeLimit: data.timeLimit,
@@ -396,7 +397,7 @@ export function setupSocketHandlers(io: Server): void {
 
     socket.on(
       "practice:join",
-      (data: { code: string; username: string; elo: number; rank: string }) => {
+      (data: { code: string; username: string; elo: number; rank: string; title?: string | null }) => {
         const roomId = practiceRoomsByCode.get(data.code.toUpperCase());
         if (!roomId) {
           socket.emit("practice:error", { message: "Room not found. Check the code and try again." });
@@ -411,19 +412,21 @@ export function setupSocketHandlers(io: Server): void {
           socket.emit("practice:error", { message: "This room is already full." });
           return;
         }
-        room.guest = { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank };
+        room.guest = { socketId: socket.id, username: data.username, elo: data.elo, rank: data.rank, title: data.title ?? null };
         playerPracticeRooms.set(socket.id, roomId);
         // Notify host that opponent joined
         io.to(room.host.socketId).emit("practice:opponent-joined", {
           username: data.username,
           elo: data.elo,
           rank: data.rank,
+          title: data.title ?? null,
         });
         // Notify guest of host info + room config
         socket.emit("practice:opponent-joined", {
           username: room.host.username,
           elo: room.host.elo,
           rank: room.host.rank,
+          title: room.host.title ?? null,
           config: { language: room.language, difficulty: room.difficulty, timeLimit: room.timeLimit },
         });
       }

@@ -18,6 +18,7 @@ import {
 } from "@/lib/multiplayerEngine";
 import { getPlayer } from "@/lib/storage";
 import { BOT_PLAYER } from "@/lib/bot";
+import { TITLES, getTitleLabel } from "@/lib/titles";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
 import type { ChallengeData, OnlineOpponent, MultiplayerResult } from "@/types";
 
@@ -67,6 +68,12 @@ export function GameArena(props: GameArenaProps) {
   const opponentRank = isMultiplayer
     ? props.multiplayerConfig!.opponent.rank
     : BOT_PLAYER.rank;
+  const opponentTitle = isMultiplayer
+    ? getTitleLabel(props.multiplayerConfig!.opponent.title)
+    : null;
+  const playerTitleLabel = player?.title
+    ? (TITLES.find((t) => t.id === player.title)?.label ?? null)
+    : null;
 
   useEffect(() => {
     if (isMultiplayer) return;
@@ -198,6 +205,7 @@ export function GameArena(props: GameArenaProps) {
           username={player?.username || "You"}
           elo={player?.elo || 1000}
           rank={player?.rank || "Silver"}
+          title={playerTitleLabel}
           isYou={true}
           solved={solved}
         />
@@ -208,6 +216,7 @@ export function GameArena(props: GameArenaProps) {
           username={opponentName}
           elo={opponentElo}
           rank={opponentRank}
+          title={opponentTitle}
           isYou={false}
           solved={opponentSolved}
           typing={opponentTyping && !opponentSolved && !gameEnded}

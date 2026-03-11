@@ -2,7 +2,7 @@
 
 import type { ChallengeData, OnlineOpponent, MultiplayerResult } from "@/types";
 import { connectSocket, disconnectSocket, getSocket } from "./socket";
-import { getPlayer, updatePlayerAfterMatch, addMatch } from "./storage";
+import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles } from "./storage";
 
 export interface MultiplayerGameState {
   roomId: string;
@@ -78,6 +78,7 @@ function setupListeners(): void {
       const player = getPlayer();
       if (player) {
         updatePlayerAfterMatch(data.won, data.draw, data.newElo);
+        checkAndUnlockTitles();
         addMatch({
           id: Date.now(),
           challengeTitle: currentGame.challenge?.title ?? "Unknown",
@@ -118,6 +119,7 @@ export function joinQueue(): void {
     username: player.username,
     elo: player.elo,
     rank: player.rank,
+    title: player.title ?? null,
   });
 }
 
