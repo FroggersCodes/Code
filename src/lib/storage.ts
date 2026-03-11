@@ -2,6 +2,7 @@
 
 import type { Player } from "@/types";
 import { getRankFromElo } from "./elo";
+import { getNewlyUnlocked } from "./titles";
 
 const PLAYER_KEY = "bugracer_player";
 const MATCHES_KEY = "bugracer_matches";
@@ -53,6 +54,8 @@ export function signUp(
     wins: 0,
     losses: 0,
     draws: 0,
+    title: null,
+    unlockedTitles: [],
   };
   savePlayer(player);
   return player;
@@ -89,6 +92,8 @@ export function login(
     wins: 0,
     losses: 0,
     draws: 0,
+    title: null,
+    unlockedTitles: [],
   };
   savePlayer(player);
   return player;
@@ -112,7 +117,15 @@ export function getPlayer(): Player | null {
   if (typeof window === "undefined") return null;
   const data = localStorage.getItem(PLAYER_KEY);
   if (!data) return null;
-  return JSON.parse(data);
+  const player = JSON.parse(data) as Player;
+  // Migrate old players who don't have title fields
+  const raw = player as unknown as Record<string, unknown>;
+  if (!("unlockedTitles" in raw)) {
+    player.unlockedTitles = [];
+    player.title = null;
+    savePlayer(player);
+  }
+  return player;
 }
 
 export function savePlayer(player: Player): void {
@@ -129,6 +142,8 @@ export function createPlayer(username: string, passwordHash = ""): Player {
     wins: 0,
     losses: 0,
     draws: 0,
+    title: null,
+    unlockedTitles: [],
   };
   savePlayer(player);
   return player;
@@ -146,6 +161,27 @@ export function updatePlayerAfterMatch(
   if (draw) player.draws++;
   else if (won) player.wins++;
   else player.losses++;
+  savePlayer(player);
+}
+
+/** Checks for newly unlocked titles, saves them, returns their labels. */
+export function checkAndUnlockTitles(): string[] {
+  const player = getPlayer();
+  if (!player) return [];
+  const matches = getMatches();
+  const newIds = getNewlyUnlocked(player, matches);
+  if (newIds.length === 0) return [];
+  player.unlockedTitles = [...(player.unlockedTitles ?? []), ...newIds];
+  savePlayer(player);
+  const { TITLES } = require("./titles") as typeof import("./titles");
+  return newIds.map((id) => TITLES.find((t) => t.id === id)?.label ?? id);
+}
+
+export function equipTitle(titleId: string | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  if (titleId !== null && !player.unlockedTitles.includes(titleId)) return;
+  player.title = titleId;
   savePlayer(player);
 }
 

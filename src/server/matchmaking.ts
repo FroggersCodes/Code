@@ -3,6 +3,7 @@ export interface QueuedPlayer {
   username: string;
   elo: number;
   rank: string;
+  title: string | null;
   joinedAt: number;
 }
 

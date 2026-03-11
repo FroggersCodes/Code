@@ -5,7 +5,7 @@ import type { FullChallenge } from "./challenges";
 import { getRandomChallenge, validateCodeFix } from "./challenges";
 import { getBotSolveDelay, shouldBotFail, BOT_PLAYER } from "./bot";
 import { updateRatings, getRankFromElo } from "./elo";
-import { getPlayer, updatePlayerAfterMatch, addMatch } from "./storage";
+import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles } from "./storage";
 
 export interface LocalGameState {
   matchId: number;
@@ -126,6 +126,7 @@ function endGame(): GameResult {
   const newRank = getRankFromElo(newRatingA);
 
   updatePlayerAfterMatch(won, draw, newRatingA);
+  checkAndUnlockTitles();
 
   addMatch({
     id: currentGame.matchId,

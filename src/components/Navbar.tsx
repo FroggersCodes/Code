@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPlayer } from "@/lib/storage";
+import { TITLES } from "@/lib/titles";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
+  const [titleLabel, setTitleLabel] = useState<string | null>(null);
 
   useEffect(() => {
     const player = getPlayer();
-    if (player) setUsername(player.username);
+    if (player) {
+      setUsername(player.username);
+      if (player.title) {
+        const t = TITLES.find((t) => t.id === player.title);
+        setTitleLabel(t?.label ?? null);
+      }
+    }
   }, []);
 
   return (
@@ -40,7 +48,14 @@ export function Navbar() {
             className="text-[var(--text-primary)] text-xs no-underline hover:text-[var(--accent-red)] transition-colors flex items-center gap-2"
           >
             <span className="w-2 h-2 rounded-full bg-[var(--accent-red)] inline-block" />
-            {username}
+            <span className="flex flex-col items-end leading-tight">
+              <span>{username}</span>
+              {titleLabel && (
+                <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                  {titleLabel}
+                </span>
+              )}
+            </span>
           </Link>
         ) : (
           <Link
