@@ -406,3 +406,12 @@ export const CHALLENGES: FullChallenge[] = [
 export function getRandomChallenge(): FullChallenge {
   return CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
 }
+
+export function getChallengeOfTheDay(): FullChallenge {
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    hash = ((hash << 5) - hash + today.charCodeAt(i)) | 0;
+  }
+  return CHALLENGES[Math.abs(hash) % CHALLENGES.length];
+}

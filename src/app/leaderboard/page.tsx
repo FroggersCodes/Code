@@ -16,10 +16,13 @@ interface LeaderboardEntry {
   draws: number;
 }
 
+interface SeasonInfo { season: number; daysLeft: number; endsAt: string }
+
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [season, setSeason] = useState<SeasonInfo | null>(null);
   const router = useRouter();
   const [player] = useState(() => getPlayer());
 
@@ -46,6 +49,7 @@ export default function LeaderboardPage() {
       };
 
       socket.on("leaderboard:data", handleData);
+      socket.on("season:info", (data: SeasonInfo) => setSeason(data));
 
       if (socket.connected) {
         // Report our own stats first
@@ -60,6 +64,7 @@ export default function LeaderboardPage() {
           });
         }
         socket.emit("leaderboard:get");
+        socket.emit("season:info");
       } else {
         socket.on("connect", () => {
           clearTimeout(timeout);
@@ -74,6 +79,7 @@ export default function LeaderboardPage() {
             });
           }
           socket.emit("leaderboard:get");
+          socket.emit("season:info");
         });
         socket.on("connect_error", () => {
           clearTimeout(timeout);
@@ -95,11 +101,34 @@ export default function LeaderboardPage() {
   return (
     <div className="flex flex-col items-center min-h-[calc(100vh-4rem)] px-4 py-8">
       <h1
-        className="text-lg text-[var(--accent-red)] glow-red mb-6 tracking-widest font-bold"
+        className="text-lg text-[var(--accent-red)] glow-red mb-3 tracking-widest font-bold"
         style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         LEADERBOARD
       </h1>
+
+      {season && (
+        <div className="flex items-center gap-4 mb-6 px-4 py-2 border border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.04)] rounded text-center"
+          style={{ boxShadow: "0 0 12px rgba(255,204,0,0.15)" }}
+        >
+          <div>
+            <div className="text-[10px] text-[var(--text-dim)] tracking-widest">CURRENT SEASON</div>
+            <div className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              SEASON {season.season}
+            </div>
+          </div>
+          <div className="flex-1 border-l border-[var(--border-color)] pl-4">
+            <div className="text-[10px] text-[var(--text-dim)] tracking-widest">ENDS IN</div>
+            <div className="text-sm font-bold text-[var(--text-primary)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              {season.daysLeft}d
+            </div>
+          </div>
+          <div className="flex-1 border-l border-[var(--border-color)] pl-4">
+            <div className="text-[10px] text-[var(--text-dim)] tracking-widest">TOP 3 ARE</div>
+            <div className="text-[10px] text-[var(--accent-yellow)]">Season Champions</div>
+          </div>
+        </div>
+      )}
 
       <div className="w-full max-w-lg">
         {loading && (
@@ -171,6 +200,7 @@ export default function LeaderboardPage() {
                         <span className="text-xs text-[var(--text-primary)]">
                           {entry.username}
                           {isYou && <span className="text-[var(--accent-red)] ml-1">(YOU)</span>}
+                          {i < 3 && season && <span className="text-[var(--accent-yellow)] ml-1" title="Season Champion">♛</span>}
                         </span>
                       </div>
                       <span className="w-14 text-center text-xs" style={{ color: "#00ff41" }}>
