@@ -18,7 +18,7 @@ import { disconnectSocket } from "@/lib/socket";
 import type { Player } from "@/types";
 
 type GameMode = "select" | "bot" | "online";
-type LobbyState = "idle" | "queuing" | "matched";
+type LobbyState = "idle" | "queuing" | "matched" | "connection_error";
 
 export default function LobbyPage() {
   const [mode, setMode] = useState<GameMode>("select");
@@ -40,14 +40,13 @@ export default function LobbyPage() {
     }
     setPlayer(p);
 
-    import("@/lib/socket").then(({ connectSocket, getSocket }) => {
+    import("@/lib/socket").then(({ connectSocket }) => {
       const socket = connectSocket();
       const timeout = setTimeout(() => {
         if (!socket.connected) {
           socket.disconnect();
-          setServerAvailable(false);
         }
-      }, 2000);
+      }, 4000);
       socket.on("connect", () => {
         clearTimeout(timeout);
         setServerAvailable(true);
@@ -55,10 +54,9 @@ export default function LobbyPage() {
       socket.on("connect_error", () => {
         clearTimeout(timeout);
         socket.disconnect();
-        setServerAvailable(false);
       });
     }).catch(() => {
-      setServerAvailable(false);
+      // Socket module failed to load
     });
   }, [router]);
 
@@ -82,7 +80,7 @@ export default function LobbyPage() {
     }, 1500);
   }, [router]);
 
-  const handleStartOnline = useCallback(() => {
+  const startQueue = useCallback(() => {
     setMode("online");
     setState("queuing");
     setQueueTime(0);
@@ -113,6 +111,35 @@ export default function LobbyPage() {
 
     joinQueue();
   }, [router]);
+
+  const handleStartOnline = useCallback(() => {
+    if (!serverAvailable) {
+      // Try to connect first
+      import("@/lib/socket").then(({ connectSocket }) => {
+        const socket = connectSocket();
+        const timeout = setTimeout(() => {
+          if (!socket.connected) {
+            socket.disconnect();
+            setState("connection_error");
+          }
+        }, 4000);
+        socket.on("connect", () => {
+          clearTimeout(timeout);
+          setServerAvailable(true);
+          startQueue();
+        });
+        socket.on("connect_error", () => {
+          clearTimeout(timeout);
+          socket.disconnect();
+          setState("connection_error");
+        });
+      });
+      setMode("online");
+      setState("queuing");
+      return;
+    }
+    startQueue();
+  }, [serverAvailable, startQueue]);
 
   const handleCancelQueue = useCallback(() => {
     leaveQueue();
@@ -158,11 +185,9 @@ export default function LobbyPage() {
             <div className="mb-2">
               <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">SELECT MODE</div>
               <div className="flex justify-center gap-4">
-                {serverAvailable && (
-                  <RetroButton variant="primary" onClick={handleStartOnline}>
-                    VS PLAYER
-                  </RetroButton>
-                )}
+                <RetroButton variant="primary" onClick={handleStartOnline}>
+                  VS PLAYER
+                </RetroButton>
                 <RetroButton variant="success" onClick={handleStartBot}>
                   VS BOT
                 </RetroButton>
@@ -170,7 +195,7 @@ export default function LobbyPage() {
             </div>
           </div>
           <div className="text-xs text-[var(--text-dim)]">
-            {serverAvailable ? "Challenge a real player or fight the bot" : "Bot difficulty scales with your rank"}
+            Challenge a real player or fight the bot
           </div>
         </div>
       )}
@@ -233,6 +258,30 @@ export default function LobbyPage() {
                 </RetroButton>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {state === "connection_error" && (
+        <div className="text-center slide-up">
+          <div className="hacker-card hacker-card-red inline-block min-w-[300px]">
+            <div className="text-[var(--accent-red)] glow-red text-sm mb-4 tracking-wider">
+              CONNECTION FAILED
+            </div>
+            <div className="text-xs text-[var(--text-dim)] mb-4">
+              Could not connect to the game server.
+              <br />
+              Make sure the server is running with{" "}
+              <span className="text-[var(--text-primary)]">npm run dev</span>
+            </div>
+            <div className="flex justify-center gap-4">
+              <RetroButton variant="primary" onClick={() => { setState("idle"); setMode("select"); handleStartOnline(); }}>
+                RETRY
+              </RetroButton>
+              <RetroButton variant="error" onClick={() => { setState("idle"); setMode("select"); }}>
+                BACK
+              </RetroButton>
+            </div>
           </div>
         </div>
       )}
