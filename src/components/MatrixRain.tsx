@@ -16,8 +16,10 @@ export function MatrixRain() {
     if (!ctx) return;
 
     const FONT_SIZE = 14;
+    const SPEED = 6; // advance columns every N frames
     let columns: number[] = [];
     let animationId: number;
+    let frame = 0;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -29,40 +31,43 @@ export function MatrixRain() {
     };
 
     const draw = () => {
-      // Dark translucent overlay creates the fade trail
-      ctx.fillStyle = "rgba(5, 5, 8, 0.05)";
+      frame++;
+      const tick = frame % SPEED === 0;
+
+      // Dark translucent overlay creates the fade trail (applied every frame for smooth fade)
+      ctx.fillStyle = "rgba(5, 5, 8, 0.03)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = `${FONT_SIZE}px 'Share Tech Mono', monospace`;
+      if (tick) {
+        ctx.font = `${FONT_SIZE}px 'Share Tech Mono', monospace`;
 
-      for (let i = 0; i < columns.length; i++) {
-        const y = columns[i] * FONT_SIZE;
-        if (y < 0) {
+        for (let i = 0; i < columns.length; i++) {
+          const y = columns[i] * FONT_SIZE;
+          if (y < 0) {
+            columns[i]++;
+            continue;
+          }
+
+          const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+
+          // Trail character in red
+          ctx.fillStyle = "#cc0020";
+          ctx.shadowBlur = 0;
+          ctx.fillText(char, i * FONT_SIZE, y);
+
+          // Head character — brighter red with subtle glow
+          const headChar = CHARS[Math.floor(Math.random() * CHARS.length)];
+          ctx.fillStyle = "#ff2040";
+          ctx.shadowColor = "#ff0033";
+          ctx.shadowBlur = 6;
+          ctx.fillText(headChar, i * FONT_SIZE, y + FONT_SIZE);
+          ctx.shadowBlur = 0;
+
           columns[i]++;
-          continue;
-        }
 
-        const char = CHARS[Math.floor(Math.random() * CHARS.length)];
-
-        // Draw the trail character in red so it fades red → dark via the overlay
-        ctx.fillStyle = "#cc0020";
-        ctx.shadowBlur = 0;
-        ctx.fillText(char, i * FONT_SIZE, y);
-
-        // Bright white-red head drawn one step ahead for the glowing tip
-        const headChar = CHARS[Math.floor(Math.random() * CHARS.length)];
-        ctx.fillStyle = "#ffcccc";
-        ctx.shadowColor = "#ff0033";
-        ctx.shadowBlur = 12;
-        ctx.fillText(headChar, i * FONT_SIZE, y + FONT_SIZE);
-        ctx.shadowBlur = 0;
-
-        // Advance the column
-        columns[i]++;
-
-        // Reset column when it goes off screen
-        if (y > canvas.height && Math.random() > 0.975) {
-          columns[i] = Math.floor(Math.random() * -20);
+          if (y > canvas.height && Math.random() > 0.975) {
+            columns[i] = Math.floor(Math.random() * -20);
+          }
         }
       }
 
