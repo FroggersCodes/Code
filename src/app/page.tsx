@@ -224,8 +224,8 @@ export default function HomePage() {
               <RetroButton variant="primary" onClick={() => router.push("/lobby?mode=bot")} className="w-full">
                 PLAY BOT
               </RetroButton>
-              <RetroButton variant="warning" disabled className="w-full" onClick={() => {}}>
-                PRACTICE (COMING SOON)
+              <RetroButton variant="warning" className="w-full" onClick={() => router.push("/practice")}>
+                PRACTICE
               </RetroButton>
             </div>
           </div>
