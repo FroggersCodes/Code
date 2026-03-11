@@ -125,7 +125,7 @@ function PracticePageInner() {
         setOpponent({ username: data.username, elo: data.elo, rank: data.rank });
         if (data.config) {
           setWaitingConfig(data.config);
-          setConfig((c) => ({ ...c, language: data.config!.language as "javascript" | "python", difficulty: data.config!.difficulty, timeLimit: data.config!.timeLimit }));
+          setConfig((c) => ({ ...c, language: data.config!.language as "javascript" | "python", difficulty: data.config!.difficulty as 1 | 2 | 3 | null, timeLimit: data.config!.timeLimit }));
         }
       }
     );
