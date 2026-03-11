@@ -12,6 +12,9 @@
     "type": "git",
     "url": "http://local_proxy@127.0.0.1:42837/git/FroggersCodes/Code"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
