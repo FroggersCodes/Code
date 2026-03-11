@@ -8,9 +8,53 @@ import { getPlayer, getMatches, logout } from "@/lib/storage";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
 
+type Tab = "stats" | "history";
+
+function EloChart({ points }: { points: number[] }) {
+  if (points.length < 2) return null;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const w = 300;
+  const h = 60;
+  const pts = points
+    .map((v, i) => {
+      const x = (i / (points.length - 1)) * w;
+      const y = h - ((v - min) / range) * (h - 4) - 2;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-16" preserveAspectRatio="none">
+      <polyline points={pts} fill="none" stroke="var(--accent-red)" strokeWidth="1.5" strokeLinejoin="round" />
+      {/* start and end dots */}
+      <circle cx={(0).toFixed(1)} cy={(h - ((points[0] - min) / range) * (h - 4) - 2).toFixed(1)} r="2.5" fill="var(--accent-red)" opacity="0.6" />
+      <circle
+        cx={w.toFixed(1)}
+        cy={(h - ((points[points.length - 1] - min) / range) * (h - 4) - 2).toFixed(1)}
+        r="3"
+        fill="var(--accent-red)"
+      />
+    </svg>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: string | number; color?: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider">{label}</div>
+      <div className="text-base font-bold" style={{ color: color ?? "var(--text-primary)", fontFamily: "'Orbitron', sans-serif" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [matches, setMatches] = useState<StoredMatch[]>([]);
+  const [tab, setTab] = useState<Tab>("stats");
   const router = useRouter();
 
   useEffect(() => {
@@ -33,88 +77,175 @@ export default function ProfilePage() {
   const totalGames = player.wins + player.losses + player.draws;
   const winRate = totalGames > 0 ? Math.round((player.wins / totalGames) * 100) : 0;
 
+  // Computed stats
+  const winTimes = matches.filter((m) => m.won && m.playerTime != null).map((m) => m.playerTime!);
+  const avgTime = winTimes.length > 0 ? (winTimes.reduce((a, b) => a + b, 0) / winTimes.length / 1000).toFixed(1) : null;
+
+  let longestStreak = 0;
+  let currentStreak = 0;
+  for (const m of [...matches].reverse()) {
+    if (m.won) { currentStreak++; longestStreak = Math.max(longestStreak, currentStreak); }
+    else { currentStreak = 0; }
+  }
+
+  const jsGames = matches.filter((m) => m.challengeLanguage === "javascript").length;
+  const pyGames = matches.filter((m) => m.challengeLanguage === "python").length;
+  const botGames = matches.filter((m) => m.isVsBot).length;
+  const onlineGames = matches.filter((m) => !m.isVsBot).length;
+
+  // ELO history reconstruction (newest → oldest in matches array)
+  const eloHistory: number[] = [player.elo];
+  for (const match of matches) {
+    eloHistory.unshift(eloHistory[0] - match.eloChange);
+  }
+  const peakElo = Math.max(...eloHistory);
+  const chartPoints = eloHistory.slice(-21); // last 20 matches + current
+
+  const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
+    <button
+      onClick={() => setTab(id)}
+      className={`flex-1 py-2 text-xs tracking-wider transition-all ${
+        tab === id
+          ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
+          : "text-[var(--text-dim)] border-b-2 border-transparent hover:text-[var(--text-primary)]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="hacker-card hacker-card-red mb-6 text-center slide-up">
-        <div className="text-lg text-[var(--text-primary)] mb-2 font-bold">
-          {player.username}
-        </div>
-        <div className="mb-3">
-          <RankBadge rank={player.rank} size="lg" />
-        </div>
-        <div className="text-2xl text-[var(--accent-red)] glow-red mb-6 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+      {/* Player header */}
+      <div className="hacker-card hacker-card-red mb-4 text-center slide-up">
+        <div className="text-lg text-[var(--text-primary)] mb-2 font-bold">{player.username}</div>
+        <div className="mb-3"><RankBadge rank={player.rank} size="lg" /></div>
+        <div className="text-2xl text-[var(--accent-red)] glow-red mb-4 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
           {player.elo} <span className="text-sm text-[var(--text-dim)]">ELO</span>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-center mb-6">
-          <div>
-            <div className="text-xs text-[var(--text-dim)] mb-1">WINS</div>
-            <div className="text-base text-[var(--accent-green)]">{player.wins}</div>
-          </div>
-          <div>
-            <div className="text-xs text-[var(--text-dim)] mb-1">LOSSES</div>
-            <div className="text-base text-[var(--accent-red)]">{player.losses}</div>
-          </div>
-          <div>
-            <div className="text-xs text-[var(--text-dim)] mb-1">DRAWS</div>
-            <div className="text-base text-[var(--text-primary)]">{player.draws}</div>
-          </div>
-          <div>
-            <div className="text-xs text-[var(--text-dim)] mb-1">WIN %</div>
-            <div className="text-base text-[var(--accent-yellow)]">{winRate}%</div>
-          </div>
+        <div className="grid grid-cols-4 gap-4 text-center mb-4">
+          <StatCard label="WINS" value={player.wins} color="var(--accent-green)" />
+          <StatCard label="LOSSES" value={player.losses} color="var(--accent-red)" />
+          <StatCard label="DRAWS" value={player.draws} />
+          <StatCard label="WIN %" value={`${winRate}%`} color="var(--accent-yellow)" />
         </div>
-        <RetroButton variant="error" onClick={handleLogout}>
-          LOGOUT
-        </RetroButton>
+        <RetroButton variant="error" onClick={handleLogout}>LOGOUT</RetroButton>
       </div>
 
-      <div className="hacker-card slide-up">
-        <h2 className="text-sm text-[var(--accent-red)] mb-4 tracking-wider font-bold">MATCH HISTORY</h2>
-        {matches.length === 0 ? (
-          <div className="text-xs text-[var(--text-dim)] text-center py-4">
-            NO MATCHES YET
+      {/* Tabs */}
+      <div className="flex border-b border-[var(--border-color)] mb-4">
+        <TabBtn id="stats" label="STATS" />
+        <TabBtn id="history" label="MATCH HISTORY" />
+      </div>
+
+      {/* STATS TAB */}
+      {tab === "stats" && (
+        <div className="space-y-4 slide-up">
+          {/* ELO chart */}
+          {chartPoints.length >= 2 && (
+            <div className="hacker-card">
+              <div className="text-xs text-[var(--text-dim)] mb-2 tracking-wider flex justify-between">
+                <span>ELO TREND</span>
+                <span className="text-[var(--accent-yellow)]">PEAK {peakElo}</span>
+              </div>
+              <EloChart points={chartPoints} />
+              <div className="flex justify-between text-xs text-[var(--text-dim)] mt-1">
+                <span>{chartPoints.length - 1} matches ago</span>
+                <span>NOW</span>
+              </div>
+            </div>
+          )}
+
+          {/* Performance */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">PERFORMANCE</div>
+            <div className="grid grid-cols-3 gap-4">
+              <StatCard label="WIN STREAK" value={longestStreak} color="var(--accent-green)" />
+              <StatCard label="AVG SOLVE" value={avgTime ? `${avgTime}s` : "—"} color="var(--accent-yellow)" />
+              <StatCard label="TOTAL GAMES" value={totalGames} />
+            </div>
           </div>
-        ) : (
-          <div className="space-y-1">
-            {matches.map((match) => (
-              <div
-                key={match.id}
-                className={`flex items-center justify-between text-xs p-3 border-l-2 ${
-                  match.won
-                    ? "border-[var(--accent-green)] bg-[rgba(0,255,102,0.03)]"
-                    : match.draw
-                    ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.03)]"
-                    : "border-[var(--accent-red)] bg-[rgba(255,0,51,0.03)]"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs font-bold ${
-                      match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--accent-yellow)]" : "text-[var(--accent-red)]"
-                    }`}
-                  >
-                    {match.won ? "W" : match.draw ? "D" : "L"}
-                  </span>
-                  <span className="text-[var(--text-primary)]">vs {match.opponentName}</span>
-                  <span className="text-xs text-[var(--text-muted)]">{match.isVsBot ? "BOT" : "ONLINE"}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--text-dim)]">
-                    {match.challengeLanguage.toUpperCase()}
-                  </span>
-                  <span
-                    className={`text-xs font-bold ${
-                      match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--text-dim)]" : "text-[var(--accent-red)]"
-                    }`}
-                  >
-                    {match.eloChange > 0 ? "+" : ""}{match.eloChange}
-                  </span>
+
+          {/* Breakdown */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">BREAKDOWN</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-[var(--text-dim)] mb-2">LANGUAGE</div>
+                <div className="space-y-1">
+                  {[{ label: "JavaScript", count: jsGames }, { label: "Python", count: pyGames }].map(({ label, count }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div className="text-xs text-[var(--text-primary)] w-20">{label}</div>
+                      <div className="flex-1 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent-red)] rounded-full"
+                          style={{ width: totalGames > 0 ? `${(count / totalGames) * 100}%` : "0%" }}
+                        />
+                      </div>
+                      <div className="text-xs text-[var(--text-dim)] w-6 text-right">{count}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+              <div>
+                <div className="text-xs text-[var(--text-dim)] mb-2">MODE</div>
+                <div className="space-y-1">
+                  {[{ label: "vs Bot", count: botGames }, { label: "Online", count: onlineGames }].map(({ label, count }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div className="text-xs text-[var(--text-primary)] w-14">{label}</div>
+                      <div className="flex-1 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent-red)] rounded-full"
+                          style={{ width: totalGames > 0 ? `${(count / totalGames) * 100}%` : "0%" }}
+                        />
+                      </div>
+                      <div className="text-xs text-[var(--text-dim)] w-6 text-right">{count}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* HISTORY TAB */}
+      {tab === "history" && (
+        <div className="hacker-card slide-up">
+          {matches.length === 0 ? (
+            <div className="text-xs text-[var(--text-dim)] text-center py-4">NO MATCHES YET</div>
+          ) : (
+            <div className="space-y-1">
+              {matches.map((match) => (
+                <div
+                  key={match.id}
+                  className={`flex items-center justify-between text-xs p-3 border-l-2 ${
+                    match.won
+                      ? "border-[var(--accent-green)] bg-[rgba(0,255,102,0.03)]"
+                      : match.draw
+                      ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.03)]"
+                      : "border-[var(--accent-red)] bg-[rgba(255,0,51,0.03)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`font-bold ${match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--accent-yellow)]" : "text-[var(--accent-red)]"}`}>
+                      {match.won ? "W" : match.draw ? "D" : "L"}
+                    </span>
+                    <span className="text-[var(--text-primary)]">vs {match.opponentName}</span>
+                    <span className="text-[var(--text-muted)]">{match.isVsBot ? "BOT" : "ONLINE"}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[var(--text-dim)]">{match.challengeLanguage.toUpperCase()}</span>
+                    <span className={`font-bold ${match.eloChange > 0 ? "text-[var(--accent-green)]" : match.eloChange < 0 ? "text-[var(--accent-red)]" : "text-[var(--text-dim)]"}`}>
+                      {match.eloChange > 0 ? "+" : ""}{match.eloChange}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -153,7 +153,17 @@ export function getMatches(): StoredMatch[] {
   if (typeof window === "undefined") return [];
   const data = localStorage.getItem(MATCHES_KEY);
   if (!data) return [];
-  return JSON.parse(data);
+  const matches: StoredMatch[] = JSON.parse(data);
+  // Migrate old records where losses were stored with positive eloChange
+  let migrated = false;
+  for (const m of matches) {
+    if (!m.won && !m.draw && m.eloChange > 0) {
+      m.eloChange = -m.eloChange;
+      migrated = true;
+    }
+  }
+  if (migrated) localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  return matches;
 }
 
 export function addMatch(match: StoredMatch): void {

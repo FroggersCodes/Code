@@ -26,6 +26,7 @@ export interface GameResult {
   eloChange: number;
   newElo: number;
   newRank: string;
+  fixedCode?: string;
 }
 
 let currentGame: LocalGameState | null = null;
@@ -140,6 +141,8 @@ function endGame(): GameResult {
     createdAt: new Date().toISOString(),
   });
 
+  const fixedCode = currentGame.challenge.fixedCode;
+
   const result: GameResult = {
     won,
     draw,
@@ -150,6 +153,7 @@ function endGame(): GameResult {
     eloChange: change,
     newElo: newRatingA,
     newRank,
+    fixedCode,
   };
 
   currentGame = null;

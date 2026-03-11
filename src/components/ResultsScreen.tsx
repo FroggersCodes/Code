@@ -40,6 +40,7 @@ function Confetti() {
 
 export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScreenProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const player = getPlayer();
 
   useEffect(() => {
@@ -124,6 +125,19 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScr
               <RankBadge rank={result.newRank} size="md" />
             </div>
           </div>
+        </div>
+      )}
+
+      {result.fixedCode && (
+        <div className="mb-4 slide-up">
+          <RetroButton variant="primary" onClick={() => setShowSolution((s) => !s)} className="w-full">
+            {showSolution ? "HIDE SOLUTION" : "VIEW SOLUTION"}
+          </RetroButton>
+          {showSolution && (
+            <pre className="mt-3 text-left text-xs bg-[rgba(0,0,0,0.4)] border border-[var(--border-color)] p-3 overflow-auto text-[var(--accent-green)] font-mono leading-relaxed max-h-64">
+              {result.fixedCode}
+            </pre>
+          )}
         </div>
       )}
 

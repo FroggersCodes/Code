@@ -82,6 +82,7 @@ function PracticePageInner() {
   const [copyDone, setCopyDone] = useState(false);
   const [setupSubview, setSetupSubview] = useState<SetupSubview>("main");
   const [joinCodeInput, setJoinCodeInput] = useState("");
+  const [waitingConfig, setWaitingConfig] = useState<{ language: string; difficulty: number | null; timeLimit: number } | null>(null);
   const socketRef = useRef<ReturnType<typeof connectSocket> | null>(null);
   const friendResultCallback = useRef<((correct: boolean, result?: PracticeResult) => void) | null>(null);
 
@@ -120,8 +121,12 @@ function PracticePageInner() {
 
     socket.on(
       "practice:opponent-joined",
-      (data: { username: string; elo: number; rank: string }) => {
-        setOpponent(data);
+      (data: { username: string; elo: number; rank: string; config?: { language: string; difficulty: number | null; timeLimit: number } }) => {
+        setOpponent({ username: data.username, elo: data.elo, rank: data.rank });
+        if (data.config) {
+          setWaitingConfig(data.config);
+          setConfig((c) => ({ ...c, language: data.config!.language as "javascript" | "python", difficulty: data.config!.difficulty, timeLimit: data.config!.timeLimit }));
+        }
       }
     );
 
@@ -252,10 +257,9 @@ function PracticePageInner() {
     setPageState("countdown");
   }, []);
 
-  const handleCopyLink = useCallback(() => {
+  const handleCopyCode = useCallback(() => {
     if (!roomCode) return;
-    const url = `${window.location.origin}/practice?join=${roomCode}`;
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(roomCode).then(() => {
       setCopyDone(true);
       setTimeout(() => setCopyDone(false), 2000);
     });
@@ -408,12 +412,12 @@ function PracticePageInner() {
                 <RetroButton
                   variant="success"
                   onClick={() => {
-                    if (joinCodeInput.length < 3) return;
+                    if (joinCodeInput.length < 6) return;
                     setConfig((c) => ({ ...c, mode: "invite" }));
                     handleJoinRoom(joinCodeInput);
                   }}
                   className="flex-1"
-                  disabled={joinCodeInput.length < 3}
+                  disabled={joinCodeInput.length < 6}
                 >
                   JOIN
                 </RetroButton>
@@ -468,10 +472,20 @@ function PracticePageInner() {
                 >
                   {roomCode}
                 </div>
-                <RetroButton variant="primary" onClick={handleCopyLink} className="w-full mb-4">
-                  {copyDone ? "LINK COPIED!" : "COPY INVITE LINK"}
+                <RetroButton variant="primary" onClick={handleCopyCode} className="w-full mb-4">
+                  {copyDone ? "COPIED!" : "COPY CODE"}
                 </RetroButton>
               </>
+            )}
+
+            {(waitingConfig || isHost) && (
+              <div className="text-xs text-[var(--text-dim)] mb-3 flex gap-3 justify-center flex-wrap">
+                <span>{(waitingConfig?.language ?? config.language).toUpperCase()}</span>
+                <span>·</span>
+                <span>{(waitingConfig?.timeLimit ?? config.timeLimit)}s</span>
+                <span>·</span>
+                <span>{(waitingConfig?.difficulty ?? config.difficulty) === null ? "ANY" : `DIFF ${waitingConfig?.difficulty ?? config.difficulty}`}</span>
+              </div>
             )}
 
             {!opponent && (
@@ -579,7 +593,7 @@ function PracticePageInner() {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             {config.mode === "solo" && (
               <RetroButton variant="primary" onClick={handleRetry} className="flex-1">
                 RETRY
@@ -588,6 +602,11 @@ function PracticePageInner() {
             {config.mode === "solo" && (
               <RetroButton variant="success" onClick={handleNext} className="flex-1">
                 NEXT
+              </RetroButton>
+            )}
+            {config.mode === "invite" && (
+              <RetroButton variant="primary" onClick={() => { cleanupPractice(); setPageState("setup"); setPracticeResult(null); setOpponent(null); setRoomCode(null); setRoomId(null); setOpponentSolved(false); setOpponentTime(null); }} className="flex-1">
+                PLAY AGAIN
               </RetroButton>
             )}
             <RetroButton variant="error" onClick={() => { cleanupPractice(); router.push("/"); }} className="flex-1">
