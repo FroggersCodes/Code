@@ -17,6 +17,7 @@ import type { FullChallenge } from "@/lib/challenges";
 import type { PracticeConfig, PracticeOpponent } from "@/types";
 
 type PageState = "setup" | "waiting" | "countdown" | "playing" | "results";
+type SetupSubview = "main" | "join_input";
 
 const TIME_OPTIONS = [
   { label: "30s", value: 30 },
@@ -79,6 +80,8 @@ function PracticePageInner() {
   const [opponentTime, setOpponentTime] = useState<number | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copyDone, setCopyDone] = useState(false);
+  const [setupSubview, setSetupSubview] = useState<SetupSubview>("main");
+  const [joinCodeInput, setJoinCodeInput] = useState("");
   const socketRef = useRef<ReturnType<typeof connectSocket> | null>(null);
   const friendResultCallback = useRef<((correct: boolean, result?: PracticeResult) => void) | null>(null);
 
@@ -367,47 +370,75 @@ function PracticePageInner() {
             </div>
           </div>
 
-          {/* Mode */}
-          <div className="hacker-card hacker-card-red">
-            <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">MODE</div>
-            <div className="flex gap-2">
-              <OptionButton
-                active={config.mode === "solo"}
-                onClick={() => setConfig((c) => ({ ...c, mode: "solo" }))}
-              >
-                SOLO
-              </OptionButton>
-              <OptionButton
-                active={config.mode === "invite"}
-                onClick={() => setConfig((c) => ({ ...c, mode: "invite" }))}
-              >
-                INVITE FRIEND
-              </OptionButton>
-            </div>
-          </div>
-
-          {/* Join code input (for friends following a link before auto-join fires) */}
-          {config.mode === "invite" && joinError && (
-            <div className="text-xs text-[var(--accent-red)] tracking-wider text-center">
-              {joinError}
+          {/* Join code input subview */}
+          {setupSubview === "join_input" && (
+            <div className="hacker-card hacker-card-red">
+              <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">ENTER ROOM CODE</div>
+              <input
+                type="text"
+                value={joinCodeInput}
+                onChange={(e) => {
+                  setJoinCodeInput(e.target.value.toUpperCase().slice(0, 6));
+                  setJoinError(null);
+                }}
+                placeholder="ABC123"
+                maxLength={6}
+                className="w-full bg-transparent border border-[var(--border-color)] text-[var(--accent-red)] text-center text-2xl tracking-[0.4em] py-2 mb-3 outline-none focus:border-[var(--accent-red)] font-mono"
+                style={{ fontFamily: "'Orbitron', sans-serif" }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && joinCodeInput.length === 6) {
+                    setConfig((c) => ({ ...c, mode: "invite" }));
+                    handleJoinRoom(joinCodeInput);
+                  }
+                }}
+              />
+              {joinError && (
+                <div className="text-xs text-[var(--accent-red)] tracking-wider text-center mb-3">
+                  {joinError}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <RetroButton
+                  variant="error"
+                  onClick={() => { setSetupSubview("main"); setJoinCodeInput(""); setJoinError(null); }}
+                  className="flex-1"
+                >
+                  BACK
+                </RetroButton>
+                <RetroButton
+                  variant="success"
+                  onClick={() => {
+                    if (joinCodeInput.length < 3) return;
+                    setConfig((c) => ({ ...c, mode: "invite" }));
+                    handleJoinRoom(joinCodeInput);
+                  }}
+                  className="flex-1"
+                  disabled={joinCodeInput.length < 3}
+                >
+                  JOIN
+                </RetroButton>
+              </div>
             </div>
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-3">
-            <RetroButton variant="error" onClick={() => router.push("/")} className="flex-1">
-              BACK
-            </RetroButton>
-            {config.mode === "solo" ? (
+          {setupSubview === "main" && (
+            <div className="flex gap-3">
+              <RetroButton variant="error" onClick={() => router.push("/")} className="flex-1">
+                BACK
+              </RetroButton>
               <RetroButton variant="success" onClick={handleSoloStart} className="flex-1">
-                START
+                NEW PRACTICE
               </RetroButton>
-            ) : (
-              <RetroButton variant="success" onClick={handleCreateRoom} className="flex-1">
-                CREATE ROOM
+              <RetroButton
+                variant="primary"
+                onClick={() => setSetupSubview("join_input")}
+                className="flex-1"
+              >
+                JOIN PRACTICE
               </RetroButton>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     );
