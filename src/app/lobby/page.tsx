@@ -29,7 +29,9 @@ export default function LobbyPage() {
   const [queueTime, setQueueTime] = useState(0);
   const [showBotFallback, setShowBotFallback] = useState(false);
   const [serverAvailable, setServerAvailable] = useState(false);
+  const [autoStart, setAutoStart] = useState<"bot" | "online" | null>(null);
   const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStartedRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,6 +52,17 @@ export default function LobbyPage() {
       socket.on("connect", () => {
         clearTimeout(timeout);
         setServerAvailable(true);
+        // Report stats to leaderboard
+        if (p) {
+          socket.emit("leaderboard:update", {
+            username: p.username,
+            elo: p.elo,
+            rank: p.rank,
+            wins: p.wins,
+            losses: p.losses,
+            draws: p.draws,
+          });
+        }
       });
       socket.on("connect_error", () => {
         clearTimeout(timeout);
@@ -58,6 +71,16 @@ export default function LobbyPage() {
     }).catch(() => {
       // Socket module failed to load
     });
+
+    // Auto-start mode from query param
+    const params = new URLSearchParams(window.location.search);
+    const autoMode = params.get("mode");
+    if (autoMode === "bot") {
+      // Will be triggered after player is set
+      setAutoStart("bot");
+    } else if (autoMode === "online") {
+      setAutoStart("online");
+    }
   }, [router]);
 
   useEffect(() => {
@@ -161,6 +184,17 @@ export default function LobbyPage() {
     }
     handleStartBot();
   }, [handleStartBot]);
+
+  // Auto-start effect for query param mode
+  useEffect(() => {
+    if (!player || !autoStart || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    if (autoStart === "bot") {
+      handleStartBot();
+    } else if (autoStart === "online") {
+      handleStartOnline();
+    }
+  }, [player, autoStart, handleStartBot, handleStartOnline]);
 
   if (!player) return null;
 

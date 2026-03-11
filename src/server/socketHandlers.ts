@@ -28,6 +28,17 @@ interface GameRoom {
 const rooms = new Map<string, GameRoom>();
 const playerRooms = new Map<string, string>(); // socketId -> roomId
 
+// Leaderboard: username -> stats
+interface LeaderboardEntry {
+  username: string;
+  elo: number;
+  rank: string;
+  wins: number;
+  losses: number;
+  draws: number;
+}
+const leaderboard = new Map<string, LeaderboardEntry>();
+
 let matchmakingInterval: ReturnType<typeof setInterval> | null = null;
 
 function generateRoomId(): string {
@@ -92,6 +103,24 @@ function endGame(room: GameRoom, io: Server): void {
     newRank: getRankFromElo(newRatingB),
   });
 
+  // Update leaderboard entries
+  const p1Entry = leaderboard.get(p1.username.toLowerCase());
+  if (p1Entry) {
+    p1Entry.elo = newRatingA;
+    p1Entry.rank = getRankFromElo(newRatingA);
+    if (draw) p1Entry.draws++;
+    else if (p1Won) p1Entry.wins++;
+    else p1Entry.losses++;
+  }
+  const p2Entry = leaderboard.get(p2.username.toLowerCase());
+  if (p2Entry) {
+    p2Entry.elo = newRatingB;
+    p2Entry.rank = getRankFromElo(newRatingB);
+    if (draw) p2Entry.draws++;
+    else if (!p1Won) p2Entry.wins++;
+    else p2Entry.losses++;
+  }
+
   // Cleanup
   playerRooms.delete(p1.socketId);
   playerRooms.delete(p2.socketId);
@@ -149,7 +178,40 @@ export function setupSocketHandlers(io: Server): void {
   io.on("connection", (socket: Socket) => {
     console.log(`Player connected: ${socket.id}`);
 
+    // Leaderboard events
+    socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number }) => {
+      if (data.username && typeof data.elo === "number") {
+        leaderboard.set(data.username.toLowerCase(), {
+          username: data.username,
+          elo: data.elo,
+          rank: data.rank,
+          wins: data.wins || 0,
+          losses: data.losses || 0,
+          draws: data.draws || 0,
+        });
+      }
+    });
+
+    socket.on("leaderboard:get", () => {
+      const entries = Array.from(leaderboard.values())
+        .sort((a, b) => b.elo - a.elo)
+        .slice(0, 50);
+      socket.emit("leaderboard:data", entries);
+    });
+
     socket.on("queue:join", (data: { username: string; elo: number; rank: string }) => {
+      // Also update leaderboard when joining queue
+      if (data.username && !leaderboard.has(data.username.toLowerCase())) {
+        leaderboard.set(data.username.toLowerCase(), {
+          username: data.username,
+          elo: data.elo,
+          rank: data.rank,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+        });
+      }
+
       addToQueue({
         socketId: socket.id,
         username: data.username,

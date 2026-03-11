@@ -8,6 +8,7 @@ const RANK_ICONS: Record<RankTier, string> = {
   Gold: "G",
   Platinum: "P",
   Diamond: "D",
+  Grandmaster: "GM",
 };
 
 export function RankBadge({ rank, size = "sm" }: { rank: string; size?: "sm" | "md" | "lg" }) {
