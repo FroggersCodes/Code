@@ -134,7 +134,7 @@ function endGame(): GameResult {
     isVsBot: true,
     won,
     draw,
-    eloChange: change,
+    eloChange: won ? change : draw ? 0 : -change,
     playerTime: currentGame.playerSolveTime,
     opponentTime: currentGame.botSolveTime,
     createdAt: new Date().toISOString(),
