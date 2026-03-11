@@ -28,6 +28,12 @@ export function Navbar() {
         >
           Play
         </Link>
+        <Link
+          href="/leaderboard"
+          className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
+        >
+          Rankings
+        </Link>
         {username ? (
           <Link
             href="/profile"

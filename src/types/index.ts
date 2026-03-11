@@ -20,14 +20,15 @@ export interface ChallengeData {
   category: string;
 }
 
-export type RankTier = "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond";
+export type RankTier = "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Grandmaster";
 
 export const RANK_THRESHOLDS: Record<RankTier, { min: number; max: number }> = {
   Bronze: { min: 0, max: 999 },
   Silver: { min: 1000, max: 1199 },
   Gold: { min: 1200, max: 1399 },
   Platinum: { min: 1400, max: 1599 },
-  Diamond: { min: 1600, max: 9999 },
+  Diamond: { min: 1600, max: 1999 },
+  Grandmaster: { min: 2000, max: Infinity },
 };
 
 export const RANK_COLORS: Record<RankTier, string> = {
@@ -36,6 +37,7 @@ export const RANK_COLORS: Record<RankTier, string> = {
   Gold: "#ffd700",
   Platinum: "#00d4ff",
   Diamond: "#ff0066",
+  Grandmaster: "#ff4500",
 };
 
 export interface OnlineOpponent {

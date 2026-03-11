@@ -22,6 +22,7 @@ export function updateRatings(
 }
 
 export function getRankFromElo(elo: number): RankTier {
+  if (elo >= 2000) return "Grandmaster";
   if (elo >= 1600) return "Diamond";
   if (elo >= 1400) return "Platinum";
   if (elo >= 1200) return "Gold";
