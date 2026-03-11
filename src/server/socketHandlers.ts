@@ -136,6 +136,9 @@ function endGame(room: GameRoom, io: Server): void {
   const p1Score = p1Won ? 1 : draw ? 0.5 : 0;
   const { newRatingA, newRatingB, change } = updateRatings(p1.elo, p2.elo, p1Score);
 
+  const fixedCode = room.challenge?.fixedCode;
+  const buggyCode = room.challenge?.buggyCode;
+
   // Send results to player 1
   io.to(p1.socketId).emit("game:end", {
     won: p1Won,
@@ -146,6 +149,8 @@ function endGame(room: GameRoom, io: Server): void {
     eloChange: p1Won ? change : draw ? 0 : -change,
     newElo: newRatingA,
     newRank: getRankFromElo(newRatingA),
+    fixedCode,
+    buggyCode,
   });
 
   // Send results to player 2
@@ -158,6 +163,8 @@ function endGame(room: GameRoom, io: Server): void {
     eloChange: !p1Won && !draw ? change : draw ? 0 : -change,
     newElo: newRatingB,
     newRank: getRankFromElo(newRatingB),
+    fixedCode,
+    buggyCode,
   });
 
   // Update leaderboard entries
@@ -254,6 +261,18 @@ export function setupSocketHandlers(io: Server): void {
         .sort((a, b) => b.elo - a.elo)
         .slice(0, 50);
       socket.emit("leaderboard:data", entries);
+    });
+
+    socket.on("season:info", () => {
+      const SEASON_EPOCH = new Date("2026-03-01").getTime();
+      const SEASON_MS = 30 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const elapsed = now - SEASON_EPOCH;
+      const seasonNumber = Math.max(1, Math.floor(elapsed / SEASON_MS) + 1);
+      const seasonStart = SEASON_EPOCH + (seasonNumber - 1) * SEASON_MS;
+      const seasonEnd = seasonStart + SEASON_MS;
+      const daysLeft = Math.max(0, Math.ceil((seasonEnd - now) / (24 * 60 * 60 * 1000)));
+      socket.emit("season:info", { season: seasonNumber, daysLeft, endsAt: new Date(seasonEnd).toISOString() });
     });
 
     socket.on("queue:join", (data: { username: string; elo: number; rank: string; title?: string | null }) => {

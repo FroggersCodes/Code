@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPlayer } from "@/lib/storage";
 import { TITLES } from "@/lib/titles";
+import { isMuted, toggleMute } from "@/lib/sounds";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [titleLabel, setTitleLabel] = useState<string | null>(null);
+  const [muted, setMuted] = useState(false);
 
   useEffect(() => {
     const player = getPlayer();
@@ -18,6 +20,7 @@ export function Navbar() {
         setTitleLabel(t?.label ?? null);
       }
     }
+    setMuted(isMuted());
   }, []);
 
   return (
@@ -42,6 +45,14 @@ export function Navbar() {
         >
           Rankings
         </Link>
+        <button
+          onClick={() => setMuted(toggleMute())}
+          className="text-[var(--text-dim)] text-xs hover:text-[var(--text-primary)] transition-colors bg-transparent border-none cursor-pointer"
+          title={muted ? "Unmute" : "Mute"}
+          style={{ fontFamily: "inherit" }}
+        >
+          {muted ? "[ SOUND OFF ]" : "[ SOUND ON ]"}
+        </button>
         {username ? (
           <Link
             href="/profile"

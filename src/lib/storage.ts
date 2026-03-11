@@ -7,12 +7,19 @@ import { getNewlyUnlocked } from "./titles";
 const PLAYER_KEY = "bugracer_player";
 const MATCHES_KEY = "bugracer_matches";
 const ACCOUNTS_KEY = "bugracer_accounts";
+const PENDING_TOASTS_KEY = "bugracer_pending_toasts";
 
 function playerKey(username: string): string {
   return `bugracer_player_${username.toLowerCase()}`;
 }
 function matchesKey(username: string): string {
   return `bugracer_matches_${username.toLowerCase()}`;
+}
+function friendsKey(username: string): string {
+  return `bugracer_friends_${username.toLowerCase()}`;
+}
+function cotdKey(date: string, username: string): string {
+  return `bugracer_cotd_${date}_${username.toLowerCase()}`;
 }
 
 interface StoredAccount {
@@ -187,7 +194,7 @@ export function updatePlayerAfterMatch(
   savePlayer(player);
 }
 
-/** Checks for newly unlocked titles, saves them, returns their labels. */
+/** Checks for newly unlocked titles, saves them, queues toasts, returns their labels. */
 export function checkAndUnlockTitles(): string[] {
   const player = getPlayer();
   if (!player) return [];
@@ -197,7 +204,96 @@ export function checkAndUnlockTitles(): string[] {
   player.unlockedTitles = [...(player.unlockedTitles ?? []), ...newIds];
   savePlayer(player);
   const { TITLES } = require("./titles") as typeof import("./titles");
-  return newIds.map((id) => TITLES.find((t) => t.id === id)?.label ?? id);
+  const labels = newIds.map((id: string) => TITLES.find((t: { id: string }) => t.id === id)?.label ?? id);
+  // Queue for display
+  const existing: string[] = JSON.parse(localStorage.getItem(PENDING_TOASTS_KEY) ?? "[]");
+  localStorage.setItem(PENDING_TOASTS_KEY, JSON.stringify([...existing, ...labels]));
+  return labels;
+}
+
+export function consumePendingTitleToasts(): string[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(PENDING_TOASTS_KEY);
+  if (!data) return [];
+  localStorage.removeItem(PENDING_TOASTS_KEY);
+  return JSON.parse(data);
+}
+
+// ─── Friends ───────────────────────────────────────────────────────────────
+export function getFriends(): string[] {
+  if (typeof window === "undefined") return [];
+  const player = getPlayer();
+  if (!player) return [];
+  const data = localStorage.getItem(friendsKey(player.username));
+  return data ? JSON.parse(data) : [];
+}
+
+export function addFriend(friendUsername: string): void {
+  const player = getPlayer();
+  if (!player) return;
+  const friends = getFriends();
+  const lower = friendUsername.toLowerCase();
+  if (lower === player.username.toLowerCase()) return; // can't friend yourself
+  if (!friends.includes(lower)) {
+    friends.push(lower);
+    localStorage.setItem(friendsKey(player.username), JSON.stringify(friends));
+  }
+}
+
+export function removeFriend(friendUsername: string): void {
+  const player = getPlayer();
+  if (!player) return;
+  const friends = getFriends().filter((f) => f !== friendUsername.toLowerCase());
+  localStorage.setItem(friendsKey(player.username), JSON.stringify(friends));
+}
+
+export interface FriendStats {
+  username: string;
+  elo: number;
+  rank: string;
+  wins: number;
+  losses: number;
+}
+
+export function getFriendStats(friendUsername: string): FriendStats | null {
+  if (typeof window === "undefined") return null;
+  const data = localStorage.getItem(playerKey(friendUsername));
+  if (!data) return null;
+  const p = JSON.parse(data) as { username: string; elo: number; rank: string; wins: number; losses: number };
+  return { username: p.username, elo: p.elo, rank: p.rank, wins: p.wins, losses: p.losses };
+}
+
+// ─── Challenge of the day ─────────────────────────────────────────────────
+export interface CotdRecord {
+  bestTime: number | null; // ms, null = DNF
+  attempts: number;
+  won: boolean;
+}
+
+export function getCotdRecord(): CotdRecord | null {
+  if (typeof window === "undefined") return null;
+  const player = getPlayer();
+  if (!player) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  const data = localStorage.getItem(cotdKey(today, player.username));
+  return data ? JSON.parse(data) : null;
+}
+
+export function updateCotdRecord(won: boolean, time: number | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const existing = getCotdRecord();
+  const record: CotdRecord = {
+    bestTime: existing
+      ? time !== null && (existing.bestTime === null || time < existing.bestTime)
+        ? time
+        : existing.bestTime
+      : time,
+    attempts: (existing?.attempts ?? 0) + 1,
+    won: existing?.won || won,
+  };
+  localStorage.setItem(cotdKey(today, player.username), JSON.stringify(record));
 }
 
 export function equipTitle(titleId: string | null): void {

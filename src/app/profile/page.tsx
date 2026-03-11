@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, getFriends, addFriend, removeFriend, getFriendStats, type FriendStats } from "@/lib/storage";
 import { TITLES, getTitleLabel } from "@/lib/titles";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
 
-type Tab = "stats" | "history" | "titles";
+type Tab = "stats" | "history" | "titles" | "friends";
 
 function EloChart({ points }: { points: number[] }) {
   if (points.length < 2) return null;
@@ -56,6 +56,9 @@ export default function ProfilePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [matches, setMatches] = useState<StoredMatch[]>([]);
   const [tab, setTab] = useState<Tab>("stats");
+  const [friends, setFriends] = useState<string[]>([]);
+  const [friendInput, setFriendInput] = useState("");
+  const [friendError, setFriendError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -65,8 +68,9 @@ export default function ProfilePage() {
       return;
     }
     checkAndUnlockTitles();
-    setPlayer(getPlayer()!); // re-read after potential unlock
+    setPlayer(getPlayer()!);
     setMatches(getMatches());
+    setFriends(getFriends());
   }, [router]);
 
   const handleLogout = () => {
@@ -143,6 +147,7 @@ export default function ProfilePage() {
       <div className="flex border-b border-[var(--border-color)] mb-4">
         <TabBtn id="stats" label="STATS" />
         <TabBtn id="titles" label="TITLES" />
+        <TabBtn id="friends" label="FRIENDS" />
         <TabBtn id="history" label="HISTORY" />
       </div>
 
@@ -260,6 +265,86 @@ export default function ProfilePage() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* FRIENDS TAB */}
+      {tab === "friends" && (
+        <div className="hacker-card slide-up">
+          <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+            {friends.length} FRIEND{friends.length !== 1 ? "S" : ""}
+          </div>
+
+          {/* Add friend */}
+          <div className="flex gap-2 mb-4">
+            <input
+              className="hacker-input flex-1"
+              placeholder="username_"
+              value={friendInput}
+              onChange={(e) => { setFriendInput(e.target.value); setFriendError(""); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const u = friendInput.trim();
+                  if (!u) return;
+                  if (u.toLowerCase() === player!.username.toLowerCase()) { setFriendError("That's you"); return; }
+                  addFriend(u);
+                  setFriends(getFriends());
+                  setFriendInput("");
+                }
+              }}
+              maxLength={20}
+            />
+            <RetroButton
+              variant="success"
+              onClick={() => {
+                const u = friendInput.trim();
+                if (!u) return;
+                if (u.toLowerCase() === player!.username.toLowerCase()) { setFriendError("That's you"); return; }
+                addFriend(u);
+                setFriends(getFriends());
+                setFriendInput("");
+              }}
+            >
+              ADD
+            </RetroButton>
+          </div>
+          {friendError && <div className="text-xs text-[var(--accent-red)] mb-3">{friendError}</div>}
+
+          {friends.length === 0 ? (
+            <div className="text-xs text-[var(--text-muted)] text-center py-4">
+              No friends yet. Add someone by their username.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {friends.map((f) => {
+                const stats: FriendStats | null = getFriendStats(f);
+                return (
+                  <div key={f} className="flex items-center justify-between p-3 border border-[var(--border-color)] rounded bg-[var(--bg-dark)]">
+                    <div className="flex items-center gap-3">
+                      {stats ? <RankBadge rank={stats.rank} size="sm" /> : null}
+                      <div>
+                        <div className="text-xs text-[var(--text-primary)] font-bold">{stats?.username ?? f}</div>
+                        {stats ? (
+                          <div className="text-[10px] text-[var(--text-dim)]">
+                            {stats.elo} ELO · {stats.wins}W {stats.losses}L
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-[var(--text-muted)]">Stats unavailable on this device</div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { removeFriend(f); setFriends(getFriends()); }}
+                      className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent-red)] transition-colors bg-transparent border-none cursor-pointer"
+                      style={{ fontFamily: "inherit" }}
+                    >
+                      REMOVE
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
 import { getPlayer } from "@/lib/storage";
 import { getTitleLabel } from "@/lib/titles";
+import { playMatchFound } from "@/lib/sounds";
 import { startBotGame } from "@/lib/gameEngine";
 import { BOT_PLAYER } from "@/lib/bot";
 import {
@@ -127,6 +128,7 @@ export default function LobbyPage() {
       setOpponent(game.opponent);
       setRoomId(game.roomId);
       setState("matched");
+      playMatchFound();
 
       setTimeout(() => {
         router.push(`/game?mode=multiplayer&room=${game.roomId}`);

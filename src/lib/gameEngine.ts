@@ -1,8 +1,7 @@
 "use client";
 
 import type { ChallengeData } from "@/types";
-import type { FullChallenge } from "./challenges";
-import { getRandomChallenge, validateCodeFix } from "./challenges";
+import { getRandomChallenge, validateCodeFix, type FullChallenge } from "./challenges";
 import { getBotSolveDelay, shouldBotFail, BOT_PLAYER } from "./bot";
 import { updateRatings, getRankFromElo } from "./elo";
 import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles } from "./storage";
@@ -27,20 +26,28 @@ export interface GameResult {
   newElo: number;
   newRank: string;
   fixedCode?: string;
+  buggyCode?: string;
 }
 
 let currentGame: LocalGameState | null = null;
 let botTimeout: ReturnType<typeof setTimeout> | null = null;
 let onBotSolve: (() => void) | null = null;
 
+export function startBotGameWithChallenge(challenge: FullChallenge): LocalGameState {
+  const player = getPlayer();
+  if (!player) throw new Error("No player");
+  return initBotGame(player.elo, challenge);
+}
+
 export function startBotGame(): LocalGameState {
   const player = getPlayer();
   if (!player) throw new Error("No player");
 
   const challenge = getRandomChallenge();
-  const playerElo = player.elo;
+  return initBotGame(player.elo, challenge);
+}
 
-  // Calculate bot solve delay
+function initBotGame(playerElo: number, challenge: FullChallenge): LocalGameState {
   const botDelay = getBotSolveDelay(playerElo, challenge.difficulty);
   const botFails = shouldBotFail(playerElo);
 
@@ -53,12 +60,10 @@ export function startBotGame(): LocalGameState {
     ended: false,
   };
 
-  // Schedule bot solve
   const firstDelay = botFails ? botDelay * 0.4 : botDelay;
   botTimeout = setTimeout(() => {
     if (!currentGame || currentGame.ended) return;
     if (botFails) {
-      // Bot failed first attempt, retry
       botTimeout = setTimeout(() => {
         if (!currentGame || currentGame.ended) return;
         currentGame.botSolveTime = Date.now() - currentGame.startTime;
@@ -142,8 +147,6 @@ function endGame(): GameResult {
     createdAt: new Date().toISOString(),
   });
 
-  const fixedCode = currentGame.challenge.fixedCode;
-
   const result: GameResult = {
     won,
     draw,
@@ -154,7 +157,8 @@ function endGame(): GameResult {
     eloChange: change,
     newElo: newRatingA,
     newRank,
-    fixedCode,
+    fixedCode: currentGame.challenge.fixedCode,
+    buggyCode: currentGame.challenge.buggyCode,
   };
 
   currentGame = null;

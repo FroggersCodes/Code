@@ -19,6 +19,7 @@ import {
 import { getPlayer } from "@/lib/storage";
 import { BOT_PLAYER } from "@/lib/bot";
 import { TITLES, getTitleLabel } from "@/lib/titles";
+import { playTypingBurst, playSolveSound } from "@/lib/sounds";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
 import type { ChallengeData, OnlineOpponent, MultiplayerResult } from "@/types";
 
@@ -105,6 +106,7 @@ export function GameArena(props: GameArenaProps) {
 
     setOnSubmitResult((correct: boolean) => {
       if (correct) {
+        playSolveSound();
         setSolved(true);
       } else {
         setShowError(true);
@@ -146,6 +148,7 @@ export function GameArena(props: GameArenaProps) {
   const handleCodeChange = useCallback((value: string) => {
     setCode(value);
     setShowError(false);
+    playTypingBurst();
 
     if (isMultiplayer && props.multiplayerConfig) {
       const isTyping = value !== code;
@@ -172,6 +175,7 @@ export function GameArena(props: GameArenaProps) {
     } else {
       const { correct, result } = submitCode(code);
       if (correct && result) {
+        playSolveSound();
         setSolved(true);
         resultSent.current = true;
         setGameEnded(true);

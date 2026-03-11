@@ -58,6 +58,8 @@ export interface MultiplayerResult {
   eloChange: number;
   newElo: number;
   newRank: string;
+  fixedCode?: string;
+  buggyCode?: string;
 }
 
 export interface PracticeConfig {

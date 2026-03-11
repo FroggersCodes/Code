@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
-import { getPlayer, getMatches, signUp, login, loginAsGuest, type StoredMatch } from "@/lib/storage";
+import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
+import { getChallengeOfTheDay } from "@/lib/challenges";
+import { startBotGameWithChallenge } from "@/lib/gameEngine";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 
@@ -229,6 +231,46 @@ export default function HomePage() {
               </RetroButton>
             </div>
           </div>
+
+          {/* Challenge of the Day */}
+          {(() => {
+            const cotd = getChallengeOfTheDay();
+            const record = getCotdRecord();
+            const diffStars = "★".repeat(cotd.difficulty) + "☆".repeat(3 - cotd.difficulty);
+            return (
+              <div className="hacker-card hacker-card-red mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs text-[var(--accent-yellow)] tracking-wider font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                    CHALLENGE OF THE DAY
+                  </div>
+                  <span className="text-[10px] text-[var(--text-dim)] tracking-widest">
+                    {new Date().toISOString().slice(0, 10)}
+                  </span>
+                </div>
+                <div className="text-sm text-[var(--text-primary)] font-bold mb-1">{cotd.title}</div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-[10px] text-[var(--accent-yellow)]">{diffStars}</span>
+                  <span className="text-[10px] text-[var(--text-dim)] uppercase">{cotd.language}</span>
+                  {record && (
+                    <span className="text-[10px] text-[var(--accent-green)]">
+                      {record.bestTime ? `PB: ${(record.bestTime / 1000).toFixed(1)}s` : "Attempted"}
+                      {` · ${record.attempts}x`}
+                    </span>
+                  )}
+                </div>
+                <RetroButton
+                  variant={record?.won ? "primary" : "success"}
+                  className="w-full"
+                  onClick={() => {
+                    startBotGameWithChallenge(cotd);
+                    router.push("/game?mode=cotd");
+                  }}
+                >
+                  {record?.won ? "REPLAY" : "PLAY"}
+                </RetroButton>
+              </div>
+            );
+          })()}
 
           {/* Recent Matches */}
           <div className="hacker-card hacker-card-red mb-4">
