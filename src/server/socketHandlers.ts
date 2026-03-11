@@ -419,11 +419,12 @@ export function setupSocketHandlers(io: Server): void {
           elo: data.elo,
           rank: data.rank,
         });
-        // Notify guest of host info
+        // Notify guest of host info + room config
         socket.emit("practice:opponent-joined", {
           username: room.host.username,
           elo: room.host.elo,
           rank: room.host.rank,
+          config: { language: room.language, difficulty: room.difficulty, timeLimit: room.timeLimit },
         });
       }
     );
