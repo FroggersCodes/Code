@@ -8,6 +8,13 @@ const PLAYER_KEY = "bugracer_player";
 const MATCHES_KEY = "bugracer_matches";
 const ACCOUNTS_KEY = "bugracer_accounts";
 
+function playerKey(username: string): string {
+  return `bugracer_player_${username.toLowerCase()}`;
+}
+function matchesKey(username: string): string {
+  return `bugracer_matches_${username.toLowerCase()}`;
+}
+
 interface StoredAccount {
   username: string;
   passwordHash: string;
@@ -76,13 +83,27 @@ export function login(
     return { error: "Incorrect password" };
   }
 
-  // Check if player data exists, otherwise create fresh
+  // Check current active session first
   const existing = getPlayer();
   if (existing && existing.username.toLowerCase() === username.toLowerCase()) {
     return existing;
   }
 
-  // Look in all stored player data or create new
+  // Restore from per-user save (data persisted across logouts)
+  const savedData = typeof window !== "undefined"
+    ? localStorage.getItem(playerKey(username))
+    : null;
+  if (savedData) {
+    const saved = JSON.parse(savedData) as Player;
+    // Restore player to active slot
+    localStorage.setItem(PLAYER_KEY, savedData);
+    // Restore matches
+    const savedMatches = localStorage.getItem(matchesKey(username));
+    if (savedMatches) localStorage.setItem(MATCHES_KEY, savedMatches);
+    return saved;
+  }
+
+  // Brand-new player (first login after sign-up clears PLAYER_KEY)
   const player: Player = {
     id: Date.now(),
     username: account.username,
@@ -129,7 +150,9 @@ export function getPlayer(): Player | null {
 }
 
 export function savePlayer(player: Player): void {
-  localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+  const data = JSON.stringify(player);
+  localStorage.setItem(PLAYER_KEY, data);
+  localStorage.setItem(playerKey(player.username), data);
 }
 
 export function createPlayer(username: string, passwordHash = ""): Player {
@@ -207,7 +230,11 @@ export function addMatch(match: StoredMatch): void {
   matches.unshift(match);
   // Keep last 50 matches
   if (matches.length > 50) matches.length = 50;
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  const data = JSON.stringify(matches);
+  localStorage.setItem(MATCHES_KEY, data);
+  // Also persist to per-user key
+  const player = getPlayer();
+  if (player) localStorage.setItem(matchesKey(player.username), data);
 }
 
 export function loginAsGuest(): Player {
@@ -221,6 +248,8 @@ export function loginAsGuest(): Player {
 }
 
 export function logout(): void {
+  // Per-user keys already have the latest data (savePlayer/addMatch keep them in sync).
+  // Just clear the active-session slots.
   localStorage.removeItem(PLAYER_KEY);
   localStorage.removeItem(MATCHES_KEY);
 }
