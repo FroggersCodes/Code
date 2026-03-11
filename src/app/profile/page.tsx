@@ -107,7 +107,7 @@ export default function ProfilePage() {
                       match.won ? "text-[var(--accent-green)]" : match.draw ? "text-[var(--text-dim)]" : "text-[var(--accent-red)]"
                     }`}
                   >
-                    {match.won ? "+" : match.draw ? "" : "-"}{match.eloChange}
+                    {match.eloChange > 0 ? "+" : ""}{match.eloChange}
                   </span>
                 </div>
               </div>
