@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, signUp, login } from "@/lib/storage";
+import { getPlayer, signUp, login, loginAsGuest } from "@/lib/storage";
 
 type AuthTab = "login" | "signup";
 
@@ -178,6 +178,24 @@ export default function HomePage() {
               className="w-full"
             >
               {tab === "signup" ? "CREATE ACCOUNT" : "INITIALIZE"}
+            </RetroButton>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 border-t border-[var(--border-color)]" />
+              <span className="text-xs text-[var(--text-dim)] tracking-wider">OR</span>
+              <div className="flex-1 border-t border-[var(--border-color)]" />
+            </div>
+            <RetroButton
+              variant="primary"
+              onClick={() => {
+                loginAsGuest();
+                router.push("/lobby");
+              }}
+              className="w-full max-w-sm"
+            >
+              PLAY AS GUEST
             </RetroButton>
           </div>
 
