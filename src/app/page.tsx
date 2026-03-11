@@ -35,41 +35,50 @@ function RankCircle({ player }: { player: Player }) {
     progressLabel = `${eloToNext} ELO to ${nextRank}`;
   }
 
-  const radius = 54;
-  const stroke = 6;
+  const radius = 62;
+  const stroke = 11;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - progress);
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: 140, height: 140 }}>
-        <svg width="140" height="140" viewBox="0 0 140 140">
-          {/* Background circle */}
+      <div className="relative" style={{ width: 168, height: 168 }}>
+        <svg width="168" height="168" viewBox="0 0 168 168">
+          {/* Outer decorative ring */}
           <circle
-            cx="70" cy="70" r={radius}
+            cx="84" cy="84" r={radius + 10}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke={color}
+            strokeWidth={1}
+            opacity={0.18}
+            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
+          />
+          {/* Background track */}
+          <circle
+            cx="84" cy="84" r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.14)"
             strokeWidth={stroke}
           />
           {/* Progress arc */}
           <circle
-            cx="70" cy="70" r={radius}
+            cx="84" cy="84" r={radius}
             fill="none"
             stroke={color}
             strokeWidth={stroke}
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
-            transform="rotate(-90 70 70)"
+            transform="rotate(-90 84 84)"
             style={{
-              filter: `drop-shadow(0 0 6px ${color})`,
+              filter: `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 22px ${color}90)`,
               transition: "stroke-dashoffset 0.8s ease-out",
             }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <RankBadge rank={player.rank} size="md" />
-          <div className="text-lg font-bold mt-1" style={{ color, textShadow: `0 0 8px ${color}` }}>
+          <div className="text-xl font-bold mt-1" style={{ color, textShadow: `0 0 10px ${color}, 0 0 24px ${color}80` }}>
             {player.elo}
           </div>
         </div>
