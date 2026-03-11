@@ -21,7 +21,7 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const router = useRouter();
-  const player = getPlayer();
+  const [player] = useState(() => getPlayer());
 
   const fetchLeaderboard = useCallback(() => {
     setLoading(true);

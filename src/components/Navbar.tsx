@@ -23,7 +23,7 @@ export function Navbar() {
       </Link>
       <div className="flex items-center gap-6">
         <Link
-          href="/lobby"
+          href="/"
           className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
         >
           Play
