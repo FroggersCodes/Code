@@ -164,6 +164,16 @@ export function addMatch(match: StoredMatch): void {
   localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
 }
 
+export function loginAsGuest(): Player {
+  const adjectives = ["Swift", "Sneaky", "Glitchy", "Turbo", "Cyber", "Neon", "Pixel", "Shadow", "Hyper", "Quantum"];
+  const nouns = ["Debugger", "Hacker", "Coder", "Fixer", "Runner", "Racer", "Ninja", "Ghost", "Byte", "Glitch"];
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(Math.random() * 1000);
+  const username = `${adj}${noun}${num}`;
+  return createPlayer(username);
+}
+
 export function logout(): void {
   localStorage.removeItem(PLAYER_KEY);
   localStorage.removeItem(MATCHES_KEY);
