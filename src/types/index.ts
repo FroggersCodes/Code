@@ -41,7 +41,7 @@ export const RANK_COLORS: Record<RankTier, string> = {
   Gold: "#ffd700",
   Platinum: "#00d4ff",
   Diamond: "#ff0066",
-  Grandmaster: "#ff3355",
+  Grandmaster: "#aa44ff",
 };
 
 export interface OnlineOpponent {

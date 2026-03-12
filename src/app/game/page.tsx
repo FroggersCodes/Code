@@ -11,6 +11,8 @@ import {
   signalReady,
   cleanupMultiplayerGame,
   setOnGameStart,
+  setOnReaction,
+  sendReaction,
 } from "@/lib/multiplayerEngine";
 import { consumePendingTitleToasts, updateCotdRecord, getCotdRecord } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
@@ -33,6 +35,7 @@ function GameContent() {
   const [countdown, setCountdown] = useState(3);
   const [pendingToasts, setPendingToasts] = useState<string[]>([]);
   const [showingToasts, setShowingToasts] = useState(false);
+  const [opponentReaction, setOpponentReaction] = useState<string | null>(null);
   const resultReadyRef = useRef(false);
 
   const showResults = useCallback((gameResult: GameResult) => {
@@ -101,6 +104,8 @@ function GameContent() {
       }
     });
 
+    setOnReaction((msg) => setOpponentReaction(msg));
+
     if (mpGame.challenge) {
       setMultiplayerChallenge(mpGame.challenge);
       startCountdown();
@@ -108,7 +113,7 @@ function GameContent() {
       signalReady(roomId);
     }
 
-    return () => { setOnGameStart(null); };
+    return () => { setOnGameStart(null); setOnReaction(null); };
   }, [mode, roomId, router, startCountdown]);
 
   const handleGameResult = useCallback((gameResult: GameResult) => {
@@ -133,9 +138,10 @@ function GameContent() {
       newRank: mpResult.newRank,
       fixedCode: mpResult.fixedCode,
       buggyCode: mpResult.buggyCode,
+      challengeTitle: multiplayerChallenge?.title,
     };
     setTimeout(() => showResults(gameResult), 1500);
-  }, [showResults]);
+  }, [showResults, multiplayerChallenge]);
 
   const handlePlayAgain = useCallback(() => {
     if (mode === "bot" || mode === "cotd") cleanupGame();
@@ -200,6 +206,8 @@ function GameContent() {
           result={result}
           onPlayAgain={handlePlayAgain}
           onBackToLobby={handlePlayAgain}
+          onSendReaction={mode === "multiplayer" && roomId ? (msg) => sendReaction(roomId, msg) : undefined}
+          opponentReaction={mode === "multiplayer" ? opponentReaction : undefined}
         />
       )}
     </div>

@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { RankBadge } from "./RankBadge";
 import { RetroButton } from "./RetroButton";
-import { getPlayer } from "@/lib/storage";
+import { getPlayer, addBugReport } from "@/lib/storage";
 import type { GameResult } from "@/lib/gameEngine";
+
+const REACTIONS = ["GG", "WELL PLAYED", "UNLUCKY", "NICE TRY", "CLOSE ONE"] as const;
 
 interface ResultsScreenProps {
   result: GameResult;
   onPlayAgain: () => void;
   onBackToLobby: () => void;
+  onSendReaction?: (msg: string) => void;
+  opponentReaction?: string | null;
 }
 
 function Confetti() {
@@ -85,9 +89,14 @@ function CodeDiff({ buggyCode, fixedCode }: { buggyCode: string; fixedCode: stri
   );
 }
 
-export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScreenProps) {
+export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReaction, opponentReaction }: ResultsScreenProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("Fix is wrong");
+  const [reportDesc, setReportDesc] = useState("");
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [mySentReaction, setMySentReaction] = useState<string | null>(null);
   const player = getPlayer();
 
   useEffect(() => {
@@ -186,6 +195,108 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby }: ResultsScr
               <CodeDiff buggyCode={result.buggyCode!} fixedCode={result.fixedCode!} />
             </div>
           )}
+        </div>
+      )}
+
+      {/* Quick Reactions — multiplayer only */}
+      {onSendReaction && (
+        <div className="mb-4 slide-up">
+          <div className="hacker-card hacker-card-red">
+            <div className="text-xs text-[var(--text-dim)] mb-2 tracking-wider">QUICK REACTIONS</div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {REACTIONS.map((msg) => (
+                <button
+                  key={msg}
+                  disabled={!!mySentReaction}
+                  onClick={() => {
+                    onSendReaction(msg);
+                    setMySentReaction(msg);
+                  }}
+                  className={`text-[10px] px-2 py-1 border rounded tracking-wider transition-all ${
+                    mySentReaction === msg
+                      ? "border-[var(--accent-green)] text-[var(--accent-green)]"
+                      : mySentReaction
+                      ? "border-[var(--border-color)] text-[var(--text-muted)] opacity-40 cursor-not-allowed"
+                      : "border-[var(--border-color)] text-[var(--text-dim)] hover:border-[var(--accent-red)] hover:text-[var(--text-primary)] cursor-pointer"
+                  }`}
+                  style={{ background: "transparent", fontFamily: "'Share Tech Mono', monospace" }}
+                >
+                  {msg}
+                </button>
+              ))}
+            </div>
+            {opponentReaction && (
+              <div className="mt-3 text-xs text-[var(--accent-green)] border-l-2 border-[var(--accent-green)] pl-2">
+                <span className="text-[var(--text-dim)]">{result.opponentName}:</span> &quot;{opponentReaction}&quot;
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Report Challenge */}
+      {!reportSubmitted ? (
+        <div className="mb-4 slide-up">
+          {!showReport ? (
+            <button
+              onClick={() => setShowReport(true)}
+              className="text-[9px] text-[var(--text-muted)] hover:text-[var(--accent-yellow)] tracking-wider transition-colors bg-transparent border-none cursor-pointer w-full"
+              style={{ fontFamily: "'Share Tech Mono', monospace" }}
+            >
+              ⚑ REPORT CHALLENGE
+            </button>
+          ) : (
+            <div className="hacker-card border-[var(--accent-yellow)] border-opacity-40 text-left">
+              <div className="text-xs text-[var(--accent-yellow)] mb-3 tracking-wider">REPORT CHALLENGE</div>
+              <div className="mb-3">
+                <label className="text-[9px] text-[var(--text-dim)] tracking-wider block mb-1">REASON</label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="hacker-input text-xs py-1"
+                  style={{ appearance: "none" }}
+                >
+                  <option>Fix is wrong</option>
+                  <option>Bug is confusing/impossible</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="text-[9px] text-[var(--text-dim)] tracking-wider block mb-1">DESCRIPTION (OPTIONAL)</label>
+                <textarea
+                  value={reportDesc}
+                  onChange={(e) => setReportDesc(e.target.value)}
+                  className="hacker-input text-xs py-1 resize-none"
+                  rows={3}
+                  placeholder="Describe the issue..."
+                />
+              </div>
+              <div className="flex gap-2">
+                <RetroButton
+                  variant="warning"
+                  onClick={() => {
+                    addBugReport({
+                      challengeTitle: result.challengeTitle ?? "Unknown",
+                      reason: reportReason,
+                      description: reportDesc,
+                      createdAt: new Date().toISOString(),
+                    });
+                    setShowReport(false);
+                    setReportSubmitted(true);
+                  }}
+                >
+                  SUBMIT
+                </RetroButton>
+                <RetroButton variant="primary" onClick={() => setShowReport(false)}>
+                  CANCEL
+                </RetroButton>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-4 text-xs text-[var(--accent-green)] tracking-wider slide-up">
+          ✓ Report submitted
         </div>
       )}
 

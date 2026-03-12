@@ -28,6 +28,7 @@ export interface GameResult {
   newRank: string;
   fixedCode?: string;
   buggyCode?: string;
+  challengeTitle?: string;
 }
 
 let currentGame: LocalGameState | null = null;
@@ -182,6 +183,7 @@ function endGame(): GameResult {
     newRank,
     fixedCode: currentGame.challenge.fixedCode,
     buggyCode: currentGame.challenge.buggyCode,
+    challengeTitle: currentGame.challenge.title,
   };
 
   currentGame = null;
