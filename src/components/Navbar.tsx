@@ -32,7 +32,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-between backdrop-blur-sm" style={{ backgroundColor: "rgba(17,17,17,0.92)" }}>
       <Link
         href="/"
-        className="text-[var(--accent-red)] text-sm font-bold tracking-widest no-underline hover:text-[var(--accent-red-bright)] transition-colors"
+        className="text-[var(--accent-red)] text-sm font-bold tracking-widest no-underline hover:text-[var(--accent-red-bright)] transition-colors title-flicker"
         style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         BUGRACER

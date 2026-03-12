@@ -204,7 +204,7 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
       <div className="text-center mb-8 slide-up">
         <h1
-          className="text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
+          className="text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider title-flicker"
           style={{ fontFamily: "'Orbitron', sans-serif" }}
         >
           BUGRACER

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPlayer, savePlayer, getBugReports, type BugReport } from "@/lib/storage";
+import { getPlayer, savePlayer, getBugReports, deleteBugReport, type BugReport } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
@@ -428,7 +428,17 @@ export default function AdminPage() {
               <div key={r.id} className="border border-[var(--border-color)] rounded p-2 text-xs">
                 <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
                   <span className="text-[var(--accent-yellow)]">{r.username}</span>
-                  <span>{new Date(r.createdAt).toLocaleString()}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{new Date(r.createdAt).toLocaleString()}</span>
+                    <button
+                      onClick={() => { deleteBugReport(r.id); setBugReports(getBugReports()); }}
+                      className="text-[10px] text-[var(--accent-red)] hover:text-red-400 bg-transparent border-none cursor-pointer tracking-wider transition-colors"
+                      style={{ fontFamily: "'Share Tech Mono', monospace" }}
+                      title="Delete report"
+                    >
+                      [DELETE]
+                    </button>
+                  </div>
                 </div>
                 <div className="text-[var(--text-primary)] mb-0.5">{r.challengeTitle}</div>
                 <div className="text-[var(--accent-red)] mb-0.5">{r.reason}</div>
