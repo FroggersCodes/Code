@@ -255,22 +255,22 @@ body::after {
   animation: progress-pulse 2s ease-in-out infinite;
 }
 
-/* BUGRACER title flicker — neon red CRT flicker */
-@keyframes title-flicker {
-  0%, 100%  { opacity: 1;    text-shadow: 0 0 8px #ff0033, 0 0 20px rgba(255,0,51,0.7), 0 0 40px rgba(255,0,51,0.4); }
-  4%        { opacity: 0.85; text-shadow: 0 0 4px #ff0033; }
-  8%        { opacity: 1;    text-shadow: 0 0 8px #ff0033, 0 0 20px rgba(255,0,51,0.7), 0 0 40px rgba(255,0,51,0.4); }
+/* [REDACTED] title — dark red CRT flicker */
+@keyframes redacted-flicker {
+  0%, 100%  { opacity: 1;    color: #990011; text-shadow: 0 0 6px #880010, 0 0 16px rgba(136,0,16,0.6), 0 0 32px rgba(136,0,16,0.3); }
+  4%        { opacity: 0.85; color: #770010; text-shadow: 0 0 3px #880010; }
+  8%        { opacity: 1;    color: #990011; text-shadow: 0 0 6px #880010, 0 0 16px rgba(136,0,16,0.6), 0 0 32px rgba(136,0,16,0.3); }
   15%       { opacity: 1; }
   16%       { opacity: 0.6;  text-shadow: none; }
-  17%       { opacity: 1;    text-shadow: 0 0 8px #ff0033, 0 0 20px rgba(255,0,51,0.7); }
-  50%       { opacity: 1;    text-shadow: 0 0 8px #ff0033, 0 0 20px rgba(255,0,51,0.7), 0 0 40px rgba(255,0,51,0.4); }
+  17%       { opacity: 1;    color: #990011; text-shadow: 0 0 6px #880010, 0 0 16px rgba(136,0,16,0.6); }
+  50%       { opacity: 1;    color: #990011; text-shadow: 0 0 6px #880010, 0 0 16px rgba(136,0,16,0.6), 0 0 32px rgba(136,0,16,0.3); }
   70%       { opacity: 1; }
-  71%       { opacity: 0.75; text-shadow: 0 0 3px #ff0033; }
-  72%       { opacity: 1;    text-shadow: 0 0 8px #ff0033, 0 0 20px rgba(255,0,51,0.7), 0 0 40px rgba(255,0,51,0.4); }
+  71%       { opacity: 0.75; color: #770010; text-shadow: 0 0 2px #880010; }
+  72%       { opacity: 1;    color: #990011; text-shadow: 0 0 6px #880010, 0 0 16px rgba(136,0,16,0.6), 0 0 32px rgba(136,0,16,0.3); }
 }
 
-.title-flicker {
-  animation: title-flicker 4s ease-in-out infinite;
+.redacted-title {
+  animation: redacted-flicker 4s ease-in-out infinite;
 }
 
 /* Card component */
