@@ -48,7 +48,9 @@ export function PlayerCard({ username, elo, rank, title, isYou, solved, typing, 
         )}
       </div>
       {title && (
-        <div className="text-[10px] text-[var(--accent-yellow)] tracking-wider mb-2 pl-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+        <div className={`text-[10px] tracking-wider mb-2 pl-4 ${title.startsWith("✦") ? "admin-title" : "text-[var(--accent-yellow)]"}`}
+          style={title.startsWith("✦") ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+        >
           {title}
         </div>
       )}

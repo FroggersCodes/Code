@@ -5,6 +5,7 @@ export interface TitleDef {
   id: string;
   label: string;
   description: string;
+  adminOnly?: boolean;
   check: (player: Player, matches: StoredMatch[]) => boolean;
 }
 
@@ -77,6 +78,21 @@ export const TITLES: TitleDef[] = [
   },
 ];
 
+// ─── Admin-only titles ────────────────────────────────────────────────────
+export const ADMIN_TITLES: TitleDef[] = [
+  { id: "tester",    label: "✦ Tester",    description: "Granted by admin — game tester",    adminOnly: true, check: () => false },
+  { id: "developer", label: "✦ Developer", description: "Granted by admin — game developer", adminOnly: true, check: () => false },
+  { id: "owner",     label: "✦ Owner",     description: "Granted by admin — game owner",     adminOnly: true, check: () => false },
+];
+
+export const ADMIN_TITLE_IDS = new Set(ADMIN_TITLES.map((t) => t.id));
+export const ALL_TITLES = [...TITLES, ...ADMIN_TITLES];
+
+/** Returns true if a title ID is an admin-only title. */
+export function isAdminTitle(id: string | null | undefined): boolean {
+  return !!id && ADMIN_TITLE_IDS.has(id);
+}
+
 /** Returns the list of title IDs that are now unlocked but weren't before. */
 export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string[] {
   const already = new Set(player.unlockedTitles ?? []);
@@ -86,5 +102,5 @@ export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string
 /** Converts a title ID to its display label, or null if not found. */
 export function getTitleLabel(titleId: string | null | undefined): string | null {
   if (!titleId) return null;
-  return TITLES.find((t) => t.id === titleId)?.label ?? null;
+  return ALL_TITLES.find((t) => t.id === titleId)?.label ?? null;
 }
