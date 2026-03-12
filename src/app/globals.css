@@ -130,18 +130,17 @@ body::after {
   letter-spacing: 0.1em;
 }
 
-/* Glitch title — green chromatic glitch effect */
+/* Glitched title — slow green glow pulse with subtle flicker */
 @keyframes glitch-green {
-  0%, 88%, 100% { transform: none; text-shadow: 0 0 8px #00ff41, 0 0 20px rgba(0,255,65,0.5); color: #00ff41; }
-  89% { transform: translateX(-4px) skewX(-3deg); text-shadow: -3px 0 #ff0033, 3px 0 #00ff41; }
-  91% { transform: translateX(4px) skewX(3deg); text-shadow: 3px 0 #0044ff, -3px 0 #00ff41; }
-  93% { transform: translateX(-2px); }
-  95% { transform: translateX(2px); text-shadow: 0 0 14px #00ff41; }
-  97% { transform: none; }
+  0%, 100%   { color: #00ff41; text-shadow: 0 0 6px #00ff41, 0 0 14px rgba(0,255,65,0.4); opacity: 1; }
+  45%        { color: #00dd38; text-shadow: 0 0 3px #00ff41; opacity: 0.85; }
+  50%        { color: #00ff41; text-shadow: 0 0 10px #00ff41, 0 0 24px rgba(0,255,65,0.3); opacity: 0.7; }
+  52%        { opacity: 1; }
+  80%        { color: #00cc33; text-shadow: 0 0 4px #00ff41; opacity: 0.9; }
 }
 
 .glitch-title {
-  animation: glitch-green 1.8s ease-in-out infinite;
+  animation: glitch-green 3.5s ease-in-out infinite;
   color: #00ff41;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.12em;

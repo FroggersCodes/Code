@@ -83,7 +83,7 @@ export const ADMIN_TITLES: TitleDef[] = [
   { id: "tester",    label: "✦ Tester",    description: "Granted by admin — game tester",    adminOnly: true, check: () => false },
   { id: "developer", label: "✦ Developer", description: "Granted by admin — game developer", adminOnly: true, check: () => false },
   { id: "owner",     label: "✦ Owner",     description: "Granted by admin — game owner",     adminOnly: true, check: () => false },
-  { id: "glitch",    label: "◈ Glitch",    description: "Granted by admin — found a real bug", adminOnly: true, check: () => false },
+  { id: "glitch",    label: "◈ Glitched",  description: "Granted by admin — found a real bug", adminOnly: true, check: () => false },
 ];
 
 export const ADMIN_TITLE_IDS = new Set(ADMIN_TITLES.map((t) => t.id));
