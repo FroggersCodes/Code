@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { getPlayer } from "@/lib/storage";
 import { TITLES } from "@/lib/titles";
 import { isMuted, toggleMute } from "@/lib/sounds";
+import { getAvatarSvg } from "@/lib/avatars";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [titleLabel, setTitleLabel] = useState<string | null>(null);
+  const [avatarSvg, setAvatarSvg] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
@@ -19,6 +21,7 @@ export function Navbar() {
         const t = TITLES.find((t) => t.id === player.title);
         setTitleLabel(t?.label ?? null);
       }
+      setAvatarSvg(getAvatarSvg(player.avatar));
     }
     setMuted(isMuted());
   }, []);
@@ -58,7 +61,14 @@ export function Navbar() {
             href="/profile"
             className="text-[var(--text-primary)] text-xs no-underline hover:text-[var(--accent-red)] transition-colors flex items-center gap-2"
           >
-            <span className="w-2 h-2 rounded-full bg-[var(--accent-red)] inline-block" />
+            {avatarSvg ? (
+              <div
+                className="w-6 h-6 rounded overflow-hidden flex-shrink-0 border border-[var(--accent-red)]"
+                dangerouslySetInnerHTML={{ __html: avatarSvg }}
+              />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-[var(--accent-red)] inline-block" />
+            )}
             <span className="flex flex-col items-end leading-tight">
               <span>{username}</span>
               {titleLabel && (

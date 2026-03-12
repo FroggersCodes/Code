@@ -1,6 +1,7 @@
 "use client";
 
 import { RankBadge } from "./RankBadge";
+import { getAvatarSvg } from "@/lib/avatars";
 
 interface PlayerCardProps {
   username: string;
@@ -10,9 +11,12 @@ interface PlayerCardProps {
   isYou?: boolean;
   solved?: boolean;
   typing?: boolean;
+  avatar?: string | null;
+  winStreak?: number;
 }
 
-export function PlayerCard({ username, elo, rank, title, isYou, solved, typing }: PlayerCardProps) {
+export function PlayerCard({ username, elo, rank, title, isYou, solved, typing, avatar, winStreak }: PlayerCardProps) {
+  const avatarSvg = getAvatarSvg(avatar);
   return (
     <div
       className={`p-3 border rounded ${
@@ -24,12 +28,24 @@ export function PlayerCard({ username, elo, rank, title, isYou, solved, typing }
       } bg-[var(--bg-surface)]`}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className={`text-xs font-bold ${isYou ? "text-[var(--accent-red)]" : "text-[var(--text-dim)]"}`}>
-          {isYou ? ">" : "#"}
-        </span>
+        {avatarSvg ? (
+          <div
+            className="w-7 h-7 rounded overflow-hidden flex-shrink-0"
+            dangerouslySetInnerHTML={{ __html: avatarSvg }}
+          />
+        ) : (
+          <span className={`text-xs font-bold ${isYou ? "text-[var(--accent-red)]" : "text-[var(--text-dim)]"}`}>
+            {isYou ? ">" : "#"}
+          </span>
+        )}
         <span className={`text-xs ${isYou ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}>
           {username}
         </span>
+        {winStreak !== undefined && winStreak >= 3 && (
+          <span className="text-[10px] text-[var(--accent-yellow)]" title={`${winStreak} win streak`}>
+            🔥{winStreak}
+          </span>
+        )}
       </div>
       {title && (
         <div className="text-[10px] text-[var(--accent-yellow)] tracking-wider mb-2 pl-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>

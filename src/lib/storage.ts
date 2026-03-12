@@ -70,6 +70,8 @@ export function signUp(
     draws: 0,
     title: null,
     unlockedTitles: [],
+    avatar: null,
+    winStreak: 0,
   };
   savePlayer(player);
   return player;
@@ -122,6 +124,8 @@ export function login(
     draws: 0,
     title: null,
     unlockedTitles: [],
+    avatar: null,
+    winStreak: 0,
   };
   savePlayer(player);
   return player;
@@ -146,13 +150,13 @@ export function getPlayer(): Player | null {
   const data = localStorage.getItem(PLAYER_KEY);
   if (!data) return null;
   const player = JSON.parse(data) as Player;
-  // Migrate old players who don't have title fields
+  // Migrate old players who don't have newer fields
   const raw = player as unknown as Record<string, unknown>;
-  if (!("unlockedTitles" in raw)) {
-    player.unlockedTitles = [];
-    player.title = null;
-    savePlayer(player);
-  }
+  let migrated = false;
+  if (!("unlockedTitles" in raw)) { player.unlockedTitles = []; player.title = null; migrated = true; }
+  if (!("avatar" in raw)) { player.avatar = null; migrated = true; }
+  if (!("winStreak" in raw)) { player.winStreak = 0; migrated = true; }
+  if (migrated) savePlayer(player);
   return player;
 }
 
@@ -174,6 +178,8 @@ export function createPlayer(username: string, passwordHash = ""): Player {
     draws: 0,
     title: null,
     unlockedTitles: [],
+    avatar: null,
+    winStreak: 0,
   };
   savePlayer(player);
   return player;
@@ -188,9 +194,16 @@ export function updatePlayerAfterMatch(
   if (!player) return;
   player.elo = newElo;
   player.rank = getRankFromElo(newElo);
-  if (draw) player.draws++;
-  else if (won) player.wins++;
-  else player.losses++;
+  if (draw) { player.draws++; }
+  else if (won) { player.wins++; player.winStreak = (player.winStreak ?? 0) + 1; }
+  else { player.losses++; player.winStreak = 0; }
+  savePlayer(player);
+}
+
+export function equipAvatar(avatarId: string | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  player.avatar = avatarId;
   savePlayer(player);
 }
 

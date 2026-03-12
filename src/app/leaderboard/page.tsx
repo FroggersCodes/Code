@@ -61,6 +61,7 @@ export default function LeaderboardPage() {
             wins: player.wins,
             losses: player.losses,
             draws: player.draws,
+            isGuest: player.passwordHash === "",
           });
         }
         socket.emit("leaderboard:get");
@@ -76,6 +77,7 @@ export default function LeaderboardPage() {
               wins: player.wins,
               losses: player.losses,
               draws: player.draws,
+              isGuest: player.passwordHash === "",
             });
           }
           socket.emit("leaderboard:get");

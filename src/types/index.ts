@@ -9,6 +9,8 @@ export interface Player {
   draws: number;
   title: string | null;
   unlockedTitles: string[];
+  avatar: string | null;
+  winStreak: number;
 }
 
 export interface ChallengeData {
