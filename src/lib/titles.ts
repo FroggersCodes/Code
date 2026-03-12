@@ -99,6 +99,11 @@ export function isGlitchTitle(id: string | null | undefined): boolean {
   return id === "glitch";
 }
 
+/** Returns true if the title ID is the [REDACTED] title. */
+export function isRedactedTitle(id: string | null | undefined): boolean {
+  return id === "redacted";
+}
+
 /** Returns the list of title IDs that are now unlocked but weren't before. */
 export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string[] {
   const already = new Set(player.unlockedTitles ?? []);
