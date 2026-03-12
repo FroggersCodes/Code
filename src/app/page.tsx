@@ -36,50 +36,56 @@ function RankCircle({ player }: { player: Player }) {
     progressLabel = `${eloToNext} ELO to ${nextRank}`;
   }
 
-  const radius = 62;
-  const stroke = 11;
+  const isGm = rank === "Grandmaster";
+  const radius = 72;
+  const stroke = 12;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - progress);
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: 168, height: 168 }}>
-        <svg width="168" height="168" viewBox="0 0 168 168">
+      <div className="relative" style={{ width: 196, height: 196 }}>
+        <svg width="196" height="196" viewBox="0 0 196 196">
           {/* Outer decorative ring */}
           <circle
-            cx="84" cy="84" r={radius + 10}
+            cx="98" cy="98" r={radius + 10}
             fill="none"
-            stroke={color}
+            stroke={isGm ? undefined : color}
             strokeWidth={1}
-            opacity={0.18}
-            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
+            opacity={0.22}
+            className={isGm ? "gm-stroke-rainbow" : undefined}
+            style={isGm ? undefined : { filter: `drop-shadow(0 0 6px ${color})` }}
           />
           {/* Background track */}
           <circle
-            cx="84" cy="84" r={radius}
+            cx="98" cy="98" r={radius}
             fill="none"
             stroke="rgba(255,255,255,0.14)"
             strokeWidth={stroke}
           />
           {/* Progress arc */}
           <circle
-            cx="84" cy="84" r={radius}
+            cx="98" cy="98" r={radius}
             fill="none"
-            stroke={color}
+            stroke={isGm ? undefined : color}
             strokeWidth={stroke}
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
-            transform="rotate(-90 84 84)"
+            transform="rotate(-90 98 98)"
+            className={isGm ? "gm-stroke-rainbow" : undefined}
             style={{
-              filter: `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 22px ${color}90)`,
+              filter: isGm ? undefined : `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 22px ${color}90)`,
               transition: "stroke-dashoffset 0.8s ease-out",
             }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <RankBadge rank={player.rank} size="md" />
-          <div className="text-xl font-bold mt-1" style={{ color, textShadow: `0 0 10px ${color}, 0 0 24px ${color}80` }}>
+          <div
+            className={`text-xl font-bold mt-1 ${isGm ? "gm-rainbow" : ""}`}
+            style={isGm ? undefined : { color, textShadow: `0 0 10px ${color}, 0 0 24px ${color}80` }}
+          >
             {player.elo}
           </div>
         </div>
