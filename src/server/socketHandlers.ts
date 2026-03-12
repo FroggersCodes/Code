@@ -103,6 +103,20 @@ interface LeaderboardEntry {
 }
 const leaderboard = new Map<string, LeaderboardEntry>();
 
+// ─── Admin / messaging ────────────────────────────────────────────────────────
+const ADMIN_PASSPHRASE = "FroggersSmiles0407";
+
+// one-time title grant codes
+const grantCodes = new Map<string, { titleId: string; used: boolean }>();
+
+// pending messages: username.lower() → messages
+interface AdminMessage { id: string; text: string; createdAt: string; }
+const pendingMessages = new Map<string, AdminMessage[]>();
+
+// live socket routing: socketId ↔ username.lower()
+const socketToUser = new Map<string, string>();
+const userToSocket = new Map<string, string>();
+
 let matchmakingInterval: ReturnType<typeof setInterval> | null = null;
 
 function generateRoomId(): string {
@@ -544,8 +558,66 @@ export function setupSocketHandlers(io: Server): void {
       if (other) io.to(other.socketId).emit("match:reaction", { msg: data.msg });
     });
 
+    // ── Player registration (for messaging) ──────────────────────────────────
+    socket.on("player:register", ({ username }: { username: string }) => {
+      const key = username.toLowerCase();
+      socketToUser.set(socket.id, key);
+      userToSocket.set(key, socket.id);
+      // Flush any pending messages
+      const msgs = pendingMessages.get(key) ?? [];
+      if (msgs.length > 0) socket.emit("player:messages", msgs);
+    });
+
+    socket.on("player:dismiss-message", ({ messageId }: { messageId: string }) => {
+      const username = socketToUser.get(socket.id);
+      if (!username) return;
+      const msgs = pendingMessages.get(username) ?? [];
+      pendingMessages.set(username, msgs.filter((m) => m.id !== messageId));
+    });
+
+    // ── Admin messaging ───────────────────────────────────────────────────────
+    socket.on("admin:send-message", ({ passphrase, toUsername, text }: { passphrase: string; toUsername: string; text: string }) => {
+      if (passphrase !== ADMIN_PASSPHRASE) return;
+      const key = toUsername.toLowerCase();
+      const msg: AdminMessage = { id: Date.now().toString(36), text, createdAt: new Date().toISOString() };
+      const msgs = pendingMessages.get(key) ?? [];
+      msgs.push(msg);
+      pendingMessages.set(key, msgs);
+      // Live delivery if player is online right now
+      const sid = userToSocket.get(key);
+      if (sid) io.to(sid).emit("player:messages", [msg]);
+      socket.emit("admin:message-sent", { ok: true });
+    });
+
+    socket.on("admin:generate-code", ({ passphrase, titleId }: { passphrase: string; titleId: string }) => {
+      if (passphrase !== ADMIN_PASSPHRASE) return;
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      grantCodes.set(code, { titleId, used: false });
+      socket.emit("admin:code-generated", { code });
+    });
+
+    // ── Title claim ───────────────────────────────────────────────────────────
+    socket.on("title:claim", ({ code }: { code: string }) => {
+      const entry = grantCodes.get(code.toUpperCase().trim());
+      if (!entry || entry.used) {
+        socket.emit("title:claim-result", { ok: false, error: entry ? "Code already used" : "Invalid code" });
+        return;
+      }
+      entry.used = true;
+      socket.emit("title:claim-result", { ok: true, titleId: entry.titleId });
+    });
+
     socket.on("disconnect", () => {
       console.log(`Player disconnected: ${socket.id}`);
+
+      // Clean up messaging maps
+      const username = socketToUser.get(socket.id);
+      if (username) {
+        socketToUser.delete(socket.id);
+        userToSocket.delete(username);
+      }
 
       // Remove from matchmaking queue
       removeFromQueue(socket.id);
