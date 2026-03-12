@@ -537,6 +537,13 @@ export function setupSocketHandlers(io: Server): void {
       endPracticeGame(room, io);
     });
 
+    socket.on("match:reaction", (data: { roomId: string; msg: string }) => {
+      const room = rooms.get(data.roomId);
+      if (!room) return;
+      const other = room.players.find((p) => p.socketId !== socket.id);
+      if (other) io.to(other.socketId).emit("match:reaction", { msg: data.msg });
+    });
+
     socket.on("disconnect", () => {
       console.log(`Player disconnected: ${socket.id}`);
 

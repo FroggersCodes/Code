@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPlayer, savePlayer } from "@/lib/storage";
+import { getPlayer, savePlayer, getBugReports, type BugReport } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import type { Player } from "@/types";
@@ -48,6 +48,9 @@ export default function AdminPage() {
   const [otherError, setOtherError] = useState("");
   const [otherSaved, setOtherSaved] = useState(false);
 
+  // Bug reports
+  const [bugReports, setBugReports] = useState<BugReport[]>([]);
+
   useEffect(() => {
     if (authed) {
       const p = getPlayer();
@@ -59,6 +62,7 @@ export default function AdminPage() {
         setDraws(String(p.draws));
         setWinStreak(String(p.winStreak ?? 0));
       }
+      setBugReports(getBugReports());
     }
   }, [authed]);
 
@@ -379,6 +383,37 @@ export default function AdminPage() {
               </div>
             </div>
             <AdminBtn onClick={saveOtherElo}>SAVE CHANGES</AdminBtn>
+          </div>
+        )}
+      </div>
+
+      {/* ── Bug Reports ── */}
+      <div className="hacker-card mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs text-[var(--accent-green)] tracking-wider">⚑ BUG REPORTS ({bugReports.length})</div>
+          <button
+            onClick={() => setBugReports(getBugReports())}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
+            style={{ fontFamily: "'Share Tech Mono', monospace" }}
+          >
+            REFRESH
+          </button>
+        </div>
+        {bugReports.length === 0 ? (
+          <div className="text-xs text-[var(--text-muted)] tracking-wider">No reports yet.</div>
+        ) : (
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {bugReports.map((r) => (
+              <div key={r.id} className="border border-[var(--border-color)] rounded p-2 text-xs">
+                <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+                  <span className="text-[var(--accent-yellow)]">{r.username}</span>
+                  <span>{new Date(r.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="text-[var(--text-primary)] mb-0.5">{r.challengeTitle}</div>
+                <div className="text-[var(--accent-red)] mb-0.5">{r.reason}</div>
+                {r.description && <div className="text-[var(--text-dim)] italic">{r.description}</div>}
+              </div>
+            ))}
           </div>
         )}
       </div>

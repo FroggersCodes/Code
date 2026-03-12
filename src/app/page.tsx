@@ -81,7 +81,9 @@ function RankCircle({ player }: { player: Player }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <RankBadge rank={player.rank} size="md" />
+          <div style={isGm ? { transform: "scale(0.8)", transformOrigin: "center" } : undefined}>
+            <RankBadge rank={player.rank} size={isGm ? "sm" : "md"} />
+          </div>
           <div
             className={`text-xl font-bold mt-1 ${isGm ? "gm-rainbow" : ""}`}
             style={isGm ? undefined : { color, textShadow: `0 0 10px ${color}, 0 0 24px ${color}80` }}

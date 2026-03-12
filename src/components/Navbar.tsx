@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPlayer } from "@/lib/storage";
-import { ALL_TITLES, isAdminTitle } from "@/lib/titles";
+import { ALL_TITLES, isAdminTitle, isGlitchTitle } from "@/lib/titles";
 import { isMuted, toggleMute } from "@/lib/sounds";
 import { getAvatarSvg } from "@/lib/avatars";
 
@@ -74,8 +74,8 @@ export function Navbar() {
             <span className="flex flex-col items-end leading-tight">
               <span>{username}</span>
               {titleLabel && (
-                <span className={`text-[10px] tracking-wider ${isAdminTitle(titleId) ? "admin-title" : "text-[var(--accent-yellow)]"}`}
-                  style={isAdminTitle(titleId) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+                <span className={`text-[10px] tracking-wider ${isGlitchTitle(titleId) ? "glitch-title" : isAdminTitle(titleId) ? "admin-title" : "text-[var(--accent-yellow)]"}`}
+                  style={isGlitchTitle(titleId) || isAdminTitle(titleId) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
                 >
                   {titleLabel}
                 </span>

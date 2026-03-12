@@ -83,6 +83,7 @@ export const ADMIN_TITLES: TitleDef[] = [
   { id: "tester",    label: "✦ Tester",    description: "Granted by admin — game tester",    adminOnly: true, check: () => false },
   { id: "developer", label: "✦ Developer", description: "Granted by admin — game developer", adminOnly: true, check: () => false },
   { id: "owner",     label: "✦ Owner",     description: "Granted by admin — game owner",     adminOnly: true, check: () => false },
+  { id: "glitch",    label: "◈ Glitch",    description: "Granted by admin — found a real bug", adminOnly: true, check: () => false },
 ];
 
 export const ADMIN_TITLE_IDS = new Set(ADMIN_TITLES.map((t) => t.id));
@@ -91,6 +92,11 @@ export const ALL_TITLES = [...TITLES, ...ADMIN_TITLES];
 /** Returns true if a title ID is an admin-only title. */
 export function isAdminTitle(id: string | null | undefined): boolean {
   return !!id && ADMIN_TITLE_IDS.has(id);
+}
+
+/** Returns true if the title ID is the special Glitch title. */
+export function isGlitchTitle(id: string | null | undefined): boolean {
+  return id === "glitch";
 }
 
 /** Returns the list of title IDs that are now unlocked but weren't before. */

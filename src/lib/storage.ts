@@ -362,3 +362,34 @@ export function logout(): void {
   localStorage.removeItem(PLAYER_KEY);
   localStorage.removeItem(MATCHES_KEY);
 }
+
+// ─── Bug Reports ──────────────────────────────────────────────────────────────
+const REPORTS_KEY = "bugracer_reports";
+
+export interface BugReport {
+  id: string;
+  username: string;
+  challengeTitle: string;
+  reason: string;
+  description: string;
+  createdAt: string;
+}
+
+export function addBugReport(report: Omit<BugReport, "id" | "username">): void {
+  if (typeof window === "undefined") return;
+  const reports = getBugReports();
+  const player = getPlayer();
+  reports.unshift({
+    id: Date.now().toString(36),
+    username: player?.username ?? "Guest",
+    ...report,
+  });
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
+
+export function getBugReports(): BugReport[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(REPORTS_KEY);
+  if (!data) return [];
+  return JSON.parse(data);
+}

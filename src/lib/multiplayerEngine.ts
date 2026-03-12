@@ -24,6 +24,7 @@ let onOpponentTyping: ((typing: boolean) => void) | null = null;
 let onGameEnd: ((result: MultiplayerResult) => void) | null = null;
 let onOpponentDisconnected: (() => void) | null = null;
 let onQueueStatus: ((data: { position: number; queueSize: number }) => void) | null = null;
+let onReaction: ((msg: string) => void) | null = null;
 let listenersSetup = false;
 
 function setupListeners(): void {
@@ -105,6 +106,10 @@ function setupListeners(): void {
     onQueueStatus?.(data);
   });
 
+  socket.on("match:reaction", (data: { msg: string }) => {
+    onReaction?.(data.msg);
+  });
+
   listenersSetup = true;
 }
 
@@ -175,6 +180,15 @@ export function setOnOpponentTyping(cb: ((typing: boolean) => void) | null): voi
 export function setOnGameEnd(cb: ((result: MultiplayerResult) => void) | null): void {
   onGameEnd = cb;
 }
+export function setOnReaction(cb: ((msg: string) => void) | null): void {
+  onReaction = cb;
+}
+
+export function sendReaction(roomId: string, msg: string): void {
+  const socket = getSocket();
+  socket.emit("match:reaction", { roomId, msg });
+}
+
 export function setOnOpponentDisconnected(cb: (() => void) | null): void {
   onOpponentDisconnected = cb;
 }
