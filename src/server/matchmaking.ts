@@ -32,6 +32,10 @@ export function getQueueSize(): number {
   return queue.length;
 }
 
+export function getQueuedPlayers(): QueuedPlayer[] {
+  return queue;
+}
+
 /**
  * Try to find a match for any players in the queue.
  * ELO window widens over time: ±300 initially, +100 every 10 seconds.

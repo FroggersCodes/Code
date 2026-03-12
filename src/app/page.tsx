@@ -6,7 +6,6 @@ import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
 import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
-import { startBotGameWithChallenge } from "@/lib/gameEngine";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 
@@ -258,16 +257,28 @@ export default function HomePage() {
                     </span>
                   )}
                 </div>
-                <RetroButton
-                  variant={record?.won ? "primary" : "success"}
-                  className="w-full"
-                  onClick={() => {
-                    startBotGameWithChallenge(cotd);
-                    router.push("/game?mode=cotd");
-                  }}
-                >
-                  {record?.won ? "REPLAY" : "PLAY"}
-                </RetroButton>
+                {record?.won ? (
+                  <div className="text-center">
+                    <div className="text-xs text-[var(--accent-green)] glow-green font-bold mb-1">
+                      COMPLETED ✓
+                    </div>
+                    {record.bestTime && (
+                      <div className="text-[10px] text-[var(--text-dim)]">
+                        Solved in {(record.bestTime / 1000).toFixed(1)}s
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <RetroButton
+                    variant="success"
+                    className="w-full"
+                    onClick={() => {
+                      router.push("/game?mode=cotd");
+                    }}
+                  >
+                    PLAY
+                  </RetroButton>
+                )}
               </div>
             );
           })()}

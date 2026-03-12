@@ -8,10 +8,17 @@ import {
   addToQueue,
   removeFromQueue,
   tryMatch,
-  getQueuePosition,
-  getQueueSize,
+  getQueuedPlayers,
   type QueuedPlayer,
 } from "./matchmaking";
+
+function broadcastQueueStatus(io: Server): void {
+  const players = getQueuedPlayers();
+  const size = players.length;
+  players.forEach((p, idx) => {
+    io.to(p.socketId).emit("queue:status", { position: idx, queueSize: size });
+  });
+}
 
 interface GameRoom {
   id: string;
@@ -229,14 +236,15 @@ export function setupSocketHandlers(io: Server): void {
   // Matchmaking loop: check for matches every second
   matchmakingInterval = setInterval(() => {
     let match = tryMatch();
+    let anyMatched = false;
     while (match) {
       const [p1, p2] = match;
       createRoom(p1, p2, io);
       match = tryMatch();
+      anyMatched = true;
     }
-
-    // Send queue status updates
-    // (We iterate connected sockets that are in the queue)
+    // Update remaining queued players after matches are made
+    if (anyMatched) broadcastQueueStatus(io);
   }, 1000);
 
   io.on("connection", (socket: Socket) => {
@@ -297,14 +305,12 @@ export function setupSocketHandlers(io: Server): void {
         joinedAt: Date.now(),
       });
 
-      socket.emit("queue:status", {
-        position: getQueuePosition(socket.id),
-        queueSize: getQueueSize(),
-      });
+      broadcastQueueStatus(io);
     });
 
     socket.on("queue:leave", () => {
       removeFromQueue(socket.id);
+      broadcastQueueStatus(io);
     });
 
     socket.on("game:ready", (data: { roomId: string }) => {

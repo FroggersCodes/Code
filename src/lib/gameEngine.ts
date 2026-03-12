@@ -13,6 +13,7 @@ export interface LocalGameState {
   botSolveTime: number | null;
   playerSolveTime: number | null;
   ended: boolean;
+  isCotd?: boolean;
 }
 
 export interface GameResult {
@@ -37,6 +38,23 @@ export function startBotGameWithChallenge(challenge: FullChallenge): LocalGameSt
   const player = getPlayer();
   if (!player) throw new Error("No player");
   return initBotGame(player.elo, challenge);
+}
+
+export function startCotdGame(challenge: FullChallenge): LocalGameState {
+  const player = getPlayer();
+  if (!player) throw new Error("No player");
+
+  currentGame = {
+    matchId: Date.now(),
+    challenge,
+    startTime: Date.now(),
+    botSolveTime: null,
+    playerSolveTime: null,
+    ended: false,
+    isCotd: true,
+  };
+
+  return currentGame;
 }
 
 export function startBotGame(): LocalGameState {
@@ -108,13 +126,17 @@ function endGame(): GameResult {
   const player = getPlayer();
   if (!player) throw new Error("No player");
 
+  const isCotd = currentGame.isCotd ?? false;
   const playerSolved = currentGame.playerSolveTime !== null;
   const botSolved = currentGame.botSolveTime !== null;
 
   let won = false;
   let draw = false;
 
-  if (playerSolved && botSolved) {
+  if (isCotd) {
+    // COTD is solo: win if player solved, otherwise failed (no ELO penalty)
+    won = playerSolved;
+  } else if (playerSolved && botSolved) {
     if (currentGame.playerSolveTime! < currentGame.botSolveTime!) won = true;
     else if (currentGame.playerSolveTime! > currentGame.botSolveTime!) won = false;
     else draw = true;
@@ -126,11 +148,12 @@ function endGame(): GameResult {
     draw = true;
   }
 
-  const score = won ? 1 : draw ? 0.5 : 0;
-  const { newRatingA, change } = updateRatings(player.elo, BOT_PLAYER.elo, score);
+  // COTD: if player failed, treat as draw for ELO (zero change) but show as failed in UI
+  const eloScore = isCotd && !won ? 0.5 : won ? 1 : draw ? 0.5 : 0;
+  const { newRatingA, change } = updateRatings(player.elo, BOT_PLAYER.elo, eloScore);
   const newRank = getRankFromElo(newRatingA);
 
-  updatePlayerAfterMatch(won, draw, newRatingA);
+  updatePlayerAfterMatch(won, isCotd && !won ? true : draw, newRatingA);
   checkAndUnlockTitles();
 
   addMatch({

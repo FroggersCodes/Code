@@ -18,7 +18,7 @@ import {
 } from "@/lib/multiplayerEngine";
 import { getPlayer } from "@/lib/storage";
 import { BOT_PLAYER } from "@/lib/bot";
-import { TITLES, getTitleLabel } from "@/lib/titles";
+import { ALL_TITLES, getTitleLabel } from "@/lib/titles";
 import { playTypingBurst, playSolveSound } from "@/lib/sounds";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
 import type { ChallengeData, OnlineOpponent, MultiplayerResult } from "@/types";
@@ -58,6 +58,7 @@ export function GameArena(props: GameArenaProps) {
   const resultSent = useRef(false);
   const typingRef = useRef(false);
 
+  const isCotd = !isMultiplayer && (props.game?.isCotd ?? false);
   const player = getPlayer();
 
   const opponentName = isMultiplayer
@@ -73,11 +74,11 @@ export function GameArena(props: GameArenaProps) {
     ? getTitleLabel(props.multiplayerConfig!.opponent.title)
     : null;
   const playerTitleLabel = player?.title
-    ? (TITLES.find((t) => t.id === player.title)?.label ?? null)
+    ? (ALL_TITLES.find((t) => t.id === player.title)?.label ?? null)
     : null;
 
   useEffect(() => {
-    if (isMultiplayer) return;
+    if (isMultiplayer || isCotd) return;
 
     const typingInterval = setInterval(() => {
       setOpponentTyping((prev) => !prev);
@@ -216,17 +217,19 @@ export function GameArena(props: GameArenaProps) {
           winStreak={player?.winStreak}
         />
 
-        <Timer duration={90} onTimeUp={handleTimeUp} started={true} />
+        <Timer duration={isCotd ? 60 : 90} onTimeUp={handleTimeUp} started={true} />
 
-        <PlayerCard
-          username={opponentName}
-          elo={opponentElo}
-          rank={opponentRank}
-          title={opponentTitle}
-          isYou={false}
-          solved={opponentSolved}
-          typing={opponentTyping && !opponentSolved && !gameEnded}
-        />
+        {!isCotd && (
+          <PlayerCard
+            username={opponentName}
+            elo={opponentElo}
+            rank={opponentRank}
+            title={opponentTitle}
+            isYou={false}
+            solved={opponentSolved}
+            typing={opponentTyping && !opponentSolved && !gameEnded}
+          />
+        )}
       </div>
 
       <div className="hacker-card hacker-card-red mb-4">

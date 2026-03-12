@@ -29,6 +29,7 @@ export default function LobbyPage() {
   const [opponent, setOpponent] = useState<{ username: string; elo: number; rank: string; title?: string | null } | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [queueTime, setQueueTime] = useState(0);
+  const [queueSize, setQueueSize] = useState(0);
   const [showBotFallback, setShowBotFallback] = useState(false);
   const [serverAvailable, setServerAvailable] = useState(false);
   const [autoStart, setAutoStart] = useState<"bot" | "online" | null>(null);
@@ -119,6 +120,10 @@ export default function LobbyPage() {
         return prev + 1;
       });
     }, 1000);
+
+    setOnQueueStatus((data: { position: number; queueSize: number }) => {
+      setQueueSize(data.queueSize);
+    });
 
     setOnMatchFound((game: MultiplayerGameState) => {
       if (queueTimerRef.current) {
@@ -279,9 +284,14 @@ export default function LobbyPage() {
                 />
               ))}
             </div>
-            <div className="text-xs text-[var(--text-dim)] mb-4">
+            <div className="text-xs text-[var(--text-dim)] mb-1">
               {queueTime}s elapsed
             </div>
+            {queueSize > 0 && (
+              <div className="text-xs text-[var(--accent-yellow)] mb-4">
+                {queueSize} player{queueSize !== 1 ? "s" : ""} searching
+              </div>
+            )}
             <RetroButton variant="error" onClick={handleCancelQueue}>
               CANCEL
             </RetroButton>
