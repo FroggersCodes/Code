@@ -12,8 +12,10 @@ const RANK_ICONS: Record<RankTier, string> = {
 };
 
 const RANK_BADGE_CLASS: Partial<Record<RankTier, string>> = {
-  Grandmaster: "rank-badge-gm",
+  Gold: "rank-badge-gold",
+  Platinum: "rank-badge-platinum",
   Diamond: "rank-badge-diamond",
+  Grandmaster: "rank-badge-gm",
 };
 
 export function RankBadge({ rank, size = "sm" }: { rank: string; size?: "sm" | "md" | "lg" }) {
@@ -21,6 +23,7 @@ export function RankBadge({ rank, size = "sm" }: { rank: string; size?: "sm" | "
   const color = RANK_COLORS[tier] || "#666";
   const icon = RANK_ICONS[tier] || "?";
   const badgeClass = RANK_BADGE_CLASS[tier] || "";
+  const isGm = tier === "Grandmaster";
 
   const sizeClasses = {
     sm: "text-xs px-1.5 py-0.5",
@@ -29,20 +32,22 @@ export function RankBadge({ rank, size = "sm" }: { rank: string; size?: "sm" | "
   };
 
   const bgColor =
-    tier === "Grandmaster" ? "rgba(255,215,0,0.08)" :
-    tier === "Diamond" ? "rgba(255,0,102,0.06)" :
+    tier === "Diamond" ? "rgba(255,0,102,0.07)" :
+    tier === "Platinum" ? "rgba(0,212,255,0.06)" :
+    tier === "Gold" ? "rgba(255,215,0,0.06)" :
     "rgba(0,0,0,0.4)";
 
   return (
     <span
       className={`inline-block font-bold tracking-wider ${sizeClasses[size]} ${badgeClass}`}
       style={{
-        color,
-        border: `1px solid ${color}`,
+        // GM: let CSS animation control color, border-color, text-shadow
+        color: isGm ? undefined : color,
+        border: isGm ? undefined : `1px solid ${color}`,
+        textShadow: isGm ? undefined : `0 0 8px ${color}, 0 0 18px ${color}50`,
         backgroundColor: bgColor,
         borderRadius: "2px",
-        textShadow: `0 0 8px ${color}, 0 0 16px ${color}40`,
-        opacity: tier === "Bronze" ? 0.85 : 1,
+        opacity: tier === "Bronze" ? 0.8 : 1,
       }}
     >
       {icon} {rank}
