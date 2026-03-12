@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, getFriends, addFriend, removeFriend, getFriendStats, type FriendStats } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, type FriendStats } from "@/lib/storage";
 import { TITLES, getTitleLabel } from "@/lib/titles";
+import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
+import { RANK_THRESHOLDS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
 
-type Tab = "stats" | "history" | "titles" | "friends";
+type Tab = "stats" | "history" | "titles" | "friends" | "avatar";
 
 function EloChart({ points }: { points: number[] }) {
   if (points.length < 2) return null;
@@ -120,10 +122,40 @@ export default function ProfilePage() {
     </button>
   );
 
+  // Rank progress bar calculation
+  const rankTier = player.rank as RankTier;
+  const rankRange = RANK_THRESHOLDS[rankTier];
+  const rankProgress = rankRange && rankRange.max !== Infinity
+    ? Math.min(100, Math.round(((player.elo - rankRange.min) / (rankRange.max - rankRange.min)) * 100))
+    : rankTier === "Grandmaster" ? 100 : 0;
+  const nextRankNames: Record<RankTier, string> = {
+    Bronze: "Silver", Silver: "Gold", Gold: "Platinum",
+    Platinum: "Diamond", Diamond: "Grandmaster", Grandmaster: "MAX",
+  };
+  const nextRank = nextRankNames[rankTier];
+
+  const avatarSvg = getAvatarSvg(player.avatar);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Player header */}
       <div className="hacker-card hacker-card-red mb-4 text-center slide-up">
+        {/* Avatar display */}
+        {avatarSvg ? (
+          <div
+            className="mx-auto mb-3 w-16 h-16 rounded border-2 border-[var(--accent-red)] overflow-hidden"
+            style={{ boxShadow: "0 0 12px rgba(255,0,51,0.4)" }}
+            dangerouslySetInnerHTML={{ __html: avatarSvg }}
+          />
+        ) : (
+          <div
+            className="mx-auto mb-3 w-16 h-16 rounded border-2 border-dashed border-[var(--border-color)] flex items-center justify-center cursor-pointer hover:border-[var(--accent-red)] transition-colors"
+            onClick={() => setTab("avatar")}
+            title="Choose an avatar"
+          >
+            <span className="text-[var(--text-muted)] text-xs">?</span>
+          </div>
+        )}
         <div className="text-lg text-[var(--text-primary)] mb-1 font-bold">{player.username}</div>
         {getTitleLabel(player.title) && (
           <div className="text-xs text-[var(--accent-yellow)] tracking-wider mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
@@ -131,8 +163,22 @@ export default function ProfilePage() {
           </div>
         )}
         <div className="mb-3"><RankBadge rank={player.rank} size="lg" /></div>
-        <div className="text-2xl text-[var(--accent-red)] glow-red mb-4 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+        <div className="text-2xl text-[var(--accent-red)] glow-red mb-1 font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
           {player.elo} <span className="text-sm text-[var(--text-dim)]">ELO</span>
+        </div>
+        {/* Rank progress bar */}
+        <div className="mx-auto mb-4 max-w-[200px]">
+          <div className="flex justify-between text-[9px] text-[var(--text-muted)] mb-1">
+            <span>{rankTier}</span>
+            <span>{nextRank}</span>
+          </div>
+          <div className="h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${rankProgress}%`, backgroundColor: "var(--accent-red)", boxShadow: "0 0 6px rgba(255,0,51,0.5)" }}
+            />
+          </div>
+          <div className="text-[9px] text-[var(--text-muted)] mt-0.5 text-right">{rankProgress}%</div>
         </div>
         <div className="grid grid-cols-4 gap-4 text-center mb-4">
           <StatCard label="WINS" value={player.wins} color="var(--accent-green)" />
@@ -147,6 +193,7 @@ export default function ProfilePage() {
       <div className="flex border-b border-[var(--border-color)] mb-4">
         <TabBtn id="stats" label="STATS" />
         <TabBtn id="titles" label="TITLES" />
+        <TabBtn id="avatar" label="AVATAR" />
         <TabBtn id="friends" label="FRIENDS" />
         <TabBtn id="history" label="HISTORY" />
       </div>
@@ -172,8 +219,11 @@ export default function ProfilePage() {
           {/* Performance */}
           <div className="hacker-card">
             <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">PERFORMANCE</div>
-            <div className="grid grid-cols-3 gap-4">
-              <StatCard label="WIN STREAK" value={longestStreak} color="var(--accent-green)" />
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <StatCard label="CURRENT STREAK" value={player.winStreak > 0 ? `🔥 ${player.winStreak}` : player.winStreak} color="var(--accent-yellow)" />
+              <StatCard label="BEST STREAK" value={longestStreak} color="var(--accent-green)" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <StatCard label="AVG SOLVE" value={avgTime ? `${avgTime}s` : "—"} color="var(--accent-yellow)" />
               <StatCard label="TOTAL GAMES" value={totalGames} />
             </div>
@@ -261,6 +311,44 @@ export default function ProfilePage() {
                     {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
                     {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
                   </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* AVATAR TAB */}
+      {tab === "avatar" && (
+        <div className="hacker-card slide-up">
+          <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+            CHOOSE YOUR AVATAR — CLICK TO SELECT
+          </div>
+          <div className="grid grid-cols-5 gap-3">
+            {AVATAR_IDS.map((id) => {
+              const { label, svg } = AVATARS[id];
+              const isEquipped = player.avatar === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    equipAvatar(isEquipped ? null : id);
+                    setPlayer(getPlayer()!);
+                  }}
+                  title={label}
+                  className={`flex flex-col items-center gap-1 p-2 border rounded transition-all ${
+                    isEquipped
+                      ? "border-[var(--accent-red)] bg-[rgba(255,0,51,0.08)]"
+                      : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                  }`}
+                  style={{ boxShadow: isEquipped ? "0 0 8px rgba(255,0,51,0.3)" : undefined }}
+                >
+                  <div
+                    className="w-10 h-10 rounded overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: svg }}
+                  />
+                  <span className="text-[9px] text-[var(--text-muted)] tracking-wider">{label.toUpperCase()}</span>
+                  {isEquipped && <span className="text-[8px] text-[var(--accent-red)]">ON</span>}
                 </button>
               );
             })}

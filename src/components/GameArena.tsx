@@ -212,6 +212,8 @@ export function GameArena(props: GameArenaProps) {
           title={playerTitleLabel}
           isYou={true}
           solved={solved}
+          avatar={player?.avatar}
+          winStreak={player?.winStreak}
         />
 
         <Timer duration={90} onTimeUp={handleTimeUp} started={true} />
