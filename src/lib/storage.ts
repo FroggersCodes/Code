@@ -393,3 +393,9 @@ export function getBugReports(): BugReport[] {
   if (!data) return [];
   return JSON.parse(data);
 }
+
+export function deleteBugReport(id: string): void {
+  if (typeof window === "undefined") return;
+  const reports = getBugReports().filter((r) => r.id !== id);
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
