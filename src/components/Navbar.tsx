@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPlayer } from "@/lib/storage";
-import { TITLES } from "@/lib/titles";
+import { ALL_TITLES, isAdminTitle } from "@/lib/titles";
 import { isMuted, toggleMute } from "@/lib/sounds";
 import { getAvatarSvg } from "@/lib/avatars";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [titleLabel, setTitleLabel] = useState<string | null>(null);
+  const [titleId, setTitleId] = useState<string | null>(null);
   const [avatarSvg, setAvatarSvg] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
 
@@ -18,8 +19,9 @@ export function Navbar() {
     if (player) {
       setUsername(player.username);
       if (player.title) {
-        const t = TITLES.find((t) => t.id === player.title);
+        const t = ALL_TITLES.find((t) => t.id === player.title);
         setTitleLabel(t?.label ?? null);
+        setTitleId(player.title);
       }
       setAvatarSvg(getAvatarSvg(player.avatar));
     }
@@ -72,7 +74,9 @@ export function Navbar() {
             <span className="flex flex-col items-end leading-tight">
               <span>{username}</span>
               {titleLabel && (
-                <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                <span className={`text-[10px] tracking-wider ${isAdminTitle(titleId) ? "admin-title" : "text-[var(--accent-yellow)]"}`}
+                  style={isAdminTitle(titleId) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+                >
                   {titleLabel}
                 </span>
               )}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
 import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, type FriendStats } from "@/lib/storage";
-import { TITLES, getTitleLabel } from "@/lib/titles";
+import { TITLES, ALL_TITLES, getTitleLabel, isAdminTitle } from "@/lib/titles";
 import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
 import { RANK_THRESHOLDS, type RankTier } from "@/types";
 import type { Player } from "@/types";
@@ -158,7 +158,9 @@ export default function ProfilePage() {
         )}
         <div className="text-lg text-[var(--text-primary)] mb-1 font-bold">{player.username}</div>
         {getTitleLabel(player.title) && (
-          <div className="text-xs text-[var(--accent-yellow)] tracking-wider mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          <div className={`text-xs tracking-wider mb-2 ${isAdminTitle(player.title) ? "admin-title" : "text-[var(--accent-yellow)]"}`}
+            style={isAdminTitle(player.title) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+          >
             {getTitleLabel(player.title)}
           </div>
         )}
@@ -276,10 +278,10 @@ export default function ProfilePage() {
       {tab === "titles" && (
         <div className="hacker-card slide-up">
           <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
-            UNLOCKED {(player.unlockedTitles ?? []).length}/{TITLES.length} — CLICK TO EQUIP
+            UNLOCKED {(player.unlockedTitles ?? []).length}/{ALL_TITLES.length} — CLICK TO EQUIP
           </div>
           <div className="space-y-2">
-            {TITLES.map((t) => {
+            {ALL_TITLES.map((t) => {
               const unlocked = (player.unlockedTitles ?? []).includes(t.id);
               const equipped = player.title === t.id;
               return (
@@ -300,8 +302,12 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className={`text-xs font-bold mb-0.5 ${equipped ? "text-[var(--accent-yellow)]" : unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}
-                        style={{ fontFamily: equipped ? "'Orbitron', sans-serif" : undefined }}
+                      <div className={`text-xs font-bold mb-0.5 ${
+                          equipped && isAdminTitle(t.id) ? "admin-title" :
+                          equipped ? "text-[var(--accent-yellow)]" :
+                          unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"
+                        }`}
+                        style={equipped && !isAdminTitle(t.id) ? { fontFamily: "'Orbitron', sans-serif" } : undefined}
                       >
                         {unlocked ? t.label : "???"}
                       </div>

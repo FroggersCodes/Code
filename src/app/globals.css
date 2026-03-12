@@ -58,6 +58,20 @@ body::after {
   );
 }
 
+/* Admin title sparkle */
+@keyframes admin-sparkle {
+  0%   { text-shadow: 0 0 4px #ffd700, 0 0 10px #ffd700; color: #ffd700; }
+  30%  { text-shadow: 0 0 8px #fff8b0, 0 0 18px #ffd700, 0 0 30px #ffaa00; color: #fff8b0; }
+  60%  { text-shadow: 0 0 4px #ffd700, 0 0 12px #ffcc00; color: #ffdd55; }
+  100% { text-shadow: 0 0 4px #ffd700, 0 0 10px #ffd700; color: #ffd700; }
+}
+
+.admin-title {
+  animation: admin-sparkle 2s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
 /* Glow effects */
 .glow-red {
   text-shadow: 0 0 8px var(--accent-red), 0 0 20px var(--accent-red-glow);
