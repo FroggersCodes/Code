@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, type FriendStats } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, savePlayer, type FriendStats } from "@/lib/storage";
 import { TITLES, ALL_TITLES, getTitleLabel, isAdminTitle, isGlitchTitle } from "@/lib/titles";
+import { connectSocket } from "@/lib/socket";
 import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
 import { RANK_THRESHOLDS, type RankTier } from "@/types";
 import type { Player } from "@/types";
@@ -61,6 +62,9 @@ export default function ProfilePage() {
   const [friends, setFriends] = useState<string[]>([]);
   const [friendInput, setFriendInput] = useState("");
   const [friendError, setFriendError] = useState("");
+  const [messages, setMessages] = useState<Array<{ id: string; text: string; createdAt: string }>>([]);
+  const [claimCode, setClaimCode] = useState("");
+  const [claimResult, setClaimResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -73,6 +77,28 @@ export default function ProfilePage() {
     setPlayer(getPlayer()!);
     setMatches(getMatches());
     setFriends(getFriends());
+
+    const socket = connectSocket();
+    socket.emit("player:register", { username: p.username });
+    socket.on("player:messages", (msgs: Array<{ id: string; text: string; createdAt: string }>) =>
+      setMessages((prev) => [...prev, ...msgs])
+    );
+    socket.on("title:claim-result", ({ ok, titleId, error }: { ok: boolean; titleId?: string; error?: string }) => {
+      if (ok && titleId) {
+        const current = getPlayer()!;
+        const updated = { ...current, unlockedTitles: [...(current.unlockedTitles ?? []), titleId] };
+        savePlayer(updated);
+        setPlayer(updated);
+        setClaimResult({ ok: true, msg: `Title unlocked: ${getTitleLabel(titleId)}` });
+        setClaimCode("");
+      } else {
+        setClaimResult({ ok: false, msg: error ?? "Invalid code" });
+      }
+    });
+    return () => {
+      socket.off("player:messages");
+      socket.off("title:claim-result");
+    };
   }, [router]);
 
   const handleLogout = () => {
@@ -277,6 +303,66 @@ export default function ProfilePage() {
       {/* TITLES TAB */}
       {tab === "titles" && (
         <div className="hacker-card slide-up">
+          {/* Inbox */}
+          {messages.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs text-[var(--accent-yellow)] mb-2 tracking-wider">INBOX ({messages.length})</div>
+              <div className="space-y-2">
+                {messages.map((m) => (
+                  <div key={m.id} className="border border-[var(--accent-yellow)] border-opacity-40 rounded p-3 bg-[rgba(255,204,0,0.04)]">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="text-xs text-[var(--text-primary)] flex-1">{m.text}</div>
+                      <button
+                        onClick={() => {
+                          connectSocket().emit("player:dismiss-message", { messageId: m.id });
+                          setMessages((prev) => prev.filter((x) => x.id !== m.id));
+                        }}
+                        className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent-red)] bg-transparent border-none cursor-pointer flex-shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="text-[9px] text-[var(--text-muted)] mt-1">
+                      {new Date(m.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Claim Title Code */}
+          <div className="mb-4 pb-4 border-b border-[var(--border-color)]">
+            <div className="text-xs text-[var(--text-dim)] mb-2 tracking-wider">CLAIM TITLE CODE</div>
+            <div className="flex gap-2">
+              <input
+                className="hacker-input flex-1 text-xs"
+                placeholder="enter code_"
+                value={claimCode}
+                onChange={(e) => { setClaimCode(e.target.value.toUpperCase()); setClaimResult(null); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && claimCode.trim()) {
+                    connectSocket().emit("title:claim", { code: claimCode.trim() });
+                  }
+                }}
+                maxLength={12}
+              />
+              <RetroButton
+                variant="warning"
+                onClick={() => {
+                  if (claimCode.trim()) connectSocket().emit("title:claim", { code: claimCode.trim() });
+                }}
+              >
+                CLAIM
+              </RetroButton>
+            </div>
+            {claimResult && (
+              <div className={`text-[10px] mt-1 tracking-wider ${claimResult.ok ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
+                {claimResult.ok ? "✓" : "✗"} {claimResult.msg}
+              </div>
+            )}
+          </div>
+
           <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
             UNLOCKED {(player.unlockedTitles ?? []).length}/{ALL_TITLES.length} — CLICK TO EQUIP
           </div>

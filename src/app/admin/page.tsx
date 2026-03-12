@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getPlayer, savePlayer, getBugReports, type BugReport } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
+import { connectSocket } from "@/lib/socket";
 import type { Player } from "@/types";
 
 const PASSPHRASE = "FroggersSmiles0407";
@@ -51,19 +52,39 @@ export default function AdminPage() {
   // Bug reports
   const [bugReports, setBugReports] = useState<BugReport[]>([]);
 
+  // Messaging + grant codes
+  const [msgTarget, setMsgTarget] = useState("");
+  const [msgText, setMsgText] = useState("");
+  const [msgSent, setMsgSent] = useState(false);
+  const [codeTitle, setCodeTitle] = useState(ADMIN_TITLES[0].id);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+
   useEffect(() => {
-    if (authed) {
-      const p = getPlayer();
-      setPlayer(p);
-      if (p) {
-        setElo(String(p.elo));
-        setWins(String(p.wins));
-        setLosses(String(p.losses));
-        setDraws(String(p.draws));
-        setWinStreak(String(p.winStreak ?? 0));
-      }
-      setBugReports(getBugReports());
+    if (!authed) return;
+    const p = getPlayer();
+    setPlayer(p);
+    if (p) {
+      setElo(String(p.elo));
+      setWins(String(p.wins));
+      setLosses(String(p.losses));
+      setDraws(String(p.draws));
+      setWinStreak(String(p.winStreak ?? 0));
     }
+    setBugReports(getBugReports());
+
+    const socket = connectSocket();
+    socket.on("admin:code-generated", ({ code }: { code: string }) => {
+      setGeneratedCode(code);
+      setMsgText(`Your title grant code: ${code} — redeem it in Profile → Titles.`);
+    });
+    socket.on("admin:message-sent", ({ ok }: { ok: boolean }) => {
+      if (ok) flash(setMsgSent);
+    });
+    return () => {
+      socket.off("admin:code-generated");
+      socket.off("admin:message-sent");
+    };
   }, [authed]);
 
   const handleAuth = () => {
@@ -416,6 +437,80 @@ export default function AdminPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Messaging + Grant Codes ── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(0,212,255,0.3)" }}>
+        <div className="text-xs text-[var(--accent-green)] tracking-wider mb-4">✉ SEND PLAYER MESSAGE</div>
+
+        {/* Code generator */}
+        <div className="mb-4">
+          <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">GRANT TITLE CODE</div>
+          <div className="flex gap-2 mb-2 flex-wrap">
+            {ADMIN_TITLES.map((t) => (
+              <button key={t.id} onClick={() => { setCodeTitle(t.id); setGeneratedCode(null); }}
+                className="flex-1 py-1 text-[10px] tracking-wider border rounded bg-transparent cursor-pointer transition-colors"
+                style={{
+                  borderColor: codeTitle === t.id ? "#00d4ff" : "var(--border-color)",
+                  color: codeTitle === t.id ? "#00d4ff" : "var(--text-muted)",
+                  fontFamily: "'Orbitron', sans-serif",
+                  minWidth: "60px",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 items-center">
+            <AdminBtn onClick={() => {
+              const socket = connectSocket();
+              socket.emit("admin:generate-code", { passphrase: PASSPHRASE, titleId: codeTitle });
+            }} color="#00d4ff">GENERATE CODE</AdminBtn>
+            {generatedCode && (
+              <>
+                <span className="text-sm font-bold tracking-widest text-[#00d4ff]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                  {generatedCode}
+                </span>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(generatedCode); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000); }}
+                  className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
+                  style={{ fontFamily: "'Share Tech Mono', monospace" }}
+                >
+                  {codeCopied ? "✓ COPIED" : "COPY"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Message form */}
+        <div className="mb-3">
+          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">TO USERNAME</div>
+          <input
+            className="hacker-input w-full text-sm"
+            placeholder="username_"
+            value={msgTarget}
+            onChange={(e) => setMsgTarget(e.target.value)}
+          />
+        </div>
+        <div className="mb-3">
+          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">MESSAGE</div>
+          <textarea
+            className="hacker-input w-full text-xs resize-none"
+            rows={3}
+            placeholder="Write a message..."
+            value={msgText}
+            onChange={(e) => setMsgText(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <AdminBtn onClick={() => {
+            if (!msgTarget.trim() || !msgText.trim()) return;
+            const socket = connectSocket();
+            socket.emit("admin:send-message", { passphrase: PASSPHRASE, toUsername: msgTarget.trim(), text: msgText.trim() });
+          }} color="#00d4ff">SEND MESSAGE</AdminBtn>
+          {msgSent && <span className="text-xs text-[var(--accent-green)] tracking-wider">✓ SENT</span>}
+        </div>
       </div>
 
       {/* ── Danger zone ── */}
