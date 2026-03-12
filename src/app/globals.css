@@ -58,6 +58,35 @@ body::after {
   );
 }
 
+/* Grandmaster rank badge pulse */
+@keyframes gm-pulse {
+  0%, 100% {
+    text-shadow: 0 0 6px #ffd700, 0 0 12px #ffd700;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 14px #fff8b0, 0 0 28px #ffd700, 0 0 44px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.7), 0 0 26px rgba(255, 215, 0, 0.3);
+  }
+}
+
+.rank-badge-gm {
+  animation: gm-pulse 2s ease-in-out infinite;
+  border-style: double !important;
+  border-width: 3px !important;
+  letter-spacing: 0.15em !important;
+}
+
+/* Diamond rank badge flicker */
+@keyframes diamond-flicker {
+  0%, 100% { text-shadow: 0 0 6px #ff0066; }
+  40% { text-shadow: 0 0 10px #ff88bb, 0 0 20px #ff0066, 0 0 30px rgba(255, 0, 102, 0.4); }
+}
+
+.rank-badge-diamond {
+  animation: diamond-flicker 2.5s ease-in-out infinite;
+}
+
 /* Admin title sparkle */
 @keyframes admin-sparkle {
   0%   { text-shadow: 0 0 4px #ffd700, 0 0 10px #ffd700; color: #ffd700; }

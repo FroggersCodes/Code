@@ -5,14 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { GameArena } from "@/components/GameArena";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { TitleUnlockToast } from "@/components/TitleUnlockToast";
-import { getCurrentGame, cleanupGame, startBotGameWithChallenge } from "@/lib/gameEngine";
+import { getCurrentGame, cleanupGame, startBotGameWithChallenge, startCotdGame } from "@/lib/gameEngine";
 import {
   getCurrentMultiplayerGame,
   signalReady,
   cleanupMultiplayerGame,
   setOnGameStart,
 } from "@/lib/multiplayerEngine";
-import { consumePendingTitleToasts, updateCotdRecord } from "@/lib/storage";
+import { consumePendingTitleToasts, updateCotdRecord, getCotdRecord } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { playWinSound, playLoseSound, playCountdownBeep } from "@/lib/sounds";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
@@ -65,9 +65,15 @@ function GameContent() {
   useEffect(() => {
     if (mode !== "bot" && mode !== "cotd") return;
 
+    // Block access to COTD if already won today
+    if (mode === "cotd" && getCotdRecord()?.won) {
+      router.push("/");
+      return;
+    }
+
     let currentGame = getCurrentGame();
     if (mode === "cotd" && !currentGame) {
-      currentGame = startBotGameWithChallenge(getChallengeOfTheDay());
+      currentGame = startCotdGame(getChallengeOfTheDay());
     }
     if (!currentGame) {
       router.push("/lobby");
