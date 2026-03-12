@@ -58,33 +58,51 @@ body::after {
   );
 }
 
-/* Grandmaster rank badge pulse */
-@keyframes gm-pulse {
-  0%, 100% {
-    text-shadow: 0 0 6px #ffd700, 0 0 12px #ffd700;
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
-  }
-  50% {
-    text-shadow: 0 0 14px #fff8b0, 0 0 28px #ffd700, 0 0 44px rgba(255, 215, 0, 0.6);
-    box-shadow: 0 0 14px rgba(255, 215, 0, 0.7), 0 0 26px rgba(255, 215, 0, 0.3);
-  }
+/* Grandmaster — full rainbow cycle */
+@keyframes gm-rainbow {
+  0%   { color: #ff3355; text-shadow: 0 0 10px #ff3355, 0 0 24px rgba(255,51,85,0.6);  border-color: #ff3355; box-shadow: 0 0 8px rgba(255,51,85,0.4); }
+  16%  { color: #ff8800; text-shadow: 0 0 10px #ff8800, 0 0 24px rgba(255,136,0,0.6); border-color: #ff8800; box-shadow: 0 0 8px rgba(255,136,0,0.4); }
+  33%  { color: #ffd700; text-shadow: 0 0 10px #ffd700, 0 0 24px rgba(255,215,0,0.6); border-color: #ffd700; box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+  50%  { color: #00ff88; text-shadow: 0 0 10px #00ff88, 0 0 24px rgba(0,255,136,0.6); border-color: #00ff88; box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+  66%  { color: #00d4ff; text-shadow: 0 0 10px #00d4ff, 0 0 24px rgba(0,212,255,0.6); border-color: #00d4ff; box-shadow: 0 0 8px rgba(0,212,255,0.4); }
+  83%  { color: #cc66ff; text-shadow: 0 0 10px #cc66ff, 0 0 24px rgba(204,102,255,0.6); border-color: #cc66ff; box-shadow: 0 0 8px rgba(204,102,255,0.4); }
+  100% { color: #ff3355; text-shadow: 0 0 10px #ff3355, 0 0 24px rgba(255,51,85,0.6);  border-color: #ff3355; box-shadow: 0 0 8px rgba(255,51,85,0.4); }
 }
 
 .rank-badge-gm {
-  animation: gm-pulse 2s ease-in-out infinite;
-  border-style: double !important;
-  border-width: 3px !important;
-  letter-spacing: 0.15em !important;
+  animation: gm-rainbow 3s linear infinite;
+  border: 2px solid #ff3355;
+  letter-spacing: 0.12em;
 }
 
-/* Diamond rank badge flicker */
+/* Diamond — intense pink burst */
 @keyframes diamond-flicker {
-  0%, 100% { text-shadow: 0 0 6px #ff0066; }
-  40% { text-shadow: 0 0 10px #ff88bb, 0 0 20px #ff0066, 0 0 30px rgba(255, 0, 102, 0.4); }
+  0%, 100% { text-shadow: 0 0 8px #ff0066, 0 0 16px rgba(255,0,102,0.4); box-shadow: 0 0 5px rgba(255,0,102,0.3); }
+  50% { text-shadow: 0 0 14px #ff66aa, 0 0 28px #ff0066, 0 0 44px rgba(255,0,102,0.5); box-shadow: 0 0 12px rgba(255,0,102,0.6); }
 }
 
 .rank-badge-diamond {
-  animation: diamond-flicker 2.5s ease-in-out infinite;
+  animation: diamond-flicker 2s ease-in-out infinite;
+}
+
+/* Platinum — electric cyan pulse */
+@keyframes platinum-pulse {
+  0%, 100% { text-shadow: 0 0 6px #00d4ff, 0 0 14px rgba(0,212,255,0.4); }
+  50% { text-shadow: 0 0 10px #66eeff, 0 0 22px #00d4ff, 0 0 36px rgba(0,212,255,0.4); }
+}
+
+.rank-badge-platinum {
+  animation: platinum-pulse 2.2s ease-in-out infinite;
+}
+
+/* Gold — warm glow pulse */
+@keyframes gold-glow {
+  0%, 100% { text-shadow: 0 0 6px #ffd700, 0 0 12px rgba(255,215,0,0.4); }
+  50% { text-shadow: 0 0 10px #ffe566, 0 0 20px #ffd700, 0 0 32px rgba(255,215,0,0.4); }
+}
+
+.rank-badge-gold {
+  animation: gold-glow 3s ease-in-out infinite;
 }
 
 /* Admin title sparkle */
