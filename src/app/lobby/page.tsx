@@ -110,20 +110,22 @@ export default function LobbyPage() {
     }, 1500);
   }, [router]);
 
-  const startQueue = useCallback(() => {
-    setMode("online");
-    setState("queuing");
+  const startQueueTimer = useCallback(() => {
+    if (queueTimerRef.current) return; // already running
     setQueueTime(0);
     setShowBotFallback(false);
-
     queueTimerRef.current = setInterval(() => {
       setQueueTime((prev) => {
-        if (prev >= 30) {
-          setShowBotFallback(true);
-        }
+        if (prev >= 30) setShowBotFallback(true);
         return prev + 1;
       });
     }, 1000);
+  }, []);
+
+  const startQueue = useCallback(() => {
+    setMode("online");
+    setState("queuing");
+    startQueueTimer();
 
     setOnQueueStatus((data: { position: number; queueSize: number }) => {
       setQueueSize(data.queueSize);
@@ -145,9 +147,13 @@ export default function LobbyPage() {
     });
 
     joinQueue();
-  }, [router]);
+  }, [router, startQueueTimer]);
 
   const handleStartOnline = useCallback(() => {
+    setMode("online");
+    setState("queuing");
+    startQueueTimer();
+
     if (!serverAvailable) {
       // Try to connect first
       import("@/lib/socket").then(({ connectSocket }) => {
@@ -169,12 +175,10 @@ export default function LobbyPage() {
           setState("connection_error");
         });
       });
-      setMode("online");
-      setState("queuing");
       return;
     }
     startQueue();
-  }, [serverAvailable, startQueue]);
+  }, [serverAvailable, startQueue, startQueueTimer]);
 
   const handleCancelQueue = useCallback(() => {
     leaveQueue();
