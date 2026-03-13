@@ -186,10 +186,9 @@ export default function LobbyPage() {
       clearInterval(queueTimerRef.current);
       queueTimerRef.current = null;
     }
-    setMode("select");
-    setState("idle");
     setShowBotFallback(false);
-  }, []);
+    router.push("/");
+  }, [router]);
 
   const handleBotFallback = useCallback(() => {
     leaveQueue();
@@ -295,11 +294,9 @@ export default function LobbyPage() {
             <div className="text-xs text-[var(--text-dim)] mb-1">
               {queueTime}s elapsed
             </div>
-            {queueSize > 0 && (
-              <div className="text-xs text-[var(--accent-yellow)] mb-4">
-                {queueSize} player{queueSize !== 1 ? "s" : ""} searching
-              </div>
-            )}
+            <div className="text-xs text-[var(--accent-yellow)] mb-4">
+              {queueSize} player{queueSize !== 1 ? "s" : ""} in matchmaking
+            </div>
             <RetroButton variant="error" onClick={handleCancelQueue}>
               CANCEL
             </RetroButton>
