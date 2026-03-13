@@ -102,6 +102,9 @@ interface LeaderboardEntry {
   wins: number;
   losses: number;
   draws: number;
+  winStreak: number;
+  title: string | null;
+  avatar: string | null;
 }
 const leaderboard = new Map<string, LeaderboardEntry>();
 
@@ -260,17 +263,17 @@ function endGame(room: GameRoom, io: Server): void {
   if (p1Entry) {
     p1Entry.elo = newRatingA;
     p1Entry.rank = getRankFromElo(newRatingA);
-    if (draw) p1Entry.draws++;
-    else if (p1Won) p1Entry.wins++;
-    else p1Entry.losses++;
+    if (draw) { p1Entry.draws++; p1Entry.winStreak = 0; }
+    else if (p1Won) { p1Entry.wins++; p1Entry.winStreak = (p1Entry.winStreak ?? 0) + 1; }
+    else { p1Entry.losses++; p1Entry.winStreak = 0; }
   }
   const p2Entry = leaderboard.get(p2.username.toLowerCase());
   if (p2Entry) {
     p2Entry.elo = newRatingB;
     p2Entry.rank = getRankFromElo(newRatingB);
-    if (draw) p2Entry.draws++;
-    else if (!p1Won) p2Entry.wins++;
-    else p2Entry.losses++;
+    if (draw) { p2Entry.draws++; p2Entry.winStreak = 0; }
+    else if (!p1Won) { p2Entry.wins++; p2Entry.winStreak = (p2Entry.winStreak ?? 0) + 1; }
+    else { p2Entry.losses++; p2Entry.winStreak = 0; }
   }
 
   if (p1Entry || p2Entry) saveLeaderboard();
@@ -334,8 +337,9 @@ export function setupSocketHandlers(io: Server): void {
     console.log(`Player connected: ${socket.id}`);
 
     // Leaderboard events
-    socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number; isGuest?: boolean }) => {
+    socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number; winStreak?: number; title?: string | null; avatar?: string | null; isGuest?: boolean }) => {
       if (data.username && typeof data.elo === "number" && !data.isGuest) {
+        const existing = leaderboard.get(data.username.toLowerCase());
         leaderboard.set(data.username.toLowerCase(), {
           username: data.username,
           elo: data.elo,
@@ -343,6 +347,9 @@ export function setupSocketHandlers(io: Server): void {
           wins: data.wins || 0,
           losses: data.losses || 0,
           draws: data.draws || 0,
+          winStreak: data.winStreak ?? existing?.winStreak ?? 0,
+          title: data.title !== undefined ? data.title : (existing?.title ?? null),
+          avatar: data.avatar !== undefined ? data.avatar : (existing?.avatar ?? null),
         });
         saveLeaderboard();
       }
@@ -353,6 +360,11 @@ export function setupSocketHandlers(io: Server): void {
         .sort((a, b) => b.elo - a.elo)
         .slice(0, 50);
       socket.emit("leaderboard:data", entries);
+    });
+
+    socket.on("profile:get", (data: { username: string }) => {
+      const entry = leaderboard.get(data.username.toLowerCase()) ?? null;
+      socket.emit("profile:data", entry);
     });
 
     socket.on("season:info", () => {

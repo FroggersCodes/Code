@@ -211,6 +211,7 @@ export function GameArena(props: GameArenaProps) {
           elo={player?.elo || 1000}
           rank={player?.rank || "Silver"}
           title={playerTitleLabel}
+          titleId={player?.title}
           isYou={true}
           solved={solved}
           avatar={player?.avatar}
@@ -225,6 +226,7 @@ export function GameArena(props: GameArenaProps) {
             elo={opponentElo}
             rank={opponentRank}
             title={opponentTitle}
+            titleId={isMultiplayer ? props.multiplayerConfig!.opponent.title : null}
             isYou={false}
             solved={opponentSolved}
             typing={opponentTyping && !opponentSolved && !gameEnded}

@@ -64,6 +64,10 @@ export default function LobbyPage() {
             wins: p.wins,
             losses: p.losses,
             draws: p.draws,
+            winStreak: p.winStreak ?? 0,
+            title: p.title ?? null,
+            avatar: p.avatar ?? null,
+            isGuest: p.passwordHash === "",
           });
         }
       });
