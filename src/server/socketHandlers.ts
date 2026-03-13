@@ -11,6 +11,8 @@ import {
   getQueuedPlayers,
   type QueuedPlayer,
 } from "./matchmaking";
+import * as fs from "fs";
+import * as path from "path";
 
 function broadcastQueueStatus(io: Server): void {
   const players = getQueuedPlayers();
@@ -102,6 +104,38 @@ interface LeaderboardEntry {
   draws: number;
 }
 const leaderboard = new Map<string, LeaderboardEntry>();
+
+const LEADERBOARD_FILE = path.resolve(process.cwd(), "data", "leaderboard.json");
+
+function loadLeaderboard(): void {
+  try {
+    if (fs.existsSync(LEADERBOARD_FILE)) {
+      const entries: LeaderboardEntry[] = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8"));
+      for (const entry of entries) {
+        leaderboard.set(entry.username.toLowerCase(), entry);
+      }
+      console.log(`[leaderboard] Loaded ${leaderboard.size} entries from disk.`);
+    }
+  } catch (err) {
+    console.error("[leaderboard] Failed to load from disk:", err);
+  }
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+function saveLeaderboard(): void {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    try {
+      fs.mkdirSync(path.dirname(LEADERBOARD_FILE), { recursive: true });
+      fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(Array.from(leaderboard.values()), null, 2));
+    } catch (err) {
+      console.error("[leaderboard] Failed to save to disk:", err);
+    }
+  }, 2000);
+}
+
+loadLeaderboard();
 
 // ─── Admin / messaging ────────────────────────────────────────────────────────
 const ADMIN_PASSPHRASE = "FroggersSmiles0407";
@@ -206,6 +240,8 @@ function endGame(room: GameRoom, io: Server): void {
     else p2Entry.losses++;
   }
 
+  if (p1Entry || p2Entry) saveLeaderboard();
+
   // Cleanup
   playerRooms.delete(p1.socketId);
   playerRooms.delete(p2.socketId);
@@ -275,6 +311,7 @@ export function setupSocketHandlers(io: Server): void {
           losses: data.losses || 0,
           draws: data.draws || 0,
         });
+        saveLeaderboard();
       }
     });
 
