@@ -10,3 +10,7 @@ services:
         value: production
       - key: NODE_VERSION
         value: 22
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
