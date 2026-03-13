@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
-import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
+import { getPlayer, getMatches, signUp, login, loginAsGuest, addSuggestion, getCotdRecord, type StoredMatch } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
@@ -139,6 +139,9 @@ export default function HomePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [recentMatches, setRecentMatches] = useState<StoredMatch[]>([]);
   const [error, setError] = useState("");
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [suggestionText, setSuggestionText] = useState("");
+  const [suggestionSent, setSuggestionSent] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -186,6 +189,7 @@ export default function HomePage() {
         return;
       }
       handleLogin(result);
+      setShowWelcome(true);
     } else {
       const result = login(sanitized, password);
       if ("error" in result) {
@@ -200,8 +204,45 @@ export default function HomePage() {
     if (e.key === "Enter") handleSubmit();
   };
 
+  const handleSuggestionSubmit = () => {
+    const trimmed = suggestionText.trim();
+    if (!trimmed) return;
+    addSuggestion(trimmed);
+    setSuggestionText("");
+    setSuggestionSent(true);
+    setTimeout(() => setSuggestionSent(false), 3000);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+      {/* Welcome modal for new sign-ups */}
+      {showWelcome && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+        >
+          <div className="hacker-card hacker-card-red max-w-sm w-full text-center slide-up">
+            <div
+              className="text-2xl font-black text-[var(--accent-red)] glow-red mb-2 tracking-wider"
+              style={{ fontFamily: "'Orbitron', sans-serif" }}
+            >
+              WELCOME TO BUGRACER!
+            </div>
+            <div className="text-xs text-[var(--accent-yellow)] mb-4 tracking-widest">— ALPHA —</div>
+            <p className="text-sm text-[var(--text-primary)] mb-3 leading-relaxed">
+              We appreciate you signing up! You've been awarded the{" "}
+              <span className="text-[var(--accent-yellow)] font-bold">α Alpha Tester</span> title for joining early.
+            </p>
+            <p className="text-xs text-[var(--text-dim)] mb-5 leading-relaxed">
+              Please remember that we are in alpha, which means glitches may happen from time to time.
+              Feel free to report bugs — you may earn a special title for it!
+            </p>
+            <RetroButton variant="success" onClick={() => setShowWelcome(false)} className="w-full">
+              LET&apos;S RACE!
+            </RetroButton>
+          </div>
+        </div>
+      )}
       <div className="text-center mb-8 slide-up">
         <h1
           className="text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
@@ -308,13 +349,41 @@ export default function HomePage() {
           </div>
 
           {/* Leaderboard + Profile links */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 mb-4">
             <RetroButton variant="primary" onClick={() => router.push("/leaderboard")} className="flex-1">
               LEADERBOARD
             </RetroButton>
             <RetroButton variant="primary" onClick={() => router.push("/profile")} className="flex-1">
               MY PROFILE
             </RetroButton>
+          </div>
+
+          {/* Suggestion Box */}
+          <div className="hacker-card hacker-card-red mb-4">
+            <div className="text-xs text-[var(--accent-yellow)] mb-1 tracking-wider font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              💡 SUGGESTION BOX
+            </div>
+            <div className="text-[10px] text-[var(--text-dim)] mb-3 tracking-wide">
+              Got an idea to improve BugRacers? Let us know!
+            </div>
+            <textarea
+              value={suggestionText}
+              onChange={(e) => setSuggestionText(e.target.value)}
+              placeholder="Type your suggestion here..."
+              rows={3}
+              className="w-full bg-transparent border border-[var(--border-color)] rounded px-3 py-2 text-xs text-[var(--text-primary)] resize-none outline-none focus:border-[var(--accent-yellow)] transition-colors mb-3"
+              style={{ fontFamily: "'Share Tech Mono', monospace" }}
+              maxLength={500}
+            />
+            {suggestionSent ? (
+              <div className="text-xs text-[var(--accent-green)] glow-green text-center py-1">
+                ✓ Suggestion submitted — thanks!
+              </div>
+            ) : (
+              <RetroButton variant="warning" onClick={handleSuggestionSubmit} className="w-full" disabled={!suggestionText.trim()}>
+                SUBMIT
+              </RetroButton>
+            )}
           </div>
         </div>
       ) : (

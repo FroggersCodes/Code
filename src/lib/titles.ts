@@ -107,6 +107,7 @@ export const TITLES: TitleDef[] = [
 
 // ─── Admin-only titles ────────────────────────────────────────────────────
 export const ADMIN_TITLES: TitleDef[] = [
+  { id: "alpha_tester", label: "α Alpha Tester", description: "Signed up during the Alpha — an OG", adminOnly: true, check: () => false },
   { id: "tester",    label: "✦ Tester",    description: "Granted by admin — game tester",    adminOnly: true, check: () => false },
   { id: "developer", label: "✦ Developer", description: "Granted by admin — game developer", adminOnly: true, check: () => false },
   { id: "owner",     label: "✦ Owner",     description: "Granted by admin — game owner",     adminOnly: true, check: () => false },

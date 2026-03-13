@@ -116,7 +116,7 @@ export default function LeaderboardPage() {
           <div>
             <div className="text-[10px] text-[var(--text-dim)] tracking-widest">CURRENT SEASON</div>
             <div className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              SEASON {season.season}
+              SEASON ALPHA
             </div>
           </div>
           <div className="flex-1 border-l border-[var(--border-color)] pl-4">

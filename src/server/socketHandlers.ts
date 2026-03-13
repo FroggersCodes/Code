@@ -369,7 +369,7 @@ export function setupSocketHandlers(io: Server): void {
 
     socket.on("season:info", () => {
       const SEASON_EPOCH = new Date("2026-03-01").getTime();
-      const SEASON_MS = 60 * 24 * 60 * 60 * 1000;
+      const SEASON_MS = 183 * 24 * 60 * 60 * 1000; // ~6 months
       const now = Date.now();
       const elapsed = now - SEASON_EPOCH;
       const seasonNumber = Math.max(1, Math.floor(elapsed / SEASON_MS) + 1);
