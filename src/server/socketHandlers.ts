@@ -389,6 +389,9 @@ export function setupSocketHandlers(io: Server): void {
           wins: 0,
           losses: 0,
           draws: 0,
+          winStreak: 0,
+          title: data.title ?? null,
+          avatar: null,
         });
       }
 
