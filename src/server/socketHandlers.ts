@@ -106,31 +106,64 @@ interface LeaderboardEntry {
 const leaderboard = new Map<string, LeaderboardEntry>();
 
 const LEADERBOARD_FILE = path.resolve(process.cwd(), "data", "leaderboard.json");
+const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const REDIS_KEY   = "bugracer:leaderboard";
 
-function loadLeaderboard(): void {
+async function loadLeaderboard(): Promise<void> {
+  // Try Redis first
+  if (REDIS_URL && REDIS_TOKEN) {
+    try {
+      const res = await fetch(`${REDIS_URL}/get/${REDIS_KEY}`, {
+        headers: { Authorization: `Bearer ${REDIS_TOKEN}` },
+      });
+      const { result } = await res.json() as { result: string | null };
+      if (result) {
+        const entries: LeaderboardEntry[] = JSON.parse(result);
+        for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
+        console.log(`[leaderboard] Loaded ${leaderboard.size} entries from Redis.`);
+        return;
+      }
+    } catch (err) {
+      console.error("[leaderboard] Redis load failed, falling back to file:", err);
+    }
+  }
+  // Fallback: local file (local dev)
   try {
     if (fs.existsSync(LEADERBOARD_FILE)) {
       const entries: LeaderboardEntry[] = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8"));
-      for (const entry of entries) {
-        leaderboard.set(entry.username.toLowerCase(), entry);
-      }
+      for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
       console.log(`[leaderboard] Loaded ${leaderboard.size} entries from disk.`);
     }
   } catch (err) {
-    console.error("[leaderboard] Failed to load from disk:", err);
+    console.error("[leaderboard] File load failed:", err);
   }
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function saveLeaderboard(): void {
   if (saveTimer) return;
-  saveTimer = setTimeout(() => {
+  saveTimer = setTimeout(async () => {
     saveTimer = null;
+    const entries = Array.from(leaderboard.values());
+    // Save to Redis if configured
+    if (REDIS_URL && REDIS_TOKEN) {
+      try {
+        await fetch(`${REDIS_URL}/set/${REDIS_KEY}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${REDIS_TOKEN}`, "Content-Type": "application/json" },
+          body: JSON.stringify([JSON.stringify(entries)]),
+        });
+      } catch (err) {
+        console.error("[leaderboard] Redis save failed:", err);
+      }
+    }
+    // Always write local file as backup
     try {
       fs.mkdirSync(path.dirname(LEADERBOARD_FILE), { recursive: true });
-      fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(Array.from(leaderboard.values()), null, 2));
+      fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(entries, null, 2));
     } catch (err) {
-      console.error("[leaderboard] Failed to save to disk:", err);
+      console.error("[leaderboard] File save failed:", err);
     }
   }, 2000);
 }
