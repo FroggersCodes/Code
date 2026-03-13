@@ -68,8 +68,8 @@ export function signUp(
     wins: 0,
     losses: 0,
     draws: 0,
-    title: null,
-    unlockedTitles: [],
+    title: "alpha_tester",
+    unlockedTitles: ["alpha_tester"],
     avatar: null,
     winStreak: 0,
   };
@@ -398,4 +398,40 @@ export function deleteBugReport(id: string): void {
   if (typeof window === "undefined") return;
   const reports = getBugReports().filter((r) => r.id !== id);
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
+
+// ─── Suggestions ───────────────────────────────────────────────────────────────
+const SUGGESTIONS_KEY = "bugracer_suggestions";
+
+export interface Suggestion {
+  id: string;
+  username: string;
+  text: string;
+  createdAt: string;
+}
+
+export function addSuggestion(text: string): void {
+  if (typeof window === "undefined") return;
+  const suggestions = getSuggestions();
+  const player = getPlayer();
+  suggestions.unshift({
+    id: Date.now().toString(36),
+    username: player?.username ?? "Guest",
+    text,
+    createdAt: new Date().toISOString(),
+  });
+  localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(suggestions));
+}
+
+export function getSuggestions(): Suggestion[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(SUGGESTIONS_KEY);
+  if (!data) return [];
+  return JSON.parse(data);
+}
+
+export function deleteSuggestion(id: string): void {
+  if (typeof window === "undefined") return;
+  const suggestions = getSuggestions().filter((s) => s.id !== id);
+  localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(suggestions));
 }

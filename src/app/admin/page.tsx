@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPlayer, savePlayer, getBugReports, deleteBugReport, type BugReport } from "@/lib/storage";
+import { getPlayer, savePlayer, getBugReports, deleteBugReport, getSuggestions, deleteSuggestion, type BugReport, type Suggestion } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
@@ -52,6 +52,9 @@ export default function AdminPage() {
   // Bug reports
   const [bugReports, setBugReports] = useState<BugReport[]>([]);
 
+  // Suggestions
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
   // Messaging + grant codes
   const [msgTarget, setMsgTarget] = useState("");
   const [msgText, setMsgText] = useState("");
@@ -72,6 +75,7 @@ export default function AdminPage() {
       setWinStreak(String(p.winStreak ?? 0));
     }
     setBugReports(getBugReports());
+    setSuggestions(getSuggestions());
 
     const socket = connectSocket();
     socket.on("admin:code-generated", ({ code }: { code: string }) => {
@@ -521,6 +525,44 @@ export default function AdminPage() {
           }} color="#00d4ff">SEND MESSAGE</AdminBtn>
           {msgSent && <span className="text-xs text-[var(--accent-green)] tracking-wider">✓ SENT</span>}
         </div>
+      </div>
+
+      {/* ── Suggestions ── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(255,204,0,0.3)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs text-[var(--accent-yellow)] tracking-wider">💡 SUGGESTIONS ({suggestions.length})</div>
+          <button
+            onClick={() => setSuggestions(getSuggestions())}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
+            style={{ fontFamily: "'Share Tech Mono', monospace" }}
+          >
+            REFRESH
+          </button>
+        </div>
+        {suggestions.length === 0 ? (
+          <div className="text-xs text-[var(--text-muted)] tracking-wider">No suggestions yet.</div>
+        ) : (
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {suggestions.map((s) => (
+              <div key={s.id} className="border border-[var(--border-color)] rounded p-2 text-xs">
+                <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+                  <span className="text-[var(--accent-yellow)]">{s.username}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{new Date(s.createdAt).toLocaleString()}</span>
+                    <button
+                      onClick={() => { deleteSuggestion(s.id); setSuggestions(getSuggestions()); }}
+                      className="text-[10px] text-[var(--accent-red)] hover:text-red-400 bg-transparent border-none cursor-pointer tracking-wider transition-colors"
+                      style={{ fontFamily: "'Share Tech Mono', monospace" }}
+                    >
+                      [DELETE]
+                    </button>
+                  </div>
+                </div>
+                <div className="text-[var(--text-primary)] leading-relaxed">{s.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Danger zone ── */}
