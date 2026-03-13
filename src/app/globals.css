@@ -309,7 +309,7 @@ body::after {
   80%       { color: #ff5500; opacity: 0.9; }
 }
 .fire-title {
-  animation: fire-flicker 2s steps(1, jump-none) infinite;
+  animation: fire-flicker 2s ease-in-out infinite;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.1em;
 }
@@ -326,7 +326,7 @@ body::after {
   76%       { color: #ff4400; opacity: 1; }
 }
 .unstoppable-title {
-  animation: unstoppable-burn 1.8s steps(1, jump-none) infinite;
+  animation: unstoppable-burn 1.8s ease-in-out infinite;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.1em;
 }
@@ -341,7 +341,7 @@ body::after {
   56%       { color: #00ffff; opacity: 1; }
 }
 .lightning-title {
-  animation: lightning-arc 1.4s steps(1, jump-none) infinite;
+  animation: lightning-arc 1.4s ease-in-out infinite;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.1em;
 }
@@ -357,7 +357,7 @@ body::after {
   75%       { color: #0099ff; text-shadow: 0 0 6px #00ccff, 0 0 14px rgba(0,200,255,0.4); }
 }
 .speed-demon-title {
-  animation: speed-demon-arc 1s steps(1, jump-none) infinite;
+  animation: speed-demon-arc 1s ease-in-out infinite;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.1em;
 }
