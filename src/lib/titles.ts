@@ -71,6 +71,33 @@ export const TITLES: TitleDef[] = [
       matches.filter((m) => m.won && !m.isVsBot).length >= 10,
   },
   {
+    id: "speed_demon",
+    label: "Speed Demon",
+    description: "Win 5 matches in under 60 seconds each",
+    check: (_p, matches) =>
+      matches.filter((m) => m.won && m.playerTime !== null && m.playerTime < 60000).length >= 5,
+  },
+  {
+    id: "streak_lord",
+    label: "Streak Lord",
+    description: "Achieve a 10-win streak",
+    check: (_p, matches) => {
+      let streak = 0;
+      for (const m of [...matches].reverse()) {
+        if (m.won) { streak++; if (streak >= 10) return true; }
+        else streak = 0;
+      }
+      return false;
+    },
+  },
+  {
+    id: "centurion",
+    label: "⚔ Centurion",
+    description: "Win 50 ranked (online) matches",
+    check: (_p, matches) =>
+      matches.filter((m) => m.won && !m.isVsBot).length >= 50,
+  },
+  {
     id: "redacted",
     label: "[REDACTED]",
     description: "Reach Grandmaster rank",
@@ -114,4 +141,25 @@ export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string
 export function getTitleLabel(titleId: string | null | undefined): string | null {
   if (!titleId) return null;
   return ALL_TITLES.find((t) => t.id === titleId)?.label ?? null;
+}
+
+/**
+ * Returns the CSS class name for a title's animation, or null for plain styled titles.
+ * Components should apply inline Orbitron + yellow color when this returns null.
+ */
+export function getTitleClass(id: string | null | undefined): string | null {
+  if (!id) return null;
+  switch (id) {
+    case "glitch":       return "glitch-title";
+    case "redacted":     return "redacted-title";
+    case "on_fire":      return "fire-title";
+    case "unstoppable":  return "unstoppable-title";
+    case "lightning":    return "lightning-title";
+    case "speed_demon":  return "speed-demon-title";
+    case "streak_lord":  return "streak-lord-title";
+    case "centurion":    return "centurion-title";
+    default:
+      if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
+      return null;
+  }
 }

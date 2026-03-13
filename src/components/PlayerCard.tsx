@@ -2,12 +2,14 @@
 
 import { RankBadge } from "./RankBadge";
 import { getAvatarSvg } from "@/lib/avatars";
+import { getTitleClass } from "@/lib/titles";
 
 interface PlayerCardProps {
   username: string;
   elo: number;
   rank: string;
   title?: string | null;
+  titleId?: string | null;
   isYou?: boolean;
   solved?: boolean;
   typing?: boolean;
@@ -15,8 +17,11 @@ interface PlayerCardProps {
   winStreak?: number;
 }
 
-export function PlayerCard({ username, elo, rank, title, isYou, solved, typing, avatar, winStreak }: PlayerCardProps) {
+export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved, typing, avatar, winStreak }: PlayerCardProps) {
   const avatarSvg = getAvatarSvg(avatar);
+  const titleClass = titleId
+    ? getTitleClass(titleId)
+    : title?.startsWith("◈") ? "glitch-title" : title?.startsWith("✦") ? "admin-title" : null;
   return (
     <div
       className={`p-3 border rounded ${
@@ -48,8 +53,9 @@ export function PlayerCard({ username, elo, rank, title, isYou, solved, typing, 
         )}
       </div>
       {title && (
-        <div className={`text-[10px] tracking-wider mb-2 pl-4 ${title.startsWith("◈") ? "glitch-title" : title.startsWith("✦") ? "admin-title" : "text-[var(--accent-yellow)]"}`}
-          style={title.startsWith("◈") || title.startsWith("✦") ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+        <div
+          className={`text-[10px] tracking-wider mb-2 pl-4 ${titleClass ?? "text-[var(--accent-yellow)]"}`}
+          style={titleClass ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
         >
           {title}
         </div>

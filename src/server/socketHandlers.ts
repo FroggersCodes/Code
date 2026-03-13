@@ -102,35 +102,71 @@ interface LeaderboardEntry {
   wins: number;
   losses: number;
   draws: number;
+  winStreak: number;
+  title: string | null;
+  avatar: string | null;
 }
 const leaderboard = new Map<string, LeaderboardEntry>();
 
 const LEADERBOARD_FILE = path.resolve(process.cwd(), "data", "leaderboard.json");
+const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const REDIS_KEY   = "bugracer:leaderboard";
 
-function loadLeaderboard(): void {
+async function loadLeaderboard(): Promise<void> {
+  // Try Redis first
+  if (REDIS_URL && REDIS_TOKEN) {
+    try {
+      const res = await fetch(`${REDIS_URL}/get/${REDIS_KEY}`, {
+        headers: { Authorization: `Bearer ${REDIS_TOKEN}` },
+      });
+      const { result } = await res.json() as { result: string | null };
+      if (result) {
+        const entries: LeaderboardEntry[] = JSON.parse(result);
+        for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
+        console.log(`[leaderboard] Loaded ${leaderboard.size} entries from Redis.`);
+        return;
+      }
+    } catch (err) {
+      console.error("[leaderboard] Redis load failed, falling back to file:", err);
+    }
+  }
+  // Fallback: local file (local dev)
   try {
     if (fs.existsSync(LEADERBOARD_FILE)) {
       const entries: LeaderboardEntry[] = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8"));
-      for (const entry of entries) {
-        leaderboard.set(entry.username.toLowerCase(), entry);
-      }
+      for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
       console.log(`[leaderboard] Loaded ${leaderboard.size} entries from disk.`);
     }
   } catch (err) {
-    console.error("[leaderboard] Failed to load from disk:", err);
+    console.error("[leaderboard] File load failed:", err);
   }
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function saveLeaderboard(): void {
   if (saveTimer) return;
-  saveTimer = setTimeout(() => {
+  saveTimer = setTimeout(async () => {
     saveTimer = null;
+    const entries = Array.from(leaderboard.values());
+    // Save to Redis if configured
+    if (REDIS_URL && REDIS_TOKEN) {
+      try {
+        await fetch(`${REDIS_URL}/set/${REDIS_KEY}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${REDIS_TOKEN}`, "Content-Type": "application/json" },
+          body: JSON.stringify([JSON.stringify(entries)]),
+        });
+      } catch (err) {
+        console.error("[leaderboard] Redis save failed:", err);
+      }
+    }
+    // Always write local file as backup
     try {
       fs.mkdirSync(path.dirname(LEADERBOARD_FILE), { recursive: true });
-      fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(Array.from(leaderboard.values()), null, 2));
+      fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(entries, null, 2));
     } catch (err) {
-      console.error("[leaderboard] Failed to save to disk:", err);
+      console.error("[leaderboard] File save failed:", err);
     }
   }, 2000);
 }
@@ -227,17 +263,17 @@ function endGame(room: GameRoom, io: Server): void {
   if (p1Entry) {
     p1Entry.elo = newRatingA;
     p1Entry.rank = getRankFromElo(newRatingA);
-    if (draw) p1Entry.draws++;
-    else if (p1Won) p1Entry.wins++;
-    else p1Entry.losses++;
+    if (draw) { p1Entry.draws++; p1Entry.winStreak = 0; }
+    else if (p1Won) { p1Entry.wins++; p1Entry.winStreak = (p1Entry.winStreak ?? 0) + 1; }
+    else { p1Entry.losses++; p1Entry.winStreak = 0; }
   }
   const p2Entry = leaderboard.get(p2.username.toLowerCase());
   if (p2Entry) {
     p2Entry.elo = newRatingB;
     p2Entry.rank = getRankFromElo(newRatingB);
-    if (draw) p2Entry.draws++;
-    else if (!p1Won) p2Entry.wins++;
-    else p2Entry.losses++;
+    if (draw) { p2Entry.draws++; p2Entry.winStreak = 0; }
+    else if (!p1Won) { p2Entry.wins++; p2Entry.winStreak = (p2Entry.winStreak ?? 0) + 1; }
+    else { p2Entry.losses++; p2Entry.winStreak = 0; }
   }
 
   if (p1Entry || p2Entry) saveLeaderboard();
@@ -301,8 +337,9 @@ export function setupSocketHandlers(io: Server): void {
     console.log(`Player connected: ${socket.id}`);
 
     // Leaderboard events
-    socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number; isGuest?: boolean }) => {
+    socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number; winStreak?: number; title?: string | null; avatar?: string | null; isGuest?: boolean }) => {
       if (data.username && typeof data.elo === "number" && !data.isGuest) {
+        const existing = leaderboard.get(data.username.toLowerCase());
         leaderboard.set(data.username.toLowerCase(), {
           username: data.username,
           elo: data.elo,
@@ -310,6 +347,9 @@ export function setupSocketHandlers(io: Server): void {
           wins: data.wins || 0,
           losses: data.losses || 0,
           draws: data.draws || 0,
+          winStreak: data.winStreak ?? existing?.winStreak ?? 0,
+          title: data.title !== undefined ? data.title : (existing?.title ?? null),
+          avatar: data.avatar !== undefined ? data.avatar : (existing?.avatar ?? null),
         });
         saveLeaderboard();
       }
@@ -320,6 +360,11 @@ export function setupSocketHandlers(io: Server): void {
         .sort((a, b) => b.elo - a.elo)
         .slice(0, 50);
       socket.emit("leaderboard:data", entries);
+    });
+
+    socket.on("profile:get", (data: { username: string }) => {
+      const entry = leaderboard.get(data.username.toLowerCase()) ?? null;
+      socket.emit("profile:data", entry);
     });
 
     socket.on("season:info", () => {

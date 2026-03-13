@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
 import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, savePlayer, type FriendStats } from "@/lib/storage";
-import { TITLES, ALL_TITLES, getTitleLabel, isAdminTitle, isGlitchTitle } from "@/lib/titles";
+import { TITLES, ALL_TITLES, getTitleLabel, getTitleClass } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
 import { RANK_THRESHOLDS, type RankTier } from "@/types";
@@ -184,8 +184,9 @@ export default function ProfilePage() {
         )}
         <div className="text-lg text-[var(--text-primary)] mb-1 font-bold">{player.username}</div>
         {getTitleLabel(player.title) && (
-          <div className={`text-xs tracking-wider mb-2 ${isGlitchTitle(player.title) ? "glitch-title" : isAdminTitle(player.title) ? "admin-title" : "text-[var(--accent-yellow)]"}`}
-            style={isGlitchTitle(player.title) || isAdminTitle(player.title) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
+          <div
+            className={`text-xs tracking-wider mb-2 ${getTitleClass(player.title) ?? "text-[var(--accent-yellow)]"}`}
+            style={getTitleClass(player.title) ? undefined : { fontFamily: "'Orbitron', sans-serif" }}
           >
             {getTitleLabel(player.title)}
           </div>
@@ -389,11 +390,10 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className={`text-xs font-bold mb-0.5 ${
-                          equipped && isAdminTitle(t.id) ? "admin-title" :
-                          equipped ? "text-[var(--accent-yellow)]" :
+                          equipped ? (getTitleClass(t.id) ?? "text-[var(--accent-yellow)]") :
                           unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"
                         }`}
-                        style={equipped && !isAdminTitle(t.id) ? { fontFamily: "'Orbitron', sans-serif" } : undefined}
+                        style={equipped && !getTitleClass(t.id) ? { fontFamily: "'Orbitron', sans-serif" } : undefined}
                       >
                         {unlocked ? t.label : "???"}
                       </div>

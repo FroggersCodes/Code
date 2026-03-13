@@ -299,6 +299,101 @@ body::after {
   animation: redacted-flicker 4s ease-in-out infinite;
 }
 
+/* On Fire title — orange/red flame flicker */
+@keyframes fire-flicker {
+  0%, 100% { color: #ff6600; text-shadow: 0 0 6px #ff6600, 0 0 14px rgba(255,80,0,0.5); }
+  20%       { color: #ff9900; text-shadow: 0 0 8px #ff9900, 0 0 18px rgba(255,140,0,0.4); }
+  40%       { color: #ff3300; text-shadow: 0 0 4px #ff3300, 0 0 10px rgba(255,40,0,0.6); opacity: 0.85; }
+  41%       { opacity: 1; }
+  65%       { color: #ff7700; text-shadow: 0 0 7px #ff6600, 0 0 16px rgba(255,80,0,0.4); }
+  80%       { color: #ff5500; opacity: 0.9; }
+}
+.fire-title {
+  animation: fire-flicker 2s steps(1, jump-none) infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Unstoppable title — intense fire with hot white core */
+@keyframes unstoppable-burn {
+  0%, 100% { color: #ff4400; text-shadow: 0 0 6px #ff4400, 0 0 14px #ff8800, 0 0 28px rgba(255,80,0,0.4); }
+  15%       { color: #ffcc00; text-shadow: 0 0 8px #ffcc00, 0 0 20px #ff8800, 0 0 36px rgba(255,140,0,0.5); }
+  16%       { color: #ffffff; text-shadow: 0 0 4px #fff, 0 0 12px #ff8800; opacity: 0.7; }
+  17%       { color: #ff4400; opacity: 1; }
+  50%       { color: #ff6600; text-shadow: 0 0 5px #ff4400, 0 0 16px #ff8800; }
+  70%       { color: #ffaa00; text-shadow: 0 0 10px #ff6600, 0 0 22px rgba(255,120,0,0.5); }
+  75%       { color: #ffffff; text-shadow: 0 0 6px #fff, 0 0 14px #ffaa00; opacity: 0.6; }
+  76%       { color: #ff4400; opacity: 1; }
+}
+.unstoppable-title {
+  animation: unstoppable-burn 1.8s steps(1, jump-none) infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Lightning title — fast electric cyan/white arc */
+@keyframes lightning-arc {
+  0%, 100% { color: #00ffff; text-shadow: 0 0 6px #00ffff, 0 0 16px rgba(0,200,255,0.5); }
+  8%        { color: #ffffff; text-shadow: 0 0 10px #fff, 0 0 24px #00ffff; opacity: 0.6; }
+  9%        { color: #00ffff; opacity: 1; }
+  45%       { color: #88ddff; text-shadow: 0 0 4px #00ffff, 0 0 10px rgba(0,200,255,0.4); }
+  55%       { color: #ffffff; text-shadow: 0 0 14px #fff, 0 0 28px #00ffff, 0 0 40px rgba(0,255,255,0.3); opacity: 0.5; }
+  56%       { color: #00ffff; opacity: 1; }
+}
+.lightning-title {
+  animation: lightning-arc 1.4s steps(1, jump-none) infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Speed Demon title — rapid electric blur, faster than Lightning */
+@keyframes speed-demon-arc {
+  0%, 100% { color: #00ccff; text-shadow: -1px 0 #00ffcc, 1px 0 #0088ff, 0 0 10px #00ccff; }
+  5%        { color: #ffffff; text-shadow: -3px 0 #00ffcc, 3px 0 #0044ff, 0 0 18px #fff; opacity: 0.5; }
+  6%        { color: #00ccff; opacity: 1; }
+  30%       { color: #00ffcc; text-shadow: 1px 0 #00ccff, -1px 0 #0088ff, 0 0 8px #00ffcc; }
+  50%       { color: #ffffff; text-shadow: -2px 0 #00ccff, 2px 0 #0066ff, 0 0 20px #fff; opacity: 0.45; }
+  51%       { color: #00ccff; opacity: 1; }
+  75%       { color: #0099ff; text-shadow: 0 0 6px #00ccff, 0 0 14px rgba(0,200,255,0.4); }
+}
+.speed-demon-title {
+  animation: speed-demon-arc 1s steps(1, jump-none) infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Streak Lord title — full prismatic rainbow cycle */
+@keyframes streak-lord-rainbow {
+  0%   { color: #ff0040; text-shadow: 0 0 8px #ff0040, 0 0 18px rgba(255,0,64,0.4); }
+  14%  { color: #ff6600; text-shadow: 0 0 8px #ff6600, 0 0 18px rgba(255,100,0,0.4); }
+  28%  { color: #ffdd00; text-shadow: 0 0 8px #ffdd00, 0 0 18px rgba(255,220,0,0.4); }
+  42%  { color: #00ff88; text-shadow: 0 0 8px #00ff88, 0 0 18px rgba(0,255,136,0.4); }
+  57%  { color: #00ffff; text-shadow: 0 0 8px #00ffff, 0 0 18px rgba(0,220,255,0.4); }
+  71%  { color: #8844ff; text-shadow: 0 0 8px #8844ff, 0 0 18px rgba(140,68,255,0.4); }
+  85%  { color: #ff00cc; text-shadow: 0 0 8px #ff00cc, 0 0 18px rgba(255,0,200,0.4); }
+  100% { color: #ff0040; text-shadow: 0 0 8px #ff0040, 0 0 18px rgba(255,0,64,0.4); }
+}
+.streak-lord-title {
+  animation: streak-lord-rainbow 3s linear infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Centurion title — prestige gold shimmer */
+@keyframes centurion-shimmer {
+  0%, 100% { color: #ffd700; text-shadow: 0 0 6px #ffd700, 0 0 16px rgba(255,180,0,0.5), 0 0 32px rgba(255,150,0,0.2); }
+  30%       { color: #fff8b0; text-shadow: 0 0 10px #fff8b0, 0 0 22px #ffd700, 0 0 40px rgba(255,180,0,0.4); }
+  50%       { color: #ffaa00; text-shadow: 0 0 6px #ffaa00, 0 0 14px rgba(255,140,0,0.4); }
+  65%       { color: #ffd700; text-shadow: 0 0 8px #ffd700, 0 0 18px rgba(255,180,0,0.5); }
+  80%       { color: #ffe066; text-shadow: 0 0 4px #ffd700; opacity: 0.85; }
+  81%       { opacity: 1; }
+}
+.centurion-title {
+  animation: centurion-shimmer 2.5s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
 /* Card component */
 .hacker-card {
   background: var(--bg-surface);
