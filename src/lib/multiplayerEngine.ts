@@ -2,7 +2,7 @@
 
 import type { ChallengeData, OnlineOpponent, MultiplayerResult } from "@/types";
 import { connectSocket, disconnectSocket, getSocket } from "./socket";
-import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles } from "./storage";
+import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles, processPostMatch } from "./storage";
 
 export interface MultiplayerGameState {
   roomId: string;
@@ -93,6 +93,9 @@ function setupListeners(): void {
           opponentTime: data.opponentTime,
           createdAt: new Date().toISOString(),
         });
+
+        // Process XP, missions, achievements
+        processPostMatch(data.won, data.draw, false, data.playerTime);
       }
     }
     onGameEnd?.(data);

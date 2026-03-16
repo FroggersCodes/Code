@@ -410,6 +410,121 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       </rect>
     </svg>`,
   },
+  // ── Battle Pass Avatars ─────────────────────────────────────────────────
+  samurai: {
+    label: "Samurai",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- helmet -->
+      <rect x="4" y="2" width="24" height="2" fill="#cc0022"/>
+      <rect x="6" y="4" width="20" height="4" fill="#880011"/>
+      <rect x="2" y="6" width="28" height="2" fill="#cc0022"/>
+      <!-- face mask -->
+      <rect x="8" y="10" width="16" height="10" fill="#2a2a3a"/>
+      <rect x="8" y="10" width="16" height="2" fill="#444"/>
+      <!-- eyes -->
+      <rect x="10" y="13" width="4" height="2" fill="#ff3344"/>
+      <rect x="18" y="13" width="4" height="2" fill="#ff3344"/>
+      <!-- mouth guard -->
+      <rect x="10" y="17" width="12" height="2" fill="#555"/>
+      <rect x="12" y="17" width="2" height="2" fill="#333"/>
+      <rect x="18" y="17" width="2" height="2" fill="#333"/>
+      <!-- body -->
+      <rect x="8" y="22" width="16" height="8" fill="#880011"/>
+      <rect x="14" y="22" width="4" height="8" fill="#cc0022"/>
+    </svg>`,
+  },
+  wizard: {
+    label: "Wizard",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- hat -->
+      <rect x="14" y="0" width="4" height="2" fill="#4400aa"/>
+      <rect x="12" y="2" width="8" height="2" fill="#4400aa"/>
+      <rect x="10" y="4" width="12" height="2" fill="#5500cc"/>
+      <rect x="8" y="6" width="16" height="2" fill="#5500cc"/>
+      <rect x="6" y="8" width="20" height="2" fill="#6600dd"/>
+      <!-- star on hat -->
+      <rect x="14" y="4" width="4" height="4" fill="#ffdd00"/>
+      <!-- face -->
+      <rect x="8" y="10" width="16" height="10" fill="#ccaa88"/>
+      <!-- eyes -->
+      <rect x="10" y="13" width="4" height="3" fill="#4400aa"/>
+      <rect x="18" y="13" width="4" height="3" fill="#4400aa"/>
+      <rect x="11" y="14" width="2" height="1" fill="#fff"/>
+      <rect x="19" y="14" width="2" height="1" fill="#fff"/>
+      <!-- beard -->
+      <rect x="10" y="20" width="12" height="2" fill="#ddd"/>
+      <rect x="12" y="22" width="8" height="4" fill="#ddd"/>
+      <rect x="14" y="26" width="4" height="2" fill="#ccc"/>
+      <!-- robe -->
+      <rect x="6" y="24" width="6" height="8" fill="#5500cc"/>
+      <rect x="20" y="24" width="6" height="8" fill="#5500cc"/>
+    </svg>`,
+  },
+  demon: {
+    label: "Demon",
+    premium: true,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- horns -->
+      <rect x="4" y="2" width="4" height="6" fill="#cc0000"/>
+      <rect x="2" y="2" width="2" height="4" fill="#990000"/>
+      <rect x="24" y="2" width="4" height="6" fill="#cc0000"/>
+      <rect x="28" y="2" width="2" height="4" fill="#990000"/>
+      <!-- head -->
+      <rect x="6" y="6" width="20" height="4" fill="#cc2222"/>
+      <rect x="4" y="10" width="24" height="10" fill="#cc2222"/>
+      <!-- eyes -->
+      <rect x="8" y="12" width="6" height="4" fill="#111"/>
+      <rect x="18" y="12" width="6" height="4" fill="#111"/>
+      <rect x="10" y="13" width="2" height="2" fill="#ffcc00">
+        <animate attributeName="fill" values="#ffcc00;#ff3300;#ffcc00" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="20" y="13" width="2" height="2" fill="#ffcc00">
+        <animate attributeName="fill" values="#ffcc00;#ff3300;#ffcc00" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <!-- mouth -->
+      <rect x="10" y="18" width="12" height="2" fill="#880000"/>
+      <rect x="12" y="18" width="2" height="2" fill="#fff"/>
+      <rect x="18" y="18" width="2" height="2" fill="#fff"/>
+      <!-- body -->
+      <rect x="8" y="22" width="16" height="10" fill="#aa1111"/>
+    </svg>`,
+  },
+  angel: {
+    label: "Angel",
+    premium: true,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- halo -->
+      <rect x="10" y="0" width="12" height="2" fill="#ffd700">
+        <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="8" y="2" width="2" height="2" fill="#ffd700"/>
+      <rect x="22" y="2" width="2" height="2" fill="#ffd700"/>
+      <!-- head -->
+      <rect x="8" y="6" width="16" height="2" fill="#ffe0cc"/>
+      <rect x="6" y="8" width="20" height="10" fill="#ffe0cc"/>
+      <!-- eyes -->
+      <rect x="9" y="11" width="4" height="3" fill="#4488ff"/>
+      <rect x="19" y="11" width="4" height="3" fill="#4488ff"/>
+      <rect x="10" y="12" width="2" height="1" fill="#fff"/>
+      <rect x="20" y="12" width="2" height="1" fill="#fff"/>
+      <!-- smile -->
+      <rect x="12" y="15" width="8" height="1" fill="#cc8866"/>
+      <!-- wings -->
+      <rect x="0" y="14" width="6" height="8" fill="#eee">
+        <animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="26" y="14" width="6" height="8" fill="#eee">
+        <animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <!-- body/robe -->
+      <rect x="8" y="20" width="16" height="10" fill="#eeeeff"/>
+      <rect x="14" y="20" width="4" height="10" fill="#ddddef"/>
+    </svg>`,
+  },
 };
 
 export function getAvatarSvg(id: string | null | undefined): string | null {

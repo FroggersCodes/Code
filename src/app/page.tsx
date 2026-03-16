@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
-import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
+import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, savePlayer, type StoredMatch } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
+import { getCurrentTier, getXPForNextTier, TOTAL_TIERS } from "@/lib/battlepass";
+import { refreshMissions } from "@/lib/missions";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 
@@ -331,6 +333,62 @@ export default function HomePage() {
                     PLAY
                   </RetroButton>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* Battle Pass Progress */}
+          {(() => {
+            const tier = getCurrentTier(player.xp);
+            const xpInfo = getXPForNextTier(player.xp);
+            const pct = tier >= TOTAL_TIERS ? 100 : xpInfo.tierXP > 0 ? Math.round((xpInfo.current / xpInfo.tierXP) * 100) : 0;
+            return (
+              <div
+                className="hacker-card hacker-card-red mb-4 cursor-pointer hover:border-[var(--accent-red)] transition-colors"
+                onClick={() => router.push("/battlepass")}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs tracking-wider font-bold" style={{ color: "#aa44ff", fontFamily: "'Orbitron', sans-serif" }}>
+                    BATTLE PASS
+                  </div>
+                  <span className="text-xs text-[var(--text-dim)]">
+                    Tier {tier >= TOTAL_TIERS ? "MAX" : tier}/{TOTAL_TIERS}
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full border border-[var(--border-color)] overflow-hidden mb-1" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #aa44ff, var(--accent-red))" }} />
+                </div>
+                <div className="text-[10px] text-[var(--text-dim)] text-right">
+                  {tier >= TOTAL_TIERS ? "MAX TIER" : `${xpInfo.needed} XP to next tier`}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Daily Missions Preview */}
+          {(() => {
+            // Refresh missions if needed
+            refreshMissions(player);
+            savePlayer(player);
+            const missions = player.dailyMissions;
+            if (!missions || missions.length === 0) return null;
+            return (
+              <div className="hacker-card hacker-card-red mb-4">
+                <div className="text-xs text-[var(--accent-yellow)] tracking-wider font-bold mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                  DAILY MISSIONS
+                </div>
+                <div className="flex flex-col gap-2">
+                  {missions.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between text-[10px]">
+                      <span className={m.completed ? "text-[var(--accent-green)] line-through" : "text-[var(--text-dim)]"}>
+                        {m.description}
+                      </span>
+                      <span className={m.completed ? "text-[var(--accent-green)]" : "text-[var(--text-dim)]"}>
+                        {m.completed ? "✓" : `${m.current}/${m.target}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })()}

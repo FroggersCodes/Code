@@ -1,3 +1,26 @@
+export interface MissionProgress {
+  id: string;
+  description: string;
+  target: number;
+  current: number;
+  completed: boolean;
+  xpReward: number;
+}
+
+/** Stored after each match so the results screen can display XP info */
+export interface PostMatchXP {
+  base: number;
+  streakBonus: number;
+  speedBonus: number;
+  missionXP: number;
+  achievementXP: number;
+  total: number;
+  previousTier: number;
+  newTier: number;
+  newlyCompletedMissions: string[];
+  newlyUnlockedAchievements: string[];
+}
+
 export interface Player {
   id: number;
   username: string;
@@ -12,6 +35,21 @@ export interface Player {
   avatar: string | null;
   unlockedAvatars?: string[];
   winStreak: number;
+  // Battle pass
+  xp: number;
+  seasonId: number;
+  premiumPass: boolean;
+  claimedTiers: number[];
+  // Borders
+  unlockedBorders: string[];
+  equippedBorder: string | null;
+  // Achievements
+  achievements: Record<string, { unlockedAt: string }>;
+  // Missions
+  missionsLastRefresh: string | null;
+  weeklyMissionsLastRefresh: string | null;
+  dailyMissions: MissionProgress[];
+  weeklyMissions: MissionProgress[];
 }
 
 export interface ChallengeData {

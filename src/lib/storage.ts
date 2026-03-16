@@ -1,14 +1,18 @@
 "use client";
 
-import type { Player } from "@/types";
+import type { Player, MissionProgress, PostMatchXP } from "@/types";
 import { getRankFromElo } from "./elo";
 import { getNewlyUnlocked } from "./titles";
 import { isPremiumAvatar } from "./avatars";
+import { calculateMatchXP, grantXP, checkSeasonReset } from "./battlepass";
+import { checkAchievements, getAchievement } from "./achievements";
+import { refreshMissions, updateMissionProgress, getTodayMatches, getWeekMatches } from "./missions";
 
 const PLAYER_KEY = "bugracer_player";
 const MATCHES_KEY = "bugracer_matches";
 const ACCOUNTS_KEY = "bugracer_accounts";
 const PENDING_TOASTS_KEY = "bugracer_pending_toasts";
+const PENDING_XP_KEY = "bugracer_pending_xp";
 
 function playerKey(username: string): string {
   return `bugracer_player_${username.toLowerCase()}`;
@@ -73,6 +77,17 @@ export function signUp(
     unlockedTitles: ["alpha_tester"],
     avatar: null,
     winStreak: 0,
+    xp: 0,
+    seasonId: 0,
+    premiumPass: false,
+    claimedTiers: [],
+    unlockedBorders: [],
+    equippedBorder: null,
+    achievements: {},
+    missionsLastRefresh: null,
+    weeklyMissionsLastRefresh: null,
+    dailyMissions: [],
+    weeklyMissions: [],
   };
   savePlayer(player);
   return player;
@@ -127,6 +142,17 @@ export function login(
     unlockedTitles: [],
     avatar: null,
     winStreak: 0,
+    xp: 0,
+    seasonId: 0,
+    premiumPass: false,
+    claimedTiers: [],
+    unlockedBorders: [],
+    equippedBorder: null,
+    achievements: {},
+    missionsLastRefresh: null,
+    weeklyMissionsLastRefresh: null,
+    dailyMissions: [],
+    weeklyMissions: [],
   };
   savePlayer(player);
   return player;
@@ -158,6 +184,18 @@ export function getPlayer(): Player | null {
   if (!("avatar" in raw)) { player.avatar = null; migrated = true; }
   if (!("winStreak" in raw)) { player.winStreak = 0; migrated = true; }
   if (!("unlockedAvatars" in raw)) { player.unlockedAvatars = []; migrated = true; }
+  // Battle pass fields
+  if (!("xp" in raw)) { player.xp = 0; migrated = true; }
+  if (!("seasonId" in raw)) { player.seasonId = 0; migrated = true; }
+  if (!("premiumPass" in raw)) { player.premiumPass = false; migrated = true; }
+  if (!("claimedTiers" in raw)) { player.claimedTiers = []; migrated = true; }
+  if (!("unlockedBorders" in raw)) { player.unlockedBorders = []; migrated = true; }
+  if (!("equippedBorder" in raw)) { player.equippedBorder = null; migrated = true; }
+  if (!("achievements" in raw)) { player.achievements = {}; migrated = true; }
+  if (!("missionsLastRefresh" in raw)) { player.missionsLastRefresh = null; migrated = true; }
+  if (!("weeklyMissionsLastRefresh" in raw)) { player.weeklyMissionsLastRefresh = null; migrated = true; }
+  if (!("dailyMissions" in raw)) { player.dailyMissions = []; migrated = true; }
+  if (!("weeklyMissions" in raw)) { player.weeklyMissions = []; migrated = true; }
   if (migrated) savePlayer(player);
   return player;
 }
@@ -182,6 +220,17 @@ export function createPlayer(username: string, passwordHash = ""): Player {
     unlockedTitles: [],
     avatar: null,
     winStreak: 0,
+    xp: 0,
+    seasonId: 0,
+    premiumPass: false,
+    claimedTiers: [],
+    unlockedBorders: [],
+    equippedBorder: null,
+    achievements: {},
+    missionsLastRefresh: null,
+    weeklyMissionsLastRefresh: null,
+    dailyMissions: [],
+    weeklyMissions: [],
   };
   savePlayer(player);
   return player;
@@ -321,6 +370,94 @@ export function updateCotdRecord(won: boolean, time: number | null): void {
     won: existing?.won || won,
   };
   localStorage.setItem(cotdKey(today, player.username), JSON.stringify(record));
+}
+
+export function equipBorder(borderId: string | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  if (borderId !== null && !player.unlockedBorders.includes(borderId)) return;
+  player.equippedBorder = borderId;
+  savePlayer(player);
+}
+
+/** Process XP, missions, and achievements after a match. Stores result for results screen. */
+export function processPostMatch(
+  won: boolean,
+  draw: boolean,
+  isVsBot: boolean,
+  playerTime: number | null,
+  isCotd?: boolean,
+): PostMatchXP {
+  const player = getPlayer();
+  if (!player) return { base: 0, streakBonus: 0, speedBonus: 0, missionXP: 0, achievementXP: 0, total: 0, previousTier: 0, newTier: 0, newlyCompletedMissions: [], newlyUnlockedAchievements: [] };
+
+  // Season reset check
+  checkSeasonReset(player);
+  savePlayer(player);
+
+  // Refresh missions if needed
+  refreshMissions(player);
+  savePlayer(player);
+
+  // Calculate match XP
+  const xpBreakdown = calculateMatchXP(won, draw, isVsBot, playerTime, player.winStreak, isCotd);
+
+  // Check missions
+  const matches = getMatches();
+  const todayMatches = getTodayMatches(matches);
+  const weekMatches = getWeekMatches(matches);
+  const completedMissions = updateMissionProgress(player, todayMatches, weekMatches);
+  savePlayer(player);
+
+  // Mission XP
+  let missionXP = 0;
+  for (const missionId of completedMissions) {
+    const mission = [...player.dailyMissions, ...player.weeklyMissions].find((m) => m.id === missionId);
+    if (mission) missionXP += mission.xpReward;
+  }
+
+  // Check achievements
+  const newAchievements = checkAchievements(player, matches);
+  let achievementXP = 0;
+  for (const achId of newAchievements) {
+    player.achievements[achId] = { unlockedAt: new Date().toISOString() };
+    const ach = getAchievement(achId);
+    if (ach) achievementXP += ach.xpReward;
+  }
+  if (newAchievements.length > 0) savePlayer(player);
+
+  // Grant total XP
+  const totalXP = xpBreakdown.total + missionXP + achievementXP;
+  const xpResult = grantXP(totalXP);
+
+  const result: PostMatchXP = {
+    base: xpBreakdown.base,
+    streakBonus: xpBreakdown.streakBonus,
+    speedBonus: xpBreakdown.speedBonus,
+    missionXP,
+    achievementXP,
+    total: totalXP,
+    previousTier: xpResult.previousTier,
+    newTier: xpResult.newTier,
+    newlyCompletedMissions: completedMissions,
+    newlyUnlockedAchievements: newAchievements,
+  };
+
+  // Store for results screen consumption
+  if (typeof window !== "undefined") {
+    localStorage.setItem(PENDING_XP_KEY, JSON.stringify(result));
+  }
+
+  return result;
+}
+
+/** Consume the pending post-match XP result (for results screen display). */
+export function consumePendingXP(): PostMatchXP | null {
+  if (typeof window === "undefined") return null;
+  const data = localStorage.getItem(PENDING_XP_KEY);
+  if (!data) return null;
+  localStorage.removeItem(PENDING_XP_KEY);
+  return JSON.parse(data);
 }
 
 export function equipTitle(titleId: string | null): void {

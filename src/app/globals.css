@@ -541,6 +541,130 @@ body::after {
   background: var(--text-primary);
 }
 
+/* ── Profile Borders ──────────────────────────────────────────────────── */
+.border-red-circuit {
+  border: 2px solid #ff0033;
+  box-shadow: 0 0 6px rgba(255,0,51,0.5);
+}
+.border-green-terminal {
+  border: 2px solid #00ff66;
+  box-shadow: 0 0 6px rgba(0,255,102,0.5);
+}
+.border-blue-neon {
+  border: 2px solid #00d4ff;
+  box-shadow: 0 0 6px rgba(0,212,255,0.5);
+}
+.border-gold-frame {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 6px rgba(255,215,0,0.5);
+}
+
+@keyframes plasma-ring-pulse {
+  0%, 100% { box-shadow: 0 0 6px #ff00cc, 0 0 14px rgba(255,0,204,0.4); border-color: #ff00cc; }
+  50% { box-shadow: 0 0 10px #00ffff, 0 0 22px rgba(0,255,255,0.4); border-color: #00ffff; }
+}
+.border-plasma-ring {
+  border: 2px solid #ff00cc;
+  animation: plasma-ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes void-aura-warp {
+  0%, 100% { box-shadow: 0 0 6px #9900ff, 0 0 14px rgba(150,0,255,0.4); border-color: #9900ff; }
+  30% { box-shadow: 0 0 2px #330066; border-color: #330066; }
+  60% { box-shadow: 0 0 10px #cc44ff, 0 0 20px rgba(200,68,255,0.4); border-color: #cc44ff; }
+}
+.border-void-aura {
+  border: 2px solid #9900ff;
+  animation: void-aura-warp 3s ease-in-out infinite;
+}
+
+@keyframes fire-ring-flicker {
+  0%, 100% { box-shadow: 0 0 6px #ff4400, 0 0 14px rgba(255,68,0,0.5); border-color: #ff4400; }
+  25% { box-shadow: 0 0 10px #ff8800, 0 0 20px rgba(255,136,0,0.4); border-color: #ff8800; }
+  50% { box-shadow: 0 0 4px #ff2200; border-color: #ff2200; }
+  75% { box-shadow: 0 0 12px #ffaa00, 0 0 24px rgba(255,170,0,0.4); border-color: #ffaa00; }
+}
+.border-fire-ring {
+  border: 2px solid #ff4400;
+  animation: fire-ring-flicker 2s ease-in-out infinite;
+}
+
+@keyframes diamond-shimmer-pulse {
+  0%, 100% { box-shadow: 0 0 6px #ff0066, 0 0 14px rgba(255,0,102,0.4); border-color: #ff0066; }
+  50% { box-shadow: 0 0 14px #ff66aa, 0 0 28px rgba(255,102,170,0.5); border-color: #ff66aa; }
+}
+.border-diamond-shimmer {
+  border: 2px solid #ff0066;
+  animation: diamond-shimmer-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rainbow-pulse-cycle {
+  0% { border-color: #ff0040; box-shadow: 0 0 8px #ff0040; }
+  16% { border-color: #ff6600; box-shadow: 0 0 8px #ff6600; }
+  33% { border-color: #ffdd00; box-shadow: 0 0 8px #ffdd00; }
+  50% { border-color: #00ff88; box-shadow: 0 0 8px #00ff88; }
+  66% { border-color: #00ffff; box-shadow: 0 0 8px #00ffff; }
+  83% { border-color: #8844ff; box-shadow: 0 0 8px #8844ff; }
+  100% { border-color: #ff0040; box-shadow: 0 0 8px #ff0040; }
+}
+.border-rainbow-pulse {
+  border: 2px solid #ff0040;
+  animation: rainbow-pulse-cycle 3s linear infinite;
+}
+
+@keyframes cyber-grid-scan {
+  0%, 100% { box-shadow: 0 0 6px #00ff66, 0 0 14px rgba(0,255,102,0.4), inset 0 0 8px rgba(0,255,102,0.1); border-color: #00ff66; }
+  50% { box-shadow: 0 0 10px #00d4ff, 0 0 22px rgba(0,212,255,0.4), inset 0 0 12px rgba(0,212,255,0.1); border-color: #00d4ff; }
+}
+.border-cyber-grid {
+  border: 2px solid #00ff66;
+  animation: cyber-grid-scan 2.5s ease-in-out infinite;
+}
+
+/* ── Battle Pass Title Animations ─────────────────────────────────────── */
+@keyframes bp-elite-glow {
+  0%, 100% { color: #aa44ff; text-shadow: 0 0 6px #aa44ff, 0 0 16px rgba(170,68,255,0.4); }
+  50% { color: #cc88ff; text-shadow: 0 0 10px #cc88ff, 0 0 22px rgba(200,136,255,0.5); }
+}
+.bp-elite-title {
+  animation: bp-elite-glow 2.5s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+@keyframes bp-apex-surge {
+  0%, 100% { color: #ff0033; text-shadow: -1px 0 #ff6600, 1px 0 #ffcc00, 0 0 8px #ff0033; }
+  30% { color: #ff6600; text-shadow: -2px 0 #ff0033, 2px 0 #ffcc00, 0 0 12px #ff6600; }
+  60% { color: #ffcc00; text-shadow: -1px 0 #ff6600, 1px 0 #ff0033, 0 0 10px #ffcc00; }
+}
+.bp-apex-title {
+  animation: bp-apex-surge 2s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+@keyframes bp-victor-prismatic {
+  0% { color: #ffd700; text-shadow: 0 0 8px #ffd700, 0 0 18px rgba(255,215,0,0.5); }
+  25% { color: #ff00cc; text-shadow: 0 0 8px #ff00cc, 0 0 18px rgba(255,0,204,0.5); }
+  50% { color: #00ffff; text-shadow: 0 0 8px #00ffff, 0 0 18px rgba(0,255,255,0.5); }
+  75% { color: #00ff66; text-shadow: 0 0 8px #00ff66, 0 0 18px rgba(0,255,102,0.5); }
+  100% { color: #ffd700; text-shadow: 0 0 8px #ffd700, 0 0 18px rgba(255,215,0,0.5); }
+}
+.bp-victor-title {
+  animation: bp-victor-prismatic 3s linear infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* ── XP Toast ────────────────────────────────────────────────────────── */
+@keyframes xp-float {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+.xp-toast {
+  animation: xp-float 2s ease-out forwards;
+}
+
 /* Selection */
 ::selection {
   background: rgba(255, 0, 51, 0.3);
