@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getPlayer, savePlayer } from "@/lib/storage";
 import { AVATARS, PREMIUM_AVATAR_IDS } from "@/lib/avatars";
 import { PREMIUM_TITLES, getTitleClass } from "@/lib/titles";
 import type { Player } from "@/types";
 
 // ── Store configuration ────────────────────────────────────────────────────
-const SUPPORT_URL = "https://ko-fi.com/bugracer"; // Replace with your actual URL
-
 const STORE_ITEMS = {
   avatars: {
     id: "avatar_pack",
@@ -35,6 +33,87 @@ const STORE_ITEMS = {
   },
 } as const;
 
+// ── Helpers to unlock items on a player object ─────────────────────────────
+function unlockAvatars(player: Player): Player {
+  const current = player.unlockedAvatars ?? [];
+  const toAdd = PREMIUM_AVATAR_IDS.filter((id) => !current.includes(id));
+  return { ...player, unlockedAvatars: [...current, ...toAdd] };
+}
+
+function unlockTitles(player: Player): Player {
+  const current = player.unlockedTitles ?? [];
+  const toAdd = PREMIUM_TITLES.map((t) => t.id).filter((id) => !current.includes(id));
+  return { ...player, unlockedTitles: [...current, ...toAdd] };
+}
+
+function unlockForProduct(player: Player, productId: string): Player {
+  let updated = { ...player };
+  if (productId === "avatar_pack" || productId === "ultimate_bundle") {
+    updated = unlockAvatars(updated);
+  }
+  if (productId === "title_pack" || productId === "ultimate_bundle") {
+    updated = unlockTitles(updated);
+  }
+  return updated;
+}
+
+// ── Checkout button ────────────────────────────────────────────────────────
+function BuyButton({
+  productId,
+  label,
+  color,
+  username,
+  bold,
+}: {
+  productId: string;
+  label: string;
+  color: string;
+  username: string;
+  bold?: boolean;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  const handleBuy = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, username }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("No checkout URL returned:", data);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleBuy}
+      disabled={loading}
+      className={`block w-full ${bold ? "py-3 border-2 font-bold" : "py-2 border"} text-xs tracking-widest rounded text-center transition-colors cursor-pointer`}
+      style={{
+        borderColor: color,
+        color: loading ? "var(--text-muted)" : color,
+        fontFamily: "'Orbitron', sans-serif",
+        backgroundColor: "transparent",
+      }}
+      onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = `${color}1a`)}
+      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    >
+      {loading ? "REDIRECTING..." : label}
+    </button>
+  );
+}
+
+// ── Redeem section (admin codes) ───────────────────────────────────────────
 function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: Player) => void }) {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -43,9 +122,6 @@ function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: P
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
 
-    // Code format: AVATAR-XXXXX, TITLE-XXXXX, BUNDLE-XXXXX
-    // These would be generated/validated server-side in production.
-    // For now, we use a simple local code system.
     const codes = getRedeemCodes();
     const found = codes.find((c) => c.code === trimmed && !c.used);
 
@@ -54,20 +130,7 @@ function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: P
       return;
     }
 
-    // Apply the unlock
-    const updated = { ...player };
-    if (found.type === "avatars" || found.type === "bundle") {
-      const current = updated.unlockedAvatars ?? [];
-      const toAdd = PREMIUM_AVATAR_IDS.filter((id) => !current.includes(id));
-      updated.unlockedAvatars = [...current, ...toAdd];
-    }
-    if (found.type === "titles" || found.type === "bundle") {
-      const current = updated.unlockedTitles ?? [];
-      const toAdd = PREMIUM_TITLES.map((t) => t.id).filter((id) => !current.includes(id));
-      updated.unlockedTitles = [...current, ...toAdd];
-    }
-
-    // Mark code as used
+    const updated = unlockForProduct(player, found.type === "avatars" ? "avatar_pack" : found.type === "titles" ? "title_pack" : "ultimate_bundle");
     markCodeUsed(trimmed);
     savePlayer(updated);
     setPlayer(updated);
@@ -109,7 +172,7 @@ function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: P
   );
 }
 
-// ── Simple local code storage (would be server-side in production) ──────
+// ── Local code storage (for admin-generated codes) ─────────────────────────
 interface RedeemCode {
   code: string;
   type: "avatars" | "titles" | "bundle";
@@ -133,14 +196,71 @@ function markCodeUsed(code: string): void {
   }
 }
 
+// ── Main store page ────────────────────────────────────────────────────────
 export default function StorePage() {
-  const router = useRouter();
-  const [player, setPlayer] = useState<Player | null>(null);
+  return (
+    <Suspense>
+      <StoreContent />
+    </Suspense>
+  );
+}
 
+function StoreContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [purchaseStatus, setPurchaseStatus] = useState<string | null>(null);
+
+  // Load player
   useEffect(() => {
     setPlayer(getPlayer());
   }, []);
 
+  // Handle post-purchase redirect — verify with server and unlock
+  const verifyPurchase = useCallback(async (productId: string, currentPlayer: Player) => {
+    setPurchaseStatus("VERIFYING PURCHASE...");
+
+    // Poll a few times since webhook may arrive slightly after redirect
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const res = await fetch("/api/verify-purchase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: currentPlayer.username, productId }),
+        });
+        const data = await res.json();
+
+        if (data.verified) {
+          const updated = unlockForProduct(currentPlayer, productId);
+          savePlayer(updated);
+          setPlayer(updated);
+          setPurchaseStatus("PURCHASE VERIFIED — ITEMS UNLOCKED!");
+          // Clean URL
+          window.history.replaceState({}, "", "/store");
+          return;
+        }
+      } catch {
+        // ignore fetch errors, keep retrying
+      }
+
+      // Wait before next attempt (2s intervals)
+      if (attempt < 5) {
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+
+    setPurchaseStatus("COULD NOT VERIFY YET — USE A REDEEM CODE IF YOU RECEIVED ONE");
+    window.history.replaceState({}, "", "/store");
+  }, []);
+
+  useEffect(() => {
+    const purchased = searchParams.get("purchased");
+    if (purchased && player) {
+      verifyPurchase(purchased, player);
+    }
+  }, [searchParams, player, verifyPurchase]);
+
+  const username = player?.username ?? "";
   const hasAllAvatars = player && PREMIUM_AVATAR_IDS.every((id) => (player.unlockedAvatars ?? []).includes(id));
   const hasAllTitles = player && PREMIUM_TITLES.every((t) => (player.unlockedTitles ?? []).includes(t.id));
 
@@ -159,12 +279,21 @@ export default function StorePage() {
           className="text-xs text-[var(--text-dim)] hover:text-[var(--text-primary)] transition-colors bg-transparent border-none cursor-pointer tracking-wider"
           style={{ fontFamily: "'Share Tech Mono', monospace" }}
         >
-          ← BACK
+          &larr; BACK
         </button>
       </div>
 
+      {/* Purchase status banner */}
+      {purchaseStatus && (
+        <div className="hacker-card mb-4" style={{ borderColor: "rgba(0,255,102,0.4)" }}>
+          <div className="text-xs text-[var(--accent-green)] tracking-wider text-center" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            {purchaseStatus}
+          </div>
+        </div>
+      )}
+
       <div className="text-[10px] text-[var(--text-muted)] mb-6 tracking-wider leading-relaxed">
-        SUPPORT BUGRACER — GET EXCLUSIVE ANIMATED COSMETICS
+        SUPPORT BUGRACER &mdash; GET EXCLUSIVE ANIMATED COSMETICS
       </div>
 
       {/* Avatar Pack */}
@@ -181,7 +310,6 @@ export default function StorePage() {
           </div>
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.avatars.description}</div>
-        {/* Avatar previews */}
         <div className="flex gap-4 mb-4 justify-center">
           {PREMIUM_AVATAR_IDS.map((id) => {
             const owned = (player?.unlockedAvatars ?? []).includes(id);
@@ -199,22 +327,16 @@ export default function StorePage() {
           })}
         </div>
         {!hasAllAvatars && (
-          <a
-            href={SUPPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-2 text-xs tracking-widest border rounded text-center transition-colors no-underline cursor-pointer"
+          <div
+            className="block w-full py-2 text-xs tracking-widest border rounded text-center opacity-50 cursor-not-allowed"
             style={{
               borderColor: STORE_ITEMS.avatars.color,
               color: STORE_ITEMS.avatars.color,
               fontFamily: "'Orbitron', sans-serif",
-              backgroundColor: "transparent",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,0,51,0.1)")}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           >
-            BUY AVATAR PACK
-          </a>
+            CURRENTLY UNAVAILABLE
+          </div>
         )}
       </div>
 
@@ -232,7 +354,6 @@ export default function StorePage() {
           </div>
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.titles.description}</div>
-        {/* Title previews */}
         <div className="flex flex-col gap-2 mb-4 items-center">
           {PREMIUM_TITLES.map((t) => {
             const owned = (player?.unlockedTitles ?? []).includes(t.id);
@@ -250,23 +371,8 @@ export default function StorePage() {
             );
           })}
         </div>
-        {!hasAllTitles && (
-          <a
-            href={SUPPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-2 text-xs tracking-widest border rounded text-center transition-colors no-underline cursor-pointer"
-            style={{
-              borderColor: STORE_ITEMS.titles.color,
-              color: STORE_ITEMS.titles.color,
-              fontFamily: "'Orbitron', sans-serif",
-              backgroundColor: "transparent",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "rgba(153,0,255,0.1)")}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            BUY TITLE PACK
-          </a>
+        {!hasAllTitles && username && (
+          <BuyButton productId="title_pack" label="BUY TITLE PACK" color={STORE_ITEMS.titles.color} username={username} />
         )}
       </div>
 
@@ -285,7 +391,6 @@ export default function StorePage() {
           </div>
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.bundle.description}</div>
-        {/* Combined preview */}
         <div className="flex gap-4 mb-3 justify-center">
           {PREMIUM_AVATAR_IDS.map((id) => (
             <div
@@ -309,23 +414,8 @@ export default function StorePage() {
             );
           })}
         </div>
-        {!(hasAllAvatars && hasAllTitles) && (
-          <a
-            href={SUPPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-3 text-xs tracking-widest border-2 rounded text-center transition-colors no-underline cursor-pointer font-bold"
-            style={{
-              borderColor: STORE_ITEMS.bundle.color,
-              color: STORE_ITEMS.bundle.color,
-              fontFamily: "'Orbitron', sans-serif",
-              backgroundColor: "transparent",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.1)")}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            BUY ULTIMATE BUNDLE — SAVE $1
-          </a>
+        {!(hasAllAvatars && hasAllTitles) && username && (
+          <BuyButton productId="ultimate_bundle" label="BUY ULTIMATE BUNDLE — SAVE $1" color={STORE_ITEMS.bundle.color} username={username} bold />
         )}
       </div>
 
@@ -335,10 +425,10 @@ export default function StorePage() {
       {/* Info */}
       <div className="text-center">
         <div className="text-[10px] text-[var(--text-muted)] tracking-wider leading-relaxed">
-          ALL PURCHASES ARE COSMETIC ONLY — NO GAMEPLAY ADVANTAGE
+          ALL PURCHASES ARE COSMETIC ONLY &mdash; NO GAMEPLAY ADVANTAGE
         </div>
         <div className="text-[10px] text-[var(--text-muted)] tracking-wider mt-1">
-          AFTER PURCHASE, YOU&apos;LL RECEIVE A CODE TO REDEEM ABOVE
+          ITEMS UNLOCK AUTOMATICALLY AFTER PURCHASE. USE REDEEM CODE AS BACKUP.
         </div>
       </div>
     </div>
