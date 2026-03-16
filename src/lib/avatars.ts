@@ -1,7 +1,7 @@
 // Pixel-art style SVG avatars for BugRacer profiles.
 // Each is a 32×32 SVG string stored inline — no image files required.
 
-export const AVATARS: Record<string, { label: string; svg: string }> = {
+export const AVATARS: Record<string, { label: string; svg: string; premium?: boolean }> = {
   ghost: {
     label: "Ghost",
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
@@ -243,6 +243,108 @@ export const AVATARS: Record<string, { label: string; svg: string }> = {
       <rect x="23" y="19" width="4" height="4" fill="#b700ff" rx="1"/>
     </svg>`,
   },
+  dragon: {
+    label: "Dragon",
+    premium: true,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- head -->
+      <rect x="6" y="8" width="20" height="14" fill="#cc2200" rx="2"/>
+      <rect x="8" y="6" width="16" height="4" fill="#cc2200"/>
+      <!-- horns -->
+      <rect x="6" y="2" width="4" height="6" fill="#ff6600"/>
+      <rect x="22" y="2" width="4" height="6" fill="#ff6600"/>
+      <rect x="5" y="2" width="2" height="2" fill="#ffaa00"/>
+      <rect x="24" y="2" width="2" height="2" fill="#ffaa00"/>
+      <!-- eyes -->
+      <rect x="8" y="11" width="6" height="4" fill="#ffdd00"/>
+      <rect x="18" y="11" width="6" height="4" fill="#ffdd00"/>
+      <rect x="11" y="12" width="3" height="3" fill="#111"/>
+      <rect x="21" y="12" width="3" height="3" fill="#111"/>
+      <rect x="12" y="12" width="1" height="1" fill="#ff6600"/>
+      <rect x="22" y="12" width="1" height="1" fill="#ff6600"/>
+      <!-- nostrils with fire -->
+      <rect x="11" y="17" width="3" height="2" fill="#111"/>
+      <rect x="18" y="17" width="3" height="2" fill="#111"/>
+      <!-- jaw -->
+      <rect x="8" y="22" width="16" height="4" fill="#aa1a00"/>
+      <!-- teeth -->
+      <rect x="9" y="22" width="2" height="2" fill="#eee"/>
+      <rect x="13" y="22" width="2" height="2" fill="#eee"/>
+      <rect x="17" y="22" width="2" height="2" fill="#eee"/>
+      <rect x="21" y="22" width="2" height="2" fill="#eee"/>
+      <!-- fire glow -->
+      <rect x="12" y="26" width="2" height="4" fill="#ff6600" opacity="0.7"/>
+      <rect x="18" y="26" width="2" height="4" fill="#ff6600" opacity="0.7"/>
+      <rect x="15" y="27" width="2" height="3" fill="#ffaa00" opacity="0.5"/>
+    </svg>`,
+  },
+  phoenix: {
+    label: "Phoenix",
+    premium: true,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- flame crest -->
+      <rect x="14" y="1" width="4" height="3" fill="#ffaa00"/>
+      <rect x="12" y="3" width="8" height="2" fill="#ff6600"/>
+      <rect x="10" y="4" width="12" height="2" fill="#ff4400"/>
+      <!-- head -->
+      <rect x="10" y="6" width="12" height="10" fill="#ff6600"/>
+      <rect x="8" y="8" width="16" height="8" fill="#ff4400"/>
+      <!-- eyes -->
+      <rect x="10" y="10" width="4" height="4" fill="#ffdd00"/>
+      <rect x="18" y="10" width="4" height="4" fill="#ffdd00"/>
+      <rect x="11" y="11" width="2" height="2" fill="#111"/>
+      <rect x="19" y="11" width="2" height="2" fill="#111"/>
+      <!-- beak -->
+      <rect x="13" y="15" width="6" height="3" fill="#ffaa00"/>
+      <rect x="14" y="18" width="4" height="1" fill="#ff8800"/>
+      <!-- wings -->
+      <rect x="2" y="14" width="8" height="2" fill="#ff4400"/>
+      <rect x="22" y="14" width="8" height="2" fill="#ff4400"/>
+      <rect x="4" y="16" width="6" height="2" fill="#ff6600" opacity="0.8"/>
+      <rect x="22" y="16" width="6" height="2" fill="#ff6600" opacity="0.8"/>
+      <rect x="3" y="12" width="5" height="2" fill="#ffaa00" opacity="0.6"/>
+      <rect x="24" y="12" width="5" height="2" fill="#ffaa00" opacity="0.6"/>
+      <!-- tail feathers -->
+      <rect x="12" y="20" width="8" height="2" fill="#ff4400"/>
+      <rect x="10" y="22" width="12" height="2" fill="#ff6600" opacity="0.8"/>
+      <rect x="8" y="24" width="16" height="2" fill="#ffaa00" opacity="0.6"/>
+      <rect x="11" y="26" width="4" height="3" fill="#ff4400" opacity="0.5"/>
+      <rect x="17" y="26" width="4" height="3" fill="#ff4400" opacity="0.5"/>
+      <rect x="14" y="27" width="4" height="3" fill="#ffaa00" opacity="0.4"/>
+    </svg>`,
+  },
+  void: {
+    label: "Void",
+    premium: true,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" fill="#111" rx="4"/>
+      <!-- outer ring -->
+      <rect x="6" y="6" width="20" height="20" fill="#0a0020" rx="10"/>
+      <rect x="8" y="4" width="16" height="2" fill="#7700cc" opacity="0.6"/>
+      <rect x="8" y="26" width="16" height="2" fill="#7700cc" opacity="0.6"/>
+      <rect x="4" y="8" width="2" height="16" fill="#7700cc" opacity="0.6"/>
+      <rect x="26" y="8" width="2" height="16" fill="#7700cc" opacity="0.6"/>
+      <!-- void center -->
+      <rect x="10" y="10" width="12" height="12" fill="#050010" rx="6"/>
+      <!-- swirl effect -->
+      <rect x="12" y="12" width="8" height="2" fill="#9900ff" opacity="0.5"/>
+      <rect x="18" y="14" width="2" height="6" fill="#9900ff" opacity="0.4"/>
+      <rect x="12" y="18" width="8" height="2" fill="#9900ff" opacity="0.3"/>
+      <rect x="12" y="14" width="2" height="4" fill="#9900ff" opacity="0.4"/>
+      <!-- eye-like core -->
+      <rect x="14" y="14" width="4" height="4" fill="#cc44ff" opacity="0.8"/>
+      <rect x="15" y="15" width="2" height="2" fill="#fff" opacity="0.9"/>
+      <!-- particles -->
+      <rect x="5" y="5" width="2" height="2" fill="#9900ff" opacity="0.5"/>
+      <rect x="25" y="7" width="2" height="2" fill="#cc44ff" opacity="0.4"/>
+      <rect x="7" y="25" width="2" height="2" fill="#cc44ff" opacity="0.4"/>
+      <rect x="24" y="24" width="2" height="2" fill="#9900ff" opacity="0.5"/>
+      <rect x="3" y="15" width="1" height="1" fill="#9900ff" opacity="0.6"/>
+      <rect x="28" y="16" width="1" height="1" fill="#9900ff" opacity="0.6"/>
+    </svg>`,
+  },
 };
 
 export function getAvatarSvg(id: string | null | undefined): string | null {
@@ -251,3 +353,9 @@ export function getAvatarSvg(id: string | null | undefined): string | null {
 }
 
 export const AVATAR_IDS = Object.keys(AVATARS);
+
+export function isPremiumAvatar(id: string): boolean {
+  return AVATARS[id]?.premium === true;
+}
+
+export const PREMIUM_AVATAR_IDS = AVATAR_IDS.filter((id) => AVATARS[id]?.premium);

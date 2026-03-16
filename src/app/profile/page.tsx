@@ -7,7 +7,7 @@ import { RetroButton } from "@/components/RetroButton";
 import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, savePlayer } from "@/lib/storage";
 import { TITLES, ALL_TITLES, getTitleLabel, getTitleClass } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
-import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
+import { AVATARS, getAvatarSvg, AVATAR_IDS, isPremiumAvatar } from "@/lib/avatars";
 import { RANK_THRESHOLDS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
@@ -423,19 +423,25 @@ export default function ProfilePage() {
           <div className="grid grid-cols-5 gap-3">
             {AVATAR_IDS.map((id) => {
               const { label, svg } = AVATARS[id];
+              const isPremium = isPremiumAvatar(id);
+              const isUnlocked = !isPremium || (player.unlockedAvatars ?? []).includes(id);
               const isEquipped = player.avatar === id;
               return (
                 <button
                   key={id}
+                  disabled={!isUnlocked}
                   onClick={() => {
+                    if (!isUnlocked) return;
                     equipAvatar(isEquipped ? null : id);
                     setPlayer(getPlayer()!);
                   }}
-                  title={label}
+                  title={isUnlocked ? label : "Premium avatar — granted by admin"}
                   className={`flex flex-col items-center gap-1 p-2 border rounded transition-all ${
-                    isEquipped
-                      ? "border-[var(--accent-red)] bg-[rgba(255,0,51,0.08)]"
-                      : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                    !isUnlocked
+                      ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
+                      : isEquipped
+                        ? "border-[var(--accent-red)] bg-[rgba(255,0,51,0.08)]"
+                        : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
                   }`}
                   style={{ boxShadow: isEquipped ? "0 0 8px rgba(255,0,51,0.3)" : undefined }}
                 >
@@ -443,8 +449,12 @@ export default function ProfilePage() {
                     className="w-10 h-10 rounded overflow-hidden"
                     dangerouslySetInnerHTML={{ __html: svg }}
                   />
-                  <span className="text-[9px] text-[var(--text-muted)] tracking-wider">{label.toUpperCase()}</span>
+                  <span className="text-[9px] text-[var(--text-muted)] tracking-wider">
+                    {isUnlocked ? label.toUpperCase() : "???"}
+                  </span>
+                  {isPremium && <span className="text-[8px] text-[var(--accent-yellow)]">★</span>}
                   {isEquipped && <span className="text-[8px] text-[var(--accent-red)]">ON</span>}
+                  {!isUnlocked && <span className="text-[8px] text-[var(--text-muted)]">LOCKED</span>}
                 </button>
               );
             })}

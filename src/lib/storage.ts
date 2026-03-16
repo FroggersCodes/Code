@@ -3,6 +3,7 @@
 import type { Player } from "@/types";
 import { getRankFromElo } from "./elo";
 import { getNewlyUnlocked } from "./titles";
+import { isPremiumAvatar } from "./avatars";
 
 const PLAYER_KEY = "bugracer_player";
 const MATCHES_KEY = "bugracer_matches";
@@ -156,6 +157,7 @@ export function getPlayer(): Player | null {
   if (!("unlockedTitles" in raw)) { player.unlockedTitles = []; player.title = null; migrated = true; }
   if (!("avatar" in raw)) { player.avatar = null; migrated = true; }
   if (!("winStreak" in raw)) { player.winStreak = 0; migrated = true; }
+  if (!("unlockedAvatars" in raw)) { player.unlockedAvatars = []; migrated = true; }
   if (migrated) savePlayer(player);
   return player;
 }
@@ -204,8 +206,19 @@ export function updatePlayerAfterMatch(
 export function equipAvatar(avatarId: string | null): void {
   const player = getPlayer();
   if (!player) return;
+  if (avatarId !== null && isPremiumAvatar(avatarId) && !(player.unlockedAvatars ?? []).includes(avatarId)) return;
   player.avatar = avatarId;
   savePlayer(player);
+}
+
+export function unlockAvatar(avatarId: string): void {
+  const player = getPlayer();
+  if (!player) return;
+  const unlocked = player.unlockedAvatars ?? [];
+  if (!unlocked.includes(avatarId)) {
+    player.unlockedAvatars = [...unlocked, avatarId];
+    savePlayer(player);
+  }
 }
 
 /** Checks for newly unlocked titles, saves them, queues toasts, returns their labels. */
