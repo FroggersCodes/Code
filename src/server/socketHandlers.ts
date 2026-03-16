@@ -258,25 +258,30 @@ function endGame(room: GameRoom, io: Server): void {
     buggyCode,
   });
 
-  // Update leaderboard entries
-  const p1Entry = leaderboard.get(p1.username.toLowerCase());
-  if (p1Entry) {
-    p1Entry.elo = newRatingA;
-    p1Entry.rank = getRankFromElo(newRatingA);
-    if (draw) { p1Entry.draws++; p1Entry.winStreak = 0; }
-    else if (p1Won) { p1Entry.wins++; p1Entry.winStreak = (p1Entry.winStreak ?? 0) + 1; }
-    else { p1Entry.losses++; p1Entry.winStreak = 0; }
+  // Update leaderboard entries (create if missing so all players appear)
+  let p1Entry = leaderboard.get(p1.username.toLowerCase());
+  if (!p1Entry) {
+    p1Entry = { username: p1.username, elo: newRatingA, rank: getRankFromElo(newRatingA), wins: 0, losses: 0, draws: 0, winStreak: 0, title: null, avatar: null };
+    leaderboard.set(p1.username.toLowerCase(), p1Entry);
   }
-  const p2Entry = leaderboard.get(p2.username.toLowerCase());
-  if (p2Entry) {
-    p2Entry.elo = newRatingB;
-    p2Entry.rank = getRankFromElo(newRatingB);
-    if (draw) { p2Entry.draws++; p2Entry.winStreak = 0; }
-    else if (!p1Won) { p2Entry.wins++; p2Entry.winStreak = (p2Entry.winStreak ?? 0) + 1; }
-    else { p2Entry.losses++; p2Entry.winStreak = 0; }
-  }
+  p1Entry.elo = newRatingA;
+  p1Entry.rank = getRankFromElo(newRatingA);
+  if (draw) { p1Entry.draws++; p1Entry.winStreak = 0; }
+  else if (p1Won) { p1Entry.wins++; p1Entry.winStreak = (p1Entry.winStreak ?? 0) + 1; }
+  else { p1Entry.losses++; p1Entry.winStreak = 0; }
 
-  if (p1Entry || p2Entry) saveLeaderboard();
+  let p2Entry = leaderboard.get(p2.username.toLowerCase());
+  if (!p2Entry) {
+    p2Entry = { username: p2.username, elo: newRatingB, rank: getRankFromElo(newRatingB), wins: 0, losses: 0, draws: 0, winStreak: 0, title: null, avatar: null };
+    leaderboard.set(p2.username.toLowerCase(), p2Entry);
+  }
+  p2Entry.elo = newRatingB;
+  p2Entry.rank = getRankFromElo(newRatingB);
+  if (draw) { p2Entry.draws++; p2Entry.winStreak = 0; }
+  else if (!p1Won) { p2Entry.wins++; p2Entry.winStreak = (p2Entry.winStreak ?? 0) + 1; }
+  else { p2Entry.losses++; p2Entry.winStreak = 0; }
+
+  saveLeaderboard();
 
   // Cleanup
   playerRooms.delete(p1.socketId);
