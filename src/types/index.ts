@@ -11,7 +11,6 @@ export interface Player {
   unlockedTitles: string[];
   avatar: string | null;
   winStreak: number;
-  coins: number;
 }
 
 export interface ChallengeData {

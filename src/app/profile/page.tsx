@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, getFriends, addFriend, removeFriend, getFriendStats, savePlayer, type FriendStats } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, savePlayer } from "@/lib/storage";
 import { TITLES, ALL_TITLES, getTitleLabel, getTitleClass } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import { AVATARS, getAvatarSvg, AVATAR_IDS } from "@/lib/avatars";
@@ -59,9 +59,12 @@ export default function ProfilePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [matches, setMatches] = useState<StoredMatch[]>([]);
   const [tab, setTab] = useState<Tab>("stats");
-  const [friends, setFriends] = useState<string[]>([]);
+  const [friendsData, setFriendsData] = useState<Array<{ username: string; elo: number; rank: string; wins: number; losses: number }>>([]);
+  const [invites, setInvites] = useState<Array<{ from: string; createdAt: string }>>([]);
   const [friendInput, setFriendInput] = useState("");
   const [friendError, setFriendError] = useState("");
+  const [friendSuccess, setFriendSuccess] = useState("");
+  const [friendsSubTab, setFriendsSubTab] = useState<"list" | "invites">("list");
   const [messages, setMessages] = useState<Array<{ id: string; text: string; createdAt: string }>>([]);
   const [claimCode, setClaimCode] = useState("");
   const [claimResult, setClaimResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -76,10 +79,11 @@ export default function ProfilePage() {
     checkAndUnlockTitles();
     setPlayer(getPlayer()!);
     setMatches(getMatches());
-    setFriends(getFriends());
 
     const socket = connectSocket();
     socket.emit("player:register", { username: p.username });
+    socket.emit("friends:get", { username: p.username });
+
     socket.on("player:messages", (msgs: Array<{ id: string; text: string; createdAt: string }>) =>
       setMessages((prev) => [...prev, ...msgs])
     );
@@ -95,9 +99,32 @@ export default function ProfilePage() {
         setClaimResult({ ok: false, msg: error ?? "Invalid code" });
       }
     });
+    socket.on("friends:data", (data: { friends: Array<{ username: string; elo: number; rank: string; wins: number; losses: number }>; invites: Array<{ from: string; createdAt: string }> }) => {
+      setFriendsData(data.friends);
+      setInvites(data.invites);
+    });
+    socket.on("friend:invite-sent", ({ to }: { to: string }) => {
+      setFriendSuccess(`Invite sent to ${to}`);
+      setFriendInput("");
+      setTimeout(() => setFriendSuccess(""), 3000);
+    });
+    socket.on("friend:error", ({ message }: { message: string }) => {
+      setFriendError(message);
+    });
+    socket.on("friend:accepted", () => {
+      socket.emit("friends:get", { username: p.username });
+    });
+    socket.on("friend:invite-received", () => {
+      socket.emit("friends:get", { username: p.username });
+    });
     return () => {
       socket.off("player:messages");
       socket.off("title:claim-result");
+      socket.off("friends:data");
+      socket.off("friend:invite-sent");
+      socket.off("friend:error");
+      socket.off("friend:accepted");
+      socket.off("friend:invite-received");
     };
   }, [router]);
 
@@ -207,18 +234,11 @@ export default function ProfilePage() {
           </div>
           <div className="text-[9px] text-[var(--text-muted)] mt-0.5 text-right">{rankProgress}%</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-center mb-3">
+        <div className="grid grid-cols-4 gap-4 text-center mb-4">
           <StatCard label="WINS" value={player.wins} color="var(--accent-green)" />
           <StatCard label="LOSSES" value={player.losses} color="var(--accent-red)" />
           <StatCard label="DRAWS" value={player.draws} />
           <StatCard label="WIN %" value={`${winRate}%`} color="var(--accent-yellow)" />
-        </div>
-        <div className="flex items-center justify-center gap-1 mb-4">
-          <span className="text-[var(--accent-yellow)]" style={{ fontSize: "14px" }}>$</span>
-          <span className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            {player.coins ?? 0}
-          </span>
-          <span className="text-[10px] text-[var(--text-muted)] ml-1">COINS</span>
         </div>
         <RetroButton variant="error" onClick={handleLogout}>LOGOUT</RetroButton>
       </div>
@@ -435,25 +455,44 @@ export default function ProfilePage() {
       {/* FRIENDS TAB */}
       {tab === "friends" && (
         <div className="hacker-card slide-up">
-          <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
-            {friends.length} FRIEND{friends.length !== 1 ? "S" : ""}
+          {/* Sub-tabs: Friends List | Invites */}
+          <div className="flex border-b border-[var(--border-color)] mb-4">
+            <button
+              onClick={() => setFriendsSubTab("list")}
+              className={`flex-1 py-2 text-xs tracking-wider transition-all ${
+                friendsSubTab === "list"
+                  ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
+                  : "text-[var(--text-dim)] border-b-2 border-transparent hover:text-[var(--text-primary)]"
+              }`}
+            >
+              FRIENDS ({friendsData.length})
+            </button>
+            <button
+              onClick={() => setFriendsSubTab("invites")}
+              className={`flex-1 py-2 text-xs tracking-wider transition-all ${
+                friendsSubTab === "invites"
+                  ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
+                  : "text-[var(--text-dim)] border-b-2 border-transparent hover:text-[var(--text-primary)]"
+              }`}
+            >
+              INVITES {invites.length > 0 && <span className="text-[var(--accent-yellow)] ml-1">({invites.length})</span>}
+            </button>
           </div>
 
-          {/* Add friend */}
+          {/* Invite friend input */}
           <div className="flex gap-2 mb-4">
             <input
               className="hacker-input flex-1"
               placeholder="username_"
               value={friendInput}
-              onChange={(e) => { setFriendInput(e.target.value); setFriendError(""); }}
+              onChange={(e) => { setFriendInput(e.target.value); setFriendError(""); setFriendSuccess(""); }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   const u = friendInput.trim();
                   if (!u) return;
                   if (u.toLowerCase() === player!.username.toLowerCase()) { setFriendError("That's you"); return; }
-                  addFriend(u);
-                  setFriends(getFriends());
-                  setFriendInput("");
+                  setFriendError("");
+                  connectSocket().emit("friend:invite", { from: player!.username, to: u });
                 }
               }}
               maxLength={20}
@@ -464,50 +503,103 @@ export default function ProfilePage() {
                 const u = friendInput.trim();
                 if (!u) return;
                 if (u.toLowerCase() === player!.username.toLowerCase()) { setFriendError("That's you"); return; }
-                addFriend(u);
-                setFriends(getFriends());
-                setFriendInput("");
+                setFriendError("");
+                connectSocket().emit("friend:invite", { from: player!.username, to: u });
               }}
             >
-              ADD
+              INVITE
             </RetroButton>
           </div>
           {friendError && <div className="text-xs text-[var(--accent-red)] mb-3">{friendError}</div>}
+          {friendSuccess && <div className="text-xs text-[var(--accent-green)] mb-3">{friendSuccess}</div>}
 
-          {friends.length === 0 ? (
-            <div className="text-xs text-[var(--text-muted)] text-center py-4">
-              No friends yet. Add someone by their username.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {friends.map((f) => {
-                const stats: FriendStats | null = getFriendStats(f);
-                return (
-                  <div key={f} className="flex items-center justify-between p-3 border border-[var(--border-color)] rounded bg-[var(--bg-dark)]">
-                    <div className="flex items-center gap-3">
-                      {stats ? <RankBadge rank={stats.rank} size="sm" /> : null}
-                      <div>
-                        <div className="text-xs text-[var(--text-primary)] font-bold">{stats?.username ?? f}</div>
-                        {stats ? (
+          {/* Friends List Sub-tab */}
+          {friendsSubTab === "list" && (
+            <>
+              {friendsData.length === 0 ? (
+                <div className="text-xs text-[var(--text-muted)] text-center py-4">
+                  No friends yet. Invite someone by their username!
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {friendsData.map((f) => (
+                    <div
+                      key={f.username}
+                      className="flex items-center justify-between p-3 border border-[var(--border-color)] rounded bg-[var(--bg-dark)] cursor-pointer hover:border-[var(--accent-red)] transition-colors"
+                      onClick={() => router.push(`/profile/${f.username}`)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <RankBadge rank={f.rank} size="sm" />
+                        <div>
+                          <div className="text-xs text-[var(--text-primary)] font-bold">{f.username}</div>
                           <div className="text-[10px] text-[var(--text-dim)]">
-                            {stats.elo} ELO · {stats.wins}W {stats.losses}L
+                            {f.elo} ELO · {f.wins}W {f.losses}L
                           </div>
-                        ) : (
-                          <div className="text-[10px] text-[var(--text-muted)]">Stats unavailable on this device</div>
-                        )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          connectSocket().emit("friend:remove", { username: player!.username, friend: f.username });
+                          setFriendsData((prev) => prev.filter((x) => x.username !== f.username));
+                        }}
+                        className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent-red)] transition-colors bg-transparent border-none cursor-pointer"
+                        style={{ fontFamily: "inherit" }}
+                      >
+                        REMOVE
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Invites Sub-tab */}
+          {friendsSubTab === "invites" && (
+            <>
+              {invites.length === 0 ? (
+                <div className="text-xs text-[var(--text-muted)] text-center py-4">
+                  No pending invites.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {invites.map((inv) => (
+                    <div key={inv.from} className="flex items-center justify-between p-3 border border-[var(--accent-yellow)] border-opacity-40 rounded bg-[rgba(255,204,0,0.04)]">
+                      <div>
+                        <div className="text-xs text-[var(--text-primary)] font-bold">{inv.from}</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">
+                          {new Date(inv.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            connectSocket().emit("friend:accept", { username: player!.username, from: inv.from });
+                            setInvites((prev) => prev.filter((x) => x.from !== inv.from));
+                            connectSocket().emit("friends:get", { username: player!.username });
+                          }}
+                          className="text-[10px] px-2 py-1 border border-[var(--accent-green)] text-[var(--accent-green)] rounded bg-transparent cursor-pointer hover:bg-[rgba(0,255,65,0.1)] transition-colors tracking-wider"
+                          style={{ fontFamily: "'Orbitron', sans-serif" }}
+                        >
+                          ACCEPT
+                        </button>
+                        <button
+                          onClick={() => {
+                            connectSocket().emit("friend:decline", { username: player!.username, from: inv.from });
+                            setInvites((prev) => prev.filter((x) => x.from !== inv.from));
+                          }}
+                          className="text-[10px] px-2 py-1 border border-[var(--border-color)] text-[var(--text-muted)] rounded bg-transparent cursor-pointer hover:border-[var(--accent-red)] hover:text-[var(--accent-red)] transition-colors tracking-wider"
+                          style={{ fontFamily: "'Orbitron', sans-serif" }}
+                        >
+                          DECLINE
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => { removeFriend(f); setFriends(getFriends()); }}
-                      className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent-red)] transition-colors bg-transparent border-none cursor-pointer"
-                      style={{ fontFamily: "inherit" }}
-                    >
-                      REMOVE
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

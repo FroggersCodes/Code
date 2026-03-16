@@ -72,7 +72,6 @@ export function signUp(
     unlockedTitles: ["alpha_tester"],
     avatar: null,
     winStreak: 0,
-    coins: 0,
   };
   savePlayer(player);
   return player;
@@ -127,7 +126,6 @@ export function login(
     unlockedTitles: [],
     avatar: null,
     winStreak: 0,
-    coins: 0,
   };
   savePlayer(player);
   return player;
@@ -158,7 +156,6 @@ export function getPlayer(): Player | null {
   if (!("unlockedTitles" in raw)) { player.unlockedTitles = []; player.title = null; migrated = true; }
   if (!("avatar" in raw)) { player.avatar = null; migrated = true; }
   if (!("winStreak" in raw)) { player.winStreak = 0; migrated = true; }
-  if (!("coins" in raw)) { player.coins = 0; migrated = true; }
   if (migrated) savePlayer(player);
   return player;
 }
@@ -183,7 +180,6 @@ export function createPlayer(username: string, passwordHash = ""): Player {
     unlockedTitles: [],
     avatar: null,
     winStreak: 0,
-    coins: 0,
   };
   savePlayer(player);
   return player;
@@ -201,21 +197,6 @@ export function updatePlayerAfterMatch(
   if (draw) { player.draws++; }
   else if (won) { player.wins++; player.winStreak = (player.winStreak ?? 0) + 1; }
   else { player.losses++; player.winStreak = 0; }
-
-  // Earn coins
-  let coinsEarned = 0;
-  if (won) {
-    coinsEarned = 25; // base win reward
-    const streak = player.winStreak ?? 0;
-    if (streak >= 3) coinsEarned += 10; // streak bonus
-    if (streak >= 5) coinsEarned += 15;
-    if (streak >= 10) coinsEarned += 25;
-  } else if (draw) {
-    coinsEarned = 5;
-  } else {
-    coinsEarned = 2; // participation reward
-  }
-  player.coins = (player.coins ?? 0) + coinsEarned;
 
   savePlayer(player);
 }

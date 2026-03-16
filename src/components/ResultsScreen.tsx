@@ -181,19 +181,6 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
   const opponentTime = result.opponentTime ?? result.botTime;
   const hasDiff = !!(result.buggyCode && result.fixedCode);
 
-  // Calculate coins earned (same logic as storage.ts)
-  let coinsEarned = 0;
-  if (result.won) {
-    coinsEarned = 25;
-    const streak = player?.winStreak ?? 0;
-    if (streak >= 3) coinsEarned += 10;
-    if (streak >= 5) coinsEarned += 15;
-    if (streak >= 10) coinsEarned += 25;
-  } else if (result.draw) {
-    coinsEarned = 5;
-  } else {
-    coinsEarned = 2;
-  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 text-center">
@@ -270,15 +257,6 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
             </div>
             <div className="mt-3">
               <RankBadge rank={result.newRank} size="md" />
-            </div>
-            <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-[var(--accent-yellow)]">$</span>
-                <span className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                  +{coinsEarned}
-                </span>
-                <span className="text-[10px] text-[var(--text-muted)] ml-1">COINS</span>
-              </div>
             </div>
           </div>
         </div>

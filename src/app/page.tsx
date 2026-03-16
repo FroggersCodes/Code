@@ -265,13 +265,6 @@ export default function HomePage() {
             <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider text-center">WELCOME BACK</div>
             <div className="text-[var(--accent-red)] text-lg mb-4 font-bold text-center">{player.username}</div>
             <RankCircle player={player} />
-            <div className="mt-3 flex items-center justify-center gap-1">
-              <span className="text-[var(--accent-yellow)]" style={{ fontSize: "14px" }}>$</span>
-              <span className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                {player.coins ?? 0}
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] ml-1">COINS</span>
-            </div>
           </div>
 
           {/* Play Buttons */}
@@ -358,13 +351,18 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Leaderboard + Profile links */}
+          {/* Leaderboard + Profile + Announcements links */}
           <div className="flex gap-3 mb-4">
             <RetroButton variant="primary" onClick={() => router.push("/leaderboard")} className="flex-1">
               LEADERBOARD
             </RetroButton>
             <RetroButton variant="primary" onClick={() => router.push("/profile")} className="flex-1">
               MY PROFILE
+            </RetroButton>
+          </div>
+          <div className="mb-4">
+            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="w-full">
+              ANNOUNCEMENTS
             </RetroButton>
           </div>
 

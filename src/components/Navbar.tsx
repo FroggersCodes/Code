@@ -50,6 +50,12 @@ export function Navbar() {
         >
           Rankings
         </Link>
+        <Link
+          href="/announcements"
+          className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
+        >
+          News
+        </Link>
         <button
           onClick={() => setMuted(toggleMute())}
           className="text-[var(--text-dim)] text-xs hover:text-[var(--text-primary)] transition-colors bg-transparent border-none cursor-pointer"
