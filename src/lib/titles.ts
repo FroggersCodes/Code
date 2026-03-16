@@ -106,6 +106,15 @@ export const TITLES: TitleDef[] = [
   },
 ];
 
+// ─── Premium titles (purchasable) ──────────────────────────────────────────
+export const PREMIUM_TITLES: TitleDef[] = [
+  { id: "neon_phantom", label: "⚡ Neon Phantom", description: "Premium title — spectral neon energy", adminOnly: true, check: () => false },
+  { id: "void_walker",  label: "◉ Void Walker",  description: "Premium title — walks between dimensions", adminOnly: true, check: () => false },
+  { id: "cyber_dragon", label: "🐉 Cyber Dragon", description: "Premium title — digital dragon lord", adminOnly: true, check: () => false },
+];
+
+export const PREMIUM_TITLE_IDS = new Set(PREMIUM_TITLES.map((t) => t.id));
+
 // ─── Admin-only titles ────────────────────────────────────────────────────
 export const ADMIN_TITLES: TitleDef[] = [
   { id: "alpha_tester", label: "α Alpha Tester", description: "Signed up during the Alpha — an OG", adminOnly: true, check: () => false },
@@ -116,11 +125,16 @@ export const ADMIN_TITLES: TitleDef[] = [
 ];
 
 export const ADMIN_TITLE_IDS = new Set(ADMIN_TITLES.map((t) => t.id));
-export const ALL_TITLES = [...TITLES, ...ADMIN_TITLES];
+export const ALL_TITLES = [...TITLES, ...PREMIUM_TITLES, ...ADMIN_TITLES];
 
 /** Returns true if a title ID is an admin-only title. */
 export function isAdminTitle(id: string | null | undefined): boolean {
   return !!id && ADMIN_TITLE_IDS.has(id);
+}
+
+/** Returns true if a title ID is a premium (purchasable) title. */
+export function isPremiumTitle(id: string | null | undefined): boolean {
+  return !!id && PREMIUM_TITLE_IDS.has(id);
 }
 
 /** Returns true if the title ID is the special Glitch title. */
@@ -160,6 +174,9 @@ export function getTitleClass(id: string | null | undefined): string | null {
     case "speed_demon":  return "speed-demon-title";
     case "streak_lord":  return "streak-lord-title";
     case "centurion":    return "centurion-title";
+    case "neon_phantom": return "neon-phantom-title";
+    case "void_walker":  return "void-walker-title";
+    case "cyber_dragon": return "cyber-dragon-title";
     default:
       if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
       return null;

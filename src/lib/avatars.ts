@@ -257,8 +257,12 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       <rect x="5" y="2" width="2" height="2" fill="#ffaa00"/>
       <rect x="24" y="2" width="2" height="2" fill="#ffaa00"/>
       <!-- eyes -->
-      <rect x="8" y="11" width="6" height="4" fill="#ffdd00"/>
-      <rect x="18" y="11" width="6" height="4" fill="#ffdd00"/>
+      <rect x="8" y="11" width="6" height="4" fill="#ffdd00">
+        <animate attributeName="fill" values="#ffdd00;#ff4400;#ffdd00" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="18" y="11" width="6" height="4" fill="#ffdd00">
+        <animate attributeName="fill" values="#ffdd00;#ff4400;#ffdd00" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
       <rect x="11" y="12" width="3" height="3" fill="#111"/>
       <rect x="21" y="12" width="3" height="3" fill="#111"/>
       <rect x="12" y="12" width="1" height="1" fill="#ff6600"/>
@@ -273,10 +277,19 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       <rect x="13" y="22" width="2" height="2" fill="#eee"/>
       <rect x="17" y="22" width="2" height="2" fill="#eee"/>
       <rect x="21" y="22" width="2" height="2" fill="#eee"/>
-      <!-- fire glow -->
-      <rect x="12" y="26" width="2" height="4" fill="#ff6600" opacity="0.7"/>
-      <rect x="18" y="26" width="2" height="4" fill="#ff6600" opacity="0.7"/>
-      <rect x="15" y="27" width="2" height="3" fill="#ffaa00" opacity="0.5"/>
+      <!-- fire breath -->
+      <rect x="12" y="26" width="2" height="4" fill="#ff6600">
+        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="0.6s" repeatCount="indefinite"/>
+        <animate attributeName="height" values="4;6;4" dur="0.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="15" y="27" width="2" height="3" fill="#ffaa00">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="0.7s" repeatCount="indefinite"/>
+        <animate attributeName="height" values="3;5;3" dur="0.9s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="18" y="26" width="2" height="4" fill="#ff6600">
+        <animate attributeName="opacity" values="0.7;0.2;0.7" dur="0.5s" repeatCount="indefinite"/>
+        <animate attributeName="height" values="4;6;4" dur="0.7s" repeatCount="indefinite"/>
+      </rect>
     </svg>`,
   },
   phoenix: {
@@ -285,9 +298,15 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
       <rect width="32" height="32" fill="#111" rx="4"/>
       <!-- flame crest -->
-      <rect x="14" y="1" width="4" height="3" fill="#ffaa00"/>
-      <rect x="12" y="3" width="8" height="2" fill="#ff6600"/>
-      <rect x="10" y="4" width="12" height="2" fill="#ff4400"/>
+      <rect x="14" y="1" width="4" height="3" fill="#ffaa00">
+        <animate attributeName="fill" values="#ffaa00;#ff4400;#ffee00;#ffaa00" dur="0.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="12" y="3" width="8" height="2" fill="#ff6600">
+        <animate attributeName="fill" values="#ff6600;#ffaa00;#ff4400;#ff6600" dur="1s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="10" y="4" width="12" height="2" fill="#ff4400">
+        <animate attributeName="fill" values="#ff4400;#ff6600;#ff2200;#ff4400" dur="1.2s" repeatCount="indefinite"/>
+      </rect>
       <!-- head -->
       <rect x="10" y="6" width="12" height="10" fill="#ff6600"/>
       <rect x="8" y="8" width="16" height="8" fill="#ff4400"/>
@@ -300,8 +319,13 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       <rect x="13" y="15" width="6" height="3" fill="#ffaa00"/>
       <rect x="14" y="18" width="4" height="1" fill="#ff8800"/>
       <!-- wings -->
-      <rect x="2" y="14" width="8" height="2" fill="#ff4400"/>
-      <rect x="22" y="14" width="8" height="2" fill="#ff4400"/>
+      <rect x="2" y="14" width="8" height="2" fill="#ff4400">
+        <animate attributeName="x" values="2;0;2" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="width" values="8;10;8" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="22" y="14" width="8" height="2" fill="#ff4400">
+        <animate attributeName="width" values="8;10;8" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
       <rect x="4" y="16" width="6" height="2" fill="#ff6600" opacity="0.8"/>
       <rect x="22" y="16" width="6" height="2" fill="#ff6600" opacity="0.8"/>
       <rect x="3" y="12" width="5" height="2" fill="#ffaa00" opacity="0.6"/>
@@ -310,9 +334,17 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       <rect x="12" y="20" width="8" height="2" fill="#ff4400"/>
       <rect x="10" y="22" width="12" height="2" fill="#ff6600" opacity="0.8"/>
       <rect x="8" y="24" width="16" height="2" fill="#ffaa00" opacity="0.6"/>
-      <rect x="11" y="26" width="4" height="3" fill="#ff4400" opacity="0.5"/>
-      <rect x="17" y="26" width="4" height="3" fill="#ff4400" opacity="0.5"/>
-      <rect x="14" y="27" width="4" height="3" fill="#ffaa00" opacity="0.4"/>
+      <rect x="11" y="26" width="4" height="3" fill="#ff4400">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="0.9s" repeatCount="indefinite"/>
+        <animate attributeName="height" values="3;5;3" dur="1.1s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="17" y="26" width="4" height="3" fill="#ff4400">
+        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="0.7s" repeatCount="indefinite"/>
+        <animate attributeName="height" values="3;5;3" dur="0.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="14" y="27" width="4" height="3" fill="#ffaa00">
+        <animate attributeName="opacity" values="0.4;0.9;0.4" dur="1s" repeatCount="indefinite"/>
+      </rect>
     </svg>`,
   },
   void: {
@@ -322,27 +354,60 @@ export const AVATARS: Record<string, { label: string; svg: string; premium?: boo
       <rect width="32" height="32" fill="#111" rx="4"/>
       <!-- outer ring -->
       <rect x="6" y="6" width="20" height="20" fill="#0a0020" rx="10"/>
-      <rect x="8" y="4" width="16" height="2" fill="#7700cc" opacity="0.6"/>
-      <rect x="8" y="26" width="16" height="2" fill="#7700cc" opacity="0.6"/>
-      <rect x="4" y="8" width="2" height="16" fill="#7700cc" opacity="0.6"/>
-      <rect x="26" y="8" width="2" height="16" fill="#7700cc" opacity="0.6"/>
+      <rect x="8" y="4" width="16" height="2" fill="#7700cc">
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="8" y="26" width="16" height="2" fill="#7700cc">
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="4" y="8" width="2" height="16" fill="#7700cc">
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="26" y="8" width="2" height="16" fill="#7700cc">
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+      </rect>
       <!-- void center -->
       <rect x="10" y="10" width="12" height="12" fill="#050010" rx="6"/>
       <!-- swirl effect -->
-      <rect x="12" y="12" width="8" height="2" fill="#9900ff" opacity="0.5"/>
-      <rect x="18" y="14" width="2" height="6" fill="#9900ff" opacity="0.4"/>
-      <rect x="12" y="18" width="8" height="2" fill="#9900ff" opacity="0.3"/>
-      <rect x="12" y="14" width="2" height="4" fill="#9900ff" opacity="0.4"/>
+      <rect x="12" y="12" width="8" height="2" fill="#9900ff">
+        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="18" y="14" width="2" height="6" fill="#9900ff">
+        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="3s" begin="0.75s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="12" y="18" width="8" height="2" fill="#9900ff">
+        <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="12" y="14" width="2" height="4" fill="#9900ff">
+        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="3s" begin="2.25s" repeatCount="indefinite"/>
+      </rect>
       <!-- eye-like core -->
-      <rect x="14" y="14" width="4" height="4" fill="#cc44ff" opacity="0.8"/>
-      <rect x="15" y="15" width="2" height="2" fill="#fff" opacity="0.9"/>
+      <rect x="14" y="14" width="4" height="4" fill="#cc44ff">
+        <animate attributeName="fill" values="#cc44ff;#ff66ff;#cc44ff" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="15" y="15" width="2" height="2" fill="#fff">
+        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite"/>
+      </rect>
       <!-- particles -->
-      <rect x="5" y="5" width="2" height="2" fill="#9900ff" opacity="0.5"/>
-      <rect x="25" y="7" width="2" height="2" fill="#cc44ff" opacity="0.4"/>
-      <rect x="7" y="25" width="2" height="2" fill="#cc44ff" opacity="0.4"/>
-      <rect x="24" y="24" width="2" height="2" fill="#9900ff" opacity="0.5"/>
-      <rect x="3" y="15" width="1" height="1" fill="#9900ff" opacity="0.6"/>
-      <rect x="28" y="16" width="1" height="1" fill="#9900ff" opacity="0.6"/>
+      <rect x="5" y="5" width="2" height="2" fill="#9900ff">
+        <animate attributeName="opacity" values="0;0.8;0" dur="2.5s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="25" y="7" width="2" height="2" fill="#cc44ff">
+        <animate attributeName="opacity" values="0;0.7;0" dur="2.5s" begin="0.6s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="7" y="25" width="2" height="2" fill="#cc44ff">
+        <animate attributeName="opacity" values="0;0.7;0" dur="2.5s" begin="1.2s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="24" y="24" width="2" height="2" fill="#9900ff">
+        <animate attributeName="opacity" values="0;0.8;0" dur="2.5s" begin="1.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="3" y="15" width="1" height="1" fill="#9900ff">
+        <animate attributeName="opacity" values="0;0.9;0" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="28" y="16" width="1" height="1" fill="#9900ff">
+        <animate attributeName="opacity" values="0;0.9;0" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
+      </rect>
     </svg>`,
   },
 };
