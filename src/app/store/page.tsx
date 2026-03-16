@@ -5,10 +5,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getPlayer, savePlayer } from "@/lib/storage";
 import { AVATARS, PREMIUM_AVATAR_IDS } from "@/lib/avatars";
 import { PREMIUM_TITLES, getTitleClass } from "@/lib/titles";
+import { BORDERS, isPremiumBorder, RARITY_COLORS } from "@/lib/borders";
+import { unlockPremiumPass, getCurrentTier, getSeasonDaysLeft, getCurrentSeasonId } from "@/lib/battlepass";
 import type { Player } from "@/types";
 
 // ── Store configuration ────────────────────────────────────────────────────
 const STORE_ITEMS = {
+  battlepass: {
+    id: "battle_pass",
+    name: "PREMIUM BATTLE PASS",
+    description: "Unlock the premium track — exclusive avatars, animated borders, and rare titles across 30 tiers",
+    price: "$4.99",
+    color: "#aa44ff",
+  },
   avatars: {
     id: "avatar_pack",
     name: "AVATAR PACK",
@@ -23,15 +32,24 @@ const STORE_ITEMS = {
     price: "$2.99",
     color: "#9900ff",
   },
+  borders: {
+    id: "border_pack",
+    name: "BORDER PACK",
+    description: "3 premium animated profile borders: Plasma Ring, Void Aura & Fire Ring",
+    price: "$2.99",
+    color: "#00ccff",
+  },
   bundle: {
     id: "ultimate_bundle",
     name: "ULTIMATE BUNDLE",
-    description: "All 3 avatars + all 3 titles — save $1!",
-    price: "$4.99",
-    priceOriginal: "$5.98",
+    description: "All avatars + all titles + all borders — save $3!",
+    price: "$5.99",
+    priceOriginal: "$8.97",
     color: "#ffd700",
   },
 } as const;
+
+const PREMIUM_BORDER_IDS = BORDERS.filter((b) => isPremiumBorder(b.id)).map((b) => b.id);
 
 // ── Helpers to unlock items on a player object ─────────────────────────────
 function unlockAvatars(player: Player): Player {
@@ -46,6 +64,12 @@ function unlockTitles(player: Player): Player {
   return { ...player, unlockedTitles: [...current, ...toAdd] };
 }
 
+function unlockBorders(player: Player): Player {
+  const current = player.unlockedBorders ?? [];
+  const toAdd = PREMIUM_BORDER_IDS.filter((id) => !current.includes(id));
+  return { ...player, unlockedBorders: [...current, ...toAdd] };
+}
+
 function unlockForProduct(player: Player, productId: string): Player {
   let updated = { ...player };
   if (productId === "avatar_pack" || productId === "ultimate_bundle") {
@@ -53,6 +77,12 @@ function unlockForProduct(player: Player, productId: string): Player {
   }
   if (productId === "title_pack" || productId === "ultimate_bundle") {
     updated = unlockTitles(updated);
+  }
+  if (productId === "border_pack" || productId === "ultimate_bundle") {
+    updated = unlockBorders(updated);
+  }
+  if (productId === "battle_pass") {
+    updated.premiumPass = true;
   }
   return updated;
 }
@@ -130,7 +160,8 @@ function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: P
       return;
     }
 
-    const updated = unlockForProduct(player, found.type === "avatars" ? "avatar_pack" : found.type === "titles" ? "title_pack" : "ultimate_bundle");
+    const productMap: Record<string, string> = { avatars: "avatar_pack", titles: "title_pack", borders: "border_pack", bundle: "ultimate_bundle", battlepass: "battle_pass" };
+    const updated = unlockForProduct(player, productMap[found.type] ?? "ultimate_bundle");
     markCodeUsed(trimmed);
     savePlayer(updated);
     setPlayer(updated);
@@ -175,7 +206,7 @@ function RedeemSection({ player, setPlayer }: { player: Player; setPlayer: (p: P
 // ── Local code storage (for admin-generated codes) ─────────────────────────
 interface RedeemCode {
   code: string;
-  type: "avatars" | "titles" | "bundle";
+  type: "avatars" | "titles" | "borders" | "bundle" | "battlepass";
   used: boolean;
 }
 
@@ -220,7 +251,6 @@ function StoreContent() {
   const verifyPurchase = useCallback(async (productId: string, currentPlayer: Player) => {
     setPurchaseStatus("VERIFYING PURCHASE...");
 
-    // Poll a few times since webhook may arrive slightly after redirect
     for (let attempt = 0; attempt < 6; attempt++) {
       try {
         const res = await fetch("/api/verify-purchase", {
@@ -231,11 +261,15 @@ function StoreContent() {
         const data = await res.json();
 
         if (data.verified) {
-          const updated = unlockForProduct(currentPlayer, productId);
+          let updated = unlockForProduct(currentPlayer, productId);
           savePlayer(updated);
+          // If battle pass, also call unlockPremiumPass for retroactive rewards
+          if (productId === "battle_pass") {
+            unlockPremiumPass();
+            updated = getPlayer() ?? updated;
+          }
           setPlayer(updated);
           setPurchaseStatus("PURCHASE VERIFIED — ITEMS UNLOCKED!");
-          // Clean URL
           window.history.replaceState({}, "", "/store");
           return;
         }
@@ -243,7 +277,6 @@ function StoreContent() {
         // ignore fetch errors, keep retrying
       }
 
-      // Wait before next attempt (2s intervals)
       if (attempt < 5) {
         await new Promise((r) => setTimeout(r, 2000));
       }
@@ -263,6 +296,8 @@ function StoreContent() {
   const username = player?.username ?? "";
   const hasAllAvatars = player && PREMIUM_AVATAR_IDS.every((id) => (player.unlockedAvatars ?? []).includes(id));
   const hasAllTitles = player && PREMIUM_TITLES.every((t) => (player.unlockedTitles ?? []).includes(t.id));
+  const hasAllBorders = player && PREMIUM_BORDER_IDS.every((id) => player.unlockedBorders.includes(id));
+  const hasPremiumPass = player?.premiumPass;
 
   return (
     <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
@@ -296,7 +331,52 @@ function StoreContent() {
         SUPPORT BUGRACER &mdash; GET EXCLUSIVE ANIMATED COSMETICS
       </div>
 
-      {/* Avatar Pack */}
+      {/* ── BATTLE PASS ─────────────────────────────────────────────── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(170,68,255,0.5)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}>
+            {STORE_ITEMS.battlepass.name}
+          </div>
+          <div className="flex items-center gap-2">
+            {hasPremiumPass && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-sm font-bold" style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}>
+              {STORE_ITEMS.battlepass.price}
+            </span>
+          </div>
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)] mb-3">{STORE_ITEMS.battlepass.description}</div>
+
+        {/* Season info */}
+        <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)] mb-3 border-t border-b border-[var(--border-color)] py-2">
+          <span>SEASON {getCurrentSeasonId()}</span>
+          <span>{getSeasonDaysLeft()} DAYS LEFT</span>
+          {player && <span>TIER {getCurrentTier(player.xp)}/30</span>}
+        </div>
+
+        {/* Premium reward preview */}
+        <div className="flex gap-2 mb-4 justify-center flex-wrap">
+          {["Demon", "Angel", "Elite", "Apex Predator", "Season Victor"].map((name) => (
+            <span key={name} className="text-[9px] px-2 py-1 rounded border border-[var(--border-color)] text-[var(--text-dim)]">
+              {name}
+            </span>
+          ))}
+        </div>
+
+        {!hasPremiumPass && username && (
+          <BuyButton productId="battle_pass" label="UNLOCK PREMIUM PASS" color={STORE_ITEMS.battlepass.color} username={username} bold />
+        )}
+        {hasPremiumPass && (
+          <button
+            onClick={() => router.push("/battlepass")}
+            className="block w-full py-2 text-xs tracking-widest border rounded text-center transition-colors cursor-pointer bg-transparent"
+            style={{ borderColor: "var(--accent-green)", color: "var(--accent-green)", fontFamily: "'Orbitron', sans-serif" }}
+          >
+            VIEW BATTLE PASS
+          </button>
+        )}
+      </div>
+
+      {/* ── AVATAR PACK ─────────────────────────────────────────────── */}
       <div className="hacker-card mb-4" style={{ borderColor: "rgba(255,0,51,0.4)" }}>
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}>
@@ -340,7 +420,7 @@ function StoreContent() {
         )}
       </div>
 
-      {/* Title Pack */}
+      {/* ── TITLE PACK ─────────────────────────────────────────────── */}
       <div className="hacker-card mb-4" style={{ borderColor: "rgba(153,0,255,0.4)" }}>
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}>
@@ -376,14 +456,50 @@ function StoreContent() {
         )}
       </div>
 
-      {/* Ultimate Bundle */}
+      {/* ── BORDER PACK ─────────────────────────────────────────────── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(0,204,255,0.4)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}>
+            {STORE_ITEMS.borders.name}
+          </div>
+          <div className="flex items-center gap-2">
+            {hasAllBorders && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-sm font-bold" style={{ color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}>
+              {STORE_ITEMS.borders.price}
+            </span>
+          </div>
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.borders.description}</div>
+        <div className="flex gap-3 mb-4 justify-center flex-wrap">
+          {BORDERS.filter((b) => isPremiumBorder(b.id)).slice(0, 3).map((b) => {
+            const owned = player?.unlockedBorders.includes(b.id);
+            return (
+              <div key={b.id} className="flex flex-col items-center gap-1">
+                <div
+                  className={`w-12 h-12 rounded border-2 ${b.cssClass} flex items-center justify-center ${owned ? "" : "opacity-50"}`}
+                  style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                >
+                  <span className="text-[8px]" style={{ color: RARITY_COLORS[b.rarity] }}>{b.rarity === "legendary" ? "L" : "P"}</span>
+                </div>
+                <span className="text-[9px] text-[var(--text-muted)] tracking-wider">{b.name.toUpperCase()}</span>
+                {owned && <span className="text-[8px] text-[var(--accent-green)]">OWNED</span>}
+              </div>
+            );
+          })}
+        </div>
+        {!hasAllBorders && username && (
+          <BuyButton productId="border_pack" label="BUY BORDER PACK" color={STORE_ITEMS.borders.color} username={username} />
+        )}
+      </div>
+
+      {/* ── ULTIMATE BUNDLE ─────────────────────────────────────────── */}
       <div className="hacker-card mb-6" style={{ borderColor: "rgba(255,215,0,0.4)" }}>
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}>
             {STORE_ITEMS.bundle.name}
           </div>
           <div className="flex items-center gap-2">
-            {hasAllAvatars && hasAllTitles && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            {hasAllAvatars && hasAllTitles && hasAllBorders && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
             <span className="text-[10px] text-[var(--text-muted)] line-through mr-1">{STORE_ITEMS.bundle.priceOriginal}</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.bundle.price}
@@ -414,8 +530,8 @@ function StoreContent() {
             );
           })}
         </div>
-        {!(hasAllAvatars && hasAllTitles) && username && (
-          <BuyButton productId="ultimate_bundle" label="BUY ULTIMATE BUNDLE — SAVE $1" color={STORE_ITEMS.bundle.color} username={username} bold />
+        {!(hasAllAvatars && hasAllTitles && hasAllBorders) && username && (
+          <BuyButton productId="ultimate_bundle" label="BUY ULTIMATE BUNDLE — SAVE $3" color={STORE_ITEMS.bundle.color} username={username} bold />
         )}
       </div>
 

@@ -259,6 +259,30 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
               <RankBadge rank={result.newRank} size="md" />
             </div>
           </div>
+
+          {/* XP Breakdown */}
+          {result.xpResult && result.xpResult.total > 0 && (
+            <div className="border-t border-[var(--border-color)] pt-4 mt-4">
+              <div className="text-xs text-[var(--text-dim)] mb-2 tracking-wider">XP EARNED</div>
+              <div className="flex flex-col items-center gap-1 text-xs">
+                <span className="text-[var(--accent-yellow)] text-lg font-bold xp-toast-inline" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                  +{result.xpResult.total} XP
+                </span>
+                <div className="flex flex-wrap gap-2 justify-center text-[10px] text-[var(--text-dim)]">
+                  {result.xpResult.base > 0 && <span>Base: +{result.xpResult.base}</span>}
+                  {result.xpResult.streakBonus > 0 && <span className="text-[var(--accent-yellow)]">Streak: +{result.xpResult.streakBonus}</span>}
+                  {result.xpResult.speedBonus > 0 && <span className="text-[var(--accent-yellow)]">Speed: +{result.xpResult.speedBonus}</span>}
+                  {result.xpResult.missionXP > 0 && <span className="text-[var(--accent-green)]">Missions: +{result.xpResult.missionXP}</span>}
+                  {result.xpResult.achievementXP > 0 && <span className="text-[#aa44ff]">Achievements: +{result.xpResult.achievementXP}</span>}
+                </div>
+                {result.xpResult.newTier > result.xpResult.previousTier && (
+                  <div className="text-[var(--accent-red)] text-xs mt-1 font-bold tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                    TIER UP! Tier {result.xpResult.newTier}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

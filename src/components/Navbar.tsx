@@ -46,6 +46,20 @@ export function Navbar() {
         Play
       </Link>
       <Link
+        href="/battlepass"
+        className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
+        onClick={() => setMenuOpen(false)}
+      >
+        Battle Pass
+      </Link>
+      <Link
+        href="/achievements"
+        className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
+        onClick={() => setMenuOpen(false)}
+      >
+        Achievements
+      </Link>
+      <Link
         href="/leaderboard"
         className="text-[var(--text-dim)] text-xs tracking-wider no-underline hover:text-[var(--accent-red)] transition-colors uppercase"
         onClick={() => setMenuOpen(false)}

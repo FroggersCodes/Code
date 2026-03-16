@@ -1,10 +1,10 @@
 "use client";
 
-import type { ChallengeData } from "@/types";
+import type { ChallengeData, PostMatchXP } from "@/types";
 import { getRandomChallenge, validateCodeFix, type FullChallenge } from "./challenges";
 import { getBotSolveDelay, shouldBotFail, BOT_PLAYER } from "./bot";
 import { updateRatings, getRankFromElo } from "./elo";
-import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles } from "./storage";
+import { getPlayer, updatePlayerAfterMatch, addMatch, checkAndUnlockTitles, processPostMatch } from "./storage";
 
 export interface LocalGameState {
   matchId: number;
@@ -30,6 +30,7 @@ export interface GameResult {
   fixedCode?: string;
   buggyCode?: string;
   challengeTitle?: string;
+  xpResult?: PostMatchXP;
 }
 
 let currentGame: LocalGameState | null = null;
@@ -173,6 +174,9 @@ function endGame(): GameResult {
     createdAt: new Date().toISOString(),
   });
 
+  // Process XP, missions, achievements
+  const xpResult = processPostMatch(won, draw, true, currentGame.playerSolveTime, isCotd);
+
   const result: GameResult = {
     won,
     draw,
@@ -187,6 +191,7 @@ function endGame(): GameResult {
     fixedCode: currentGame.challenge.fixedCode,
     buggyCode: currentGame.challenge.buggyCode,
     challengeTitle: currentGame.challenge.title,
+    xpResult,
   };
 
   currentGame = null;
