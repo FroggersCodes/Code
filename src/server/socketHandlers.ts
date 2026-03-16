@@ -173,6 +173,113 @@ function saveLeaderboard(): void {
 
 loadLeaderboard();
 
+// ─── Suggestions & Bug Reports (server-side) ─────────────────────────────────
+interface Suggestion { id: string; username: string; text: string; createdAt: string; }
+interface BugReport { id: string; username: string; challengeTitle: string; reason: string; description: string; createdAt: string; }
+const suggestions: Suggestion[] = [];
+const bugReports: BugReport[] = [];
+
+const SUGGESTIONS_FILE = path.resolve(process.cwd(), "data", "suggestions.json");
+const REPORTS_FILE = path.resolve(process.cwd(), "data", "reports.json");
+
+function loadSuggestionsAndReports(): void {
+  try {
+    if (fs.existsSync(SUGGESTIONS_FILE)) {
+      const data: Suggestion[] = JSON.parse(fs.readFileSync(SUGGESTIONS_FILE, "utf8"));
+      suggestions.push(...data);
+      console.log(`[suggestions] Loaded ${suggestions.length} suggestions from disk.`);
+    }
+  } catch (err) { console.error("[suggestions] File load failed:", err); }
+  try {
+    if (fs.existsSync(REPORTS_FILE)) {
+      const data: BugReport[] = JSON.parse(fs.readFileSync(REPORTS_FILE, "utf8"));
+      bugReports.push(...data);
+      console.log(`[reports] Loaded ${bugReports.length} bug reports from disk.`);
+    }
+  } catch (err) { console.error("[reports] File load failed:", err); }
+}
+
+let saveSuggestionsTimer: ReturnType<typeof setTimeout> | null = null;
+function saveSuggestionsAndReports(): void {
+  if (saveSuggestionsTimer) return;
+  saveSuggestionsTimer = setTimeout(() => {
+    saveSuggestionsTimer = null;
+    try {
+      fs.mkdirSync(path.dirname(SUGGESTIONS_FILE), { recursive: true });
+      fs.writeFileSync(SUGGESTIONS_FILE, JSON.stringify(suggestions, null, 2));
+      fs.writeFileSync(REPORTS_FILE, JSON.stringify(bugReports, null, 2));
+    } catch (err) { console.error("[suggestions/reports] File save failed:", err); }
+  }, 2000);
+}
+
+loadSuggestionsAndReports();
+
+// ─── Announcements (server-side) ──────────────────────────────────────────────
+interface Announcement { id: string; title: string; body: string; createdAt: string; }
+const announcements: Announcement[] = [];
+const ANNOUNCEMENTS_FILE = path.resolve(process.cwd(), "data", "announcements.json");
+
+function loadAnnouncements(): void {
+  try {
+    if (fs.existsSync(ANNOUNCEMENTS_FILE)) {
+      const data: Announcement[] = JSON.parse(fs.readFileSync(ANNOUNCEMENTS_FILE, "utf8"));
+      announcements.push(...data);
+      console.log(`[announcements] Loaded ${announcements.length} announcements from disk.`);
+    }
+  } catch (err) { console.error("[announcements] File load failed:", err); }
+}
+
+let saveAnnouncementsTimer: ReturnType<typeof setTimeout> | null = null;
+function saveAnnouncements(): void {
+  if (saveAnnouncementsTimer) return;
+  saveAnnouncementsTimer = setTimeout(() => {
+    saveAnnouncementsTimer = null;
+    try {
+      fs.mkdirSync(path.dirname(ANNOUNCEMENTS_FILE), { recursive: true });
+      fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(announcements, null, 2));
+    } catch (err) { console.error("[announcements] File save failed:", err); }
+  }, 2000);
+}
+
+loadAnnouncements();
+
+// ─── Friends & Invites (server-side) ──────────────────────────────────────────
+// friends: username.lower() -> Set of friend usernames (lower)
+const friendsMap = new Map<string, Set<string>>();
+// invites: username.lower() -> array of { from: string, createdAt: string }
+interface FriendInvite { from: string; createdAt: string; }
+const invitesMap = new Map<string, FriendInvite[]>();
+const FRIENDS_FILE = path.resolve(process.cwd(), "data", "friends.json");
+
+function loadFriends(): void {
+  try {
+    if (fs.existsSync(FRIENDS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(FRIENDS_FILE, "utf8")) as { friends: Record<string, string[]>; invites: Record<string, FriendInvite[]> };
+      for (const [k, v] of Object.entries(data.friends)) friendsMap.set(k, new Set(v));
+      for (const [k, v] of Object.entries(data.invites)) invitesMap.set(k, v);
+      console.log(`[friends] Loaded friends data from disk.`);
+    }
+  } catch (err) { console.error("[friends] File load failed:", err); }
+}
+
+let saveFriendsTimer: ReturnType<typeof setTimeout> | null = null;
+function saveFriends(): void {
+  if (saveFriendsTimer) return;
+  saveFriendsTimer = setTimeout(() => {
+    saveFriendsTimer = null;
+    try {
+      fs.mkdirSync(path.dirname(FRIENDS_FILE), { recursive: true });
+      const friends: Record<string, string[]> = {};
+      for (const [k, v] of friendsMap) friends[k] = [...v];
+      const invites: Record<string, FriendInvite[]> = {};
+      for (const [k, v] of invitesMap) invites[k] = v;
+      fs.writeFileSync(FRIENDS_FILE, JSON.stringify({ friends, invites }, null, 2));
+    } catch (err) { console.error("[friends] File save failed:", err); }
+  }, 2000);
+}
+
+loadFriends();
+
 // ─── Admin / messaging ────────────────────────────────────────────────────────
 const ADMIN_PASSPHRASE = "FroggersSmiles0407";
 
@@ -686,6 +793,150 @@ export function setupSocketHandlers(io: Server): void {
       for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
       grantCodes.set(code, { titleId, used: false });
       socket.emit("admin:code-generated", { code });
+    });
+
+    // ── Suggestions (server-side) ────────────────────────────────────────────
+    socket.on("suggestion:add", (data: { username: string; text: string }) => {
+      if (!data.text?.trim()) return;
+      suggestions.unshift({
+        id: Date.now().toString(36),
+        username: data.username || "Guest",
+        text: data.text.trim().slice(0, 500),
+        createdAt: new Date().toISOString(),
+      });
+      saveSuggestionsAndReports();
+    });
+
+    socket.on("suggestions:get", () => {
+      socket.emit("suggestions:data", suggestions);
+    });
+
+    socket.on("suggestion:delete", ({ id, passphrase }: { id: string; passphrase: string }) => {
+      if (passphrase !== ADMIN_PASSPHRASE) return;
+      const idx = suggestions.findIndex((s) => s.id === id);
+      if (idx !== -1) suggestions.splice(idx, 1);
+      saveSuggestionsAndReports();
+      socket.emit("suggestions:data", suggestions);
+    });
+
+    // ── Bug Reports (server-side) ─────────────────────────────────────────────
+    socket.on("report:add", (data: { username: string; challengeTitle: string; reason: string; description: string }) => {
+      bugReports.unshift({
+        id: Date.now().toString(36),
+        username: data.username || "Guest",
+        challengeTitle: data.challengeTitle,
+        reason: data.reason,
+        description: data.description || "",
+        createdAt: new Date().toISOString(),
+      });
+      saveSuggestionsAndReports();
+    });
+
+    socket.on("reports:get", () => {
+      socket.emit("reports:data", bugReports);
+    });
+
+    socket.on("report:delete", ({ id, passphrase }: { id: string; passphrase: string }) => {
+      if (passphrase !== ADMIN_PASSPHRASE) return;
+      const idx = bugReports.findIndex((r) => r.id === id);
+      if (idx !== -1) bugReports.splice(idx, 1);
+      saveSuggestionsAndReports();
+      socket.emit("reports:data", bugReports);
+    });
+
+    // ── Announcements ─────────────────────────────────────────────────────────
+    socket.on("announcements:get", () => {
+      socket.emit("announcements:data", announcements);
+    });
+
+    socket.on("announcement:add", (data: { passphrase: string; title: string; body: string }) => {
+      if (data.passphrase !== ADMIN_PASSPHRASE) return;
+      announcements.unshift({
+        id: Date.now().toString(36),
+        title: data.title.trim().slice(0, 200),
+        body: data.body.trim().slice(0, 2000),
+        createdAt: new Date().toISOString(),
+      });
+      saveAnnouncements();
+      socket.emit("announcements:data", announcements);
+    });
+
+    socket.on("announcement:delete", ({ id, passphrase }: { id: string; passphrase: string }) => {
+      if (passphrase !== ADMIN_PASSPHRASE) return;
+      const idx = announcements.findIndex((a) => a.id === id);
+      if (idx !== -1) announcements.splice(idx, 1);
+      saveAnnouncements();
+      socket.emit("announcements:data", announcements);
+    });
+
+    // ── Friends & Invites (server-side) ───────────────────────────────────────
+    socket.on("friends:get", ({ username }: { username: string }) => {
+      const key = username.toLowerCase();
+      const friendsList = [...(friendsMap.get(key) ?? [])];
+      // Get stats from leaderboard for each friend
+      const friendsData = friendsList.map((f) => {
+        const entry = leaderboard.get(f);
+        return entry
+          ? { username: entry.username, elo: entry.elo, rank: entry.rank, wins: entry.wins, losses: entry.losses }
+          : { username: f, elo: 0, rank: "Silver", wins: 0, losses: 0 };
+      });
+      const invites = invitesMap.get(key) ?? [];
+      socket.emit("friends:data", { friends: friendsData, invites });
+    });
+
+    socket.on("friend:invite", ({ from, to }: { from: string; to: string }) => {
+      const fromKey = from.toLowerCase();
+      const toKey = to.toLowerCase();
+      if (fromKey === toKey) return;
+      // Check if already friends
+      if (friendsMap.get(fromKey)?.has(toKey)) return;
+      // Check if invite already sent
+      const existingInvites = invitesMap.get(toKey) ?? [];
+      if (existingInvites.some((inv) => inv.from.toLowerCase() === fromKey)) return;
+      // Check if target user exists on the leaderboard
+      if (!leaderboard.has(toKey)) {
+        socket.emit("friend:error", { message: `Player "${to}" not found` });
+        return;
+      }
+      existingInvites.push({ from, createdAt: new Date().toISOString() });
+      invitesMap.set(toKey, existingInvites);
+      saveFriends();
+      socket.emit("friend:invite-sent", { to });
+      // If target is online, notify them
+      const targetSid = userToSocket.get(toKey);
+      if (targetSid) io.to(targetSid).emit("friend:invite-received", { from });
+    });
+
+    socket.on("friend:accept", ({ username, from }: { username: string; from: string }) => {
+      const key = username.toLowerCase();
+      const fromKey = from.toLowerCase();
+      // Remove invite
+      const invites = invitesMap.get(key) ?? [];
+      invitesMap.set(key, invites.filter((inv) => inv.from.toLowerCase() !== fromKey));
+      // Add friends (bidirectional)
+      if (!friendsMap.has(key)) friendsMap.set(key, new Set());
+      if (!friendsMap.has(fromKey)) friendsMap.set(fromKey, new Set());
+      friendsMap.get(key)!.add(fromKey);
+      friendsMap.get(fromKey)!.add(key);
+      saveFriends();
+      // Re-send updated data
+      socket.emit("friend:accepted", { from });
+    });
+
+    socket.on("friend:decline", ({ username, from }: { username: string; from: string }) => {
+      const key = username.toLowerCase();
+      const fromKey = from.toLowerCase();
+      const invites = invitesMap.get(key) ?? [];
+      invitesMap.set(key, invites.filter((inv) => inv.from.toLowerCase() !== fromKey));
+      saveFriends();
+    });
+
+    socket.on("friend:remove", ({ username, friend }: { username: string; friend: string }) => {
+      const key = username.toLowerCase();
+      const friendKey = friend.toLowerCase();
+      friendsMap.get(key)?.delete(friendKey);
+      friendsMap.get(friendKey)?.delete(key);
+      saveFriends();
     });
 
     // ── Title claim ───────────────────────────────────────────────────────────

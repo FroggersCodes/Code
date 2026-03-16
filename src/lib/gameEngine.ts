@@ -26,6 +26,7 @@ export interface GameResult {
   eloChange: number;
   newElo: number;
   newRank: string;
+  previousRank?: string;
   fixedCode?: string;
   buggyCode?: string;
   challengeTitle?: string;
@@ -151,6 +152,7 @@ function endGame(): GameResult {
 
   // COTD: if player failed, treat as draw for ELO (zero change) but show as failed in UI
   const eloScore = isCotd && !won ? 0.5 : won ? 1 : draw ? 0.5 : 0;
+  const previousRank = player.rank;
   const { newRatingA, change } = updateRatings(player.elo, BOT_PLAYER.elo, eloScore);
   const newRank = getRankFromElo(newRatingA);
 
@@ -181,6 +183,7 @@ function endGame(): GameResult {
     eloChange: change,
     newElo: newRatingA,
     newRank,
+    previousRank,
     fixedCode: currentGame.challenge.fixedCode,
     buggyCode: currentGame.challenge.buggyCode,
     challengeTitle: currentGame.challenge.title,

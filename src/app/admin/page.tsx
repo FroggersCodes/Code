@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPlayer, savePlayer, getBugReports, deleteBugReport, getSuggestions, deleteSuggestion, type BugReport, type Suggestion } from "@/lib/storage";
+import { getPlayer, savePlayer } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import type { Player } from "@/types";
+
+interface BugReport { id: string; username: string; challengeTitle: string; reason: string; description: string; createdAt: string; }
+interface Suggestion { id: string; username: string; text: string; createdAt: string; }
+interface Announcement { id: string; title: string; body: string; createdAt: string; }
 
 const PASSPHRASE = "FroggersSmiles0407";
 
@@ -35,13 +39,6 @@ export default function AdminPage() {
   const [draws, setDraws] = useState("");
   const [winStreak, setWinStreak] = useState("");
 
-  // Admin titles
-  const [titleTarget, setTitleTarget] = useState("self");
-  const [titleTargetUser, setTitleTargetUser] = useState("");
-  const [selectedAdminTitle, setSelectedAdminTitle] = useState(ADMIN_TITLES[0].id);
-  const [titleSaved, setTitleSaved] = useState(false);
-  const [titleError, setTitleError] = useState("");
-
   // Other player editor
   const [otherUsername, setOtherUsername] = useState("");
   const [otherPlayer, setOtherPlayer] = useState<Player | null>(null);
@@ -63,6 +60,12 @@ export default function AdminPage() {
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
 
+  // Announcements
+  const [announcementsList, setAnnouncementsList] = useState<Announcement[]>([]);
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementBody, setAnnouncementBody] = useState("");
+  const [announcementSaved, setAnnouncementSaved] = useState(false);
+
   useEffect(() => {
     if (!authed) return;
     const p = getPlayer();
@@ -74,10 +77,16 @@ export default function AdminPage() {
       setDraws(String(p.draws));
       setWinStreak(String(p.winStreak ?? 0));
     }
-    setBugReports(getBugReports());
-    setSuggestions(getSuggestions());
 
     const socket = connectSocket();
+    // Fetch suggestions, reports, and announcements from server
+    socket.emit("suggestions:get");
+    socket.emit("reports:get");
+    socket.emit("announcements:get");
+
+    socket.on("suggestions:data", (data: Suggestion[]) => setSuggestions(data));
+    socket.on("reports:data", (data: BugReport[]) => setBugReports(data));
+    socket.on("announcements:data", (data: Announcement[]) => setAnnouncementsList(data));
     socket.on("admin:code-generated", ({ code }: { code: string }) => {
       setGeneratedCode(code);
       setMsgText(`Your title grant code: ${code} — redeem it in Profile → Titles.`);
@@ -88,6 +97,9 @@ export default function AdminPage() {
     return () => {
       socket.off("admin:code-generated");
       socket.off("admin:message-sent");
+      socket.off("suggestions:data");
+      socket.off("reports:data");
+      socket.off("announcements:data");
     };
   }, [authed]);
 
@@ -138,50 +150,6 @@ export default function AdminPage() {
     localStorage.removeItem("bugracer_matches");
     localStorage.removeItem(`bugracer_matches_${player.username.toLowerCase()}`);
     flash(setSaved);
-  };
-
-  // ── Admin title granting ──────────────────────────────────────────────────
-  const grantAdminTitle = () => {
-    setTitleError("");
-    let target: Player | null = null;
-    if (titleTarget === "self") {
-      target = player;
-    } else {
-      const name = titleTargetUser.trim();
-      if (!name) { setTitleError("Enter a username"); return; }
-      target = loadOtherPlayer(name);
-      if (!target) { setTitleError(`Player "${name}" not found on this device`); return; }
-    }
-    if (!target) { setTitleError("No player found"); return; }
-    const already = target.unlockedTitles ?? [];
-    if (!already.includes(selectedAdminTitle)) {
-      const updated = { ...target, unlockedTitles: [...already, selectedAdminTitle] };
-      savePlayer(updated);
-      if (titleTarget === "self") setPlayer(updated);
-    }
-    flash(setTitleSaved);
-  };
-
-  const revokeAdminTitle = () => {
-    setTitleError("");
-    let target: Player | null = null;
-    if (titleTarget === "self") {
-      target = player;
-    } else {
-      const name = titleTargetUser.trim();
-      if (!name) { setTitleError("Enter a username"); return; }
-      target = loadOtherPlayer(name);
-      if (!target) { setTitleError(`Player "${name}" not found on this device`); return; }
-    }
-    if (!target) { setTitleError("No player found"); return; }
-    const updated = {
-      ...target,
-      unlockedTitles: (target.unlockedTitles ?? []).filter((id) => id !== selectedAdminTitle),
-      title: target.title === selectedAdminTitle ? null : target.title,
-    };
-    savePlayer(updated);
-    if (titleTarget === "self") setPlayer(updated);
-    flash(setTitleSaved);
   };
 
   // ── Other player ELO ──────────────────────────────────────────────────────
@@ -320,61 +288,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* ── Grant admin title ── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(255,204,0,0.3)" }}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider admin-title" style={{ fontSize: "11px" }}>✦ GRANT ADMIN TITLE</div>
-          {titleSaved && <div className="text-xs text-[var(--accent-green)] tracking-wider">✓ SAVED</div>}
-        </div>
-
-        <div className="mb-3">
-          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">TITLE</div>
-          <div className="flex gap-2">
-            {ADMIN_TITLES.map((t) => (
-              <button key={t.id} onClick={() => setSelectedAdminTitle(t.id)}
-                className="flex-1 py-1.5 text-[10px] tracking-wider border rounded bg-transparent cursor-pointer transition-colors"
-                style={{
-                  borderColor: selectedAdminTitle === t.id ? "#ffd700" : "var(--border-color)",
-                  color: selectedAdminTitle === t.id ? "#ffd700" : "var(--text-muted)",
-                  fontFamily: "'Orbitron', sans-serif",
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-3">
-          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">TARGET</div>
-          <div className="flex gap-2 mb-2">
-            {["self", "other"].map((opt) => (
-              <button key={opt} onClick={() => setTitleTarget(opt)}
-                className="flex-1 py-1.5 text-[10px] tracking-wider border rounded bg-transparent cursor-pointer transition-colors"
-                style={{
-                  borderColor: titleTarget === opt ? "var(--accent-red)" : "var(--border-color)",
-                  color: titleTarget === opt ? "var(--accent-red)" : "var(--text-muted)",
-                  fontFamily: "'Orbitron', sans-serif",
-                }}
-              >
-                {opt === "self" ? `MYSELF (${player.username})` : "OTHER PLAYER"}
-              </button>
-            ))}
-          </div>
-          {titleTarget === "other" && (
-            <input className="hacker-input w-full text-sm" placeholder="username_"
-              value={titleTargetUser} onChange={(e) => { setTitleTargetUser(e.target.value); setTitleError(""); }}
-            />
-          )}
-        </div>
-
-        {titleError && <div className="text-xs text-[var(--accent-red)] mb-2">{titleError}</div>}
-        <div className="flex gap-2">
-          <AdminBtn onClick={grantAdminTitle} color="#ffd700">GRANT</AdminBtn>
-          <AdminBtn onClick={revokeAdminTitle} color="var(--border-color)">REVOKE</AdminBtn>
-        </div>
-      </div>
-
       {/* ── Other player ELO ── */}
       <div className="hacker-card mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -417,7 +330,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs text-[var(--accent-green)] tracking-wider">⚑ BUG REPORTS ({bugReports.length})</div>
           <button
-            onClick={() => setBugReports(getBugReports())}
+            onClick={() => connectSocket().emit("reports:get")}
             className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
             style={{ fontFamily: "'Share Tech Mono', monospace" }}
           >
@@ -435,7 +348,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <span>{new Date(r.createdAt).toLocaleString()}</span>
                     <button
-                      onClick={() => { deleteBugReport(r.id); setBugReports(getBugReports()); }}
+                      onClick={() => connectSocket().emit("report:delete", { id: r.id, passphrase: PASSPHRASE })}
                       className="text-[10px] text-[var(--accent-red)] hover:text-red-400 bg-transparent border-none cursor-pointer tracking-wider transition-colors"
                       style={{ fontFamily: "'Share Tech Mono', monospace" }}
                       title="Delete report"
@@ -532,7 +445,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs text-[var(--accent-yellow)] tracking-wider">💡 SUGGESTIONS ({suggestions.length})</div>
           <button
-            onClick={() => setSuggestions(getSuggestions())}
+            onClick={() => connectSocket().emit("suggestions:get")}
             className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
             style={{ fontFamily: "'Share Tech Mono', monospace" }}
           >
@@ -550,7 +463,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <span>{new Date(s.createdAt).toLocaleString()}</span>
                     <button
-                      onClick={() => { deleteSuggestion(s.id); setSuggestions(getSuggestions()); }}
+                      onClick={() => connectSocket().emit("suggestion:delete", { id: s.id, passphrase: PASSPHRASE })}
                       className="text-[10px] text-[var(--accent-red)] hover:text-red-400 bg-transparent border-none cursor-pointer tracking-wider transition-colors"
                       style={{ fontFamily: "'Share Tech Mono', monospace" }}
                     >
@@ -559,6 +472,70 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="text-[var(--text-primary)] leading-relaxed">{s.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Announcements ── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(0,212,255,0.3)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs text-[#00d4ff] tracking-wider">📢 ANNOUNCEMENTS ({announcementsList.length})</div>
+          {announcementSaved && <div className="text-xs text-[var(--accent-green)] tracking-wider">✓ PUBLISHED</div>}
+        </div>
+
+        <div className="mb-3">
+          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">TITLE</div>
+          <input
+            className="hacker-input w-full text-sm"
+            placeholder="Announcement title..."
+            value={announcementTitle}
+            onChange={(e) => setAnnouncementTitle(e.target.value)}
+            maxLength={200}
+          />
+        </div>
+        <div className="mb-3">
+          <div className="text-[10px] text-[var(--text-muted)] mb-1 tracking-wider">BODY</div>
+          <textarea
+            className="hacker-input w-full text-xs resize-none"
+            rows={4}
+            placeholder="Write announcement..."
+            value={announcementBody}
+            onChange={(e) => setAnnouncementBody(e.target.value)}
+            maxLength={2000}
+          />
+        </div>
+        <AdminBtn onClick={() => {
+          if (!announcementTitle.trim() || !announcementBody.trim()) return;
+          connectSocket().emit("announcement:add", {
+            passphrase: PASSPHRASE,
+            title: announcementTitle.trim(),
+            body: announcementBody.trim(),
+          });
+          setAnnouncementTitle("");
+          setAnnouncementBody("");
+          flash(setAnnouncementSaved);
+        }} color="#00d4ff">PUBLISH ANNOUNCEMENT</AdminBtn>
+
+        {announcementsList.length > 0 && (
+          <div className="space-y-3 max-h-80 overflow-y-auto mt-4 pt-4 border-t border-[var(--border-color)]">
+            {announcementsList.map((a) => (
+              <div key={a.id} className="border border-[var(--border-color)] rounded p-2 text-xs">
+                <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+                  <span className="text-[#00d4ff] font-bold">{a.title}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{new Date(a.createdAt).toLocaleString()}</span>
+                    <button
+                      onClick={() => connectSocket().emit("announcement:delete", { id: a.id, passphrase: PASSPHRASE })}
+                      className="text-[10px] text-[var(--accent-red)] hover:text-red-400 bg-transparent border-none cursor-pointer tracking-wider transition-colors"
+                      style={{ fontFamily: "'Share Tech Mono', monospace" }}
+                    >
+                      [DELETE]
+                    </button>
+                  </div>
+                </div>
+                <div className="text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{a.body}</div>
               </div>
             ))}
           </div>

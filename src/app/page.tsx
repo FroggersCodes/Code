@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
-import { getPlayer, getMatches, signUp, login, loginAsGuest, addSuggestion, getCotdRecord, type StoredMatch } from "@/lib/storage";
+import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
@@ -206,8 +206,11 @@ export default function HomePage() {
 
   const handleSuggestionSubmit = () => {
     const trimmed = suggestionText.trim();
-    if (!trimmed) return;
-    addSuggestion(trimmed);
+    if (!trimmed || !player) return;
+    import("@/lib/socket").then(({ connectSocket }) => {
+      const socket = connectSocket();
+      socket.emit("suggestion:add", { username: player.username, text: trimmed });
+    });
     setSuggestionText("");
     setSuggestionSent(true);
     setTimeout(() => setSuggestionSent(false), 3000);
@@ -262,6 +265,13 @@ export default function HomePage() {
             <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider text-center">WELCOME BACK</div>
             <div className="text-[var(--accent-red)] text-lg mb-4 font-bold text-center">{player.username}</div>
             <RankCircle player={player} />
+            <div className="mt-3 flex items-center justify-center gap-1">
+              <span className="text-[var(--accent-yellow)]" style={{ fontSize: "14px" }}>$</span>
+              <span className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                {player.coins ?? 0}
+              </span>
+              <span className="text-[10px] text-[var(--text-muted)] ml-1">COINS</span>
+            </div>
           </div>
 
           {/* Play Buttons */}
@@ -488,7 +498,7 @@ export default function HomePage() {
           <div className="mt-8 text-xs text-[var(--text-muted)] space-y-1.5">
             <div className="text-[var(--text-dim)]">$ fix bugs faster than the bot</div>
             <div className="text-[var(--text-dim)]">$ climb the elo rankings</div>
-            <div className="text-[var(--text-dim)]">$ javascript &amp; python challenges</div>
+            <div className="text-[var(--text-dim)]">$ python challenges</div>
           </div>
         </div>
       )}

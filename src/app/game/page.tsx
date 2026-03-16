@@ -14,7 +14,7 @@ import {
   setOnReaction,
   sendReaction,
 } from "@/lib/multiplayerEngine";
-import { consumePendingTitleToasts, updateCotdRecord, getCotdRecord } from "@/lib/storage";
+import { consumePendingTitleToasts, updateCotdRecord, getCotdRecord, getPlayer } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { playWinSound, playLoseSound, playCountdownBeep } from "@/lib/sounds";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
@@ -126,6 +126,7 @@ function GameContent() {
   const handleMultiplayerResult = useCallback((mpResult: MultiplayerResult) => {
     if (resultReadyRef.current) return;
     resultReadyRef.current = true;
+    const player = getPlayer();
     const gameResult: GameResult = {
       won: mpResult.won,
       draw: mpResult.draw,
@@ -136,6 +137,7 @@ function GameContent() {
       eloChange: mpResult.eloChange,
       newElo: mpResult.newElo,
       newRank: mpResult.newRank,
+      previousRank: player?.rank,
       fixedCode: mpResult.fixedCode,
       buggyCode: mpResult.buggyCode,
       challengeTitle: multiplayerChallenge?.title,

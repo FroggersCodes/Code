@@ -122,8 +122,6 @@ export default function ProfilePage() {
     else { currentStreak = 0; }
   }
 
-  const jsGames = matches.filter((m) => m.challengeLanguage === "javascript").length;
-  const pyGames = matches.filter((m) => m.challengeLanguage === "python").length;
   const botGames = matches.filter((m) => m.isVsBot).length;
   const onlineGames = matches.filter((m) => !m.isVsBot).length;
 
@@ -209,11 +207,18 @@ export default function ProfilePage() {
           </div>
           <div className="text-[9px] text-[var(--text-muted)] mt-0.5 text-right">{rankProgress}%</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-center mb-4">
+        <div className="grid grid-cols-4 gap-4 text-center mb-3">
           <StatCard label="WINS" value={player.wins} color="var(--accent-green)" />
           <StatCard label="LOSSES" value={player.losses} color="var(--accent-red)" />
           <StatCard label="DRAWS" value={player.draws} />
           <StatCard label="WIN %" value={`${winRate}%`} color="var(--accent-yellow)" />
+        </div>
+        <div className="flex items-center justify-center gap-1 mb-4">
+          <span className="text-[var(--accent-yellow)]" style={{ fontSize: "14px" }}>$</span>
+          <span className="text-sm font-bold text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            {player.coins ?? 0}
+          </span>
+          <span className="text-[10px] text-[var(--text-muted)] ml-1">COINS</span>
         </div>
         <RetroButton variant="error" onClick={handleLogout}>LOGOUT</RetroButton>
       </div>
@@ -261,41 +266,20 @@ export default function ProfilePage() {
           {/* Breakdown */}
           <div className="hacker-card">
             <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">BREAKDOWN</div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-xs text-[var(--text-dim)] mb-2">LANGUAGE</div>
-                <div className="space-y-1">
-                  {[{ label: "JavaScript", count: jsGames }, { label: "Python", count: pyGames }].map(({ label, count }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <div className="text-xs text-[var(--text-primary)] w-20">{label}</div>
-                      <div className="flex-1 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[var(--accent-red)] rounded-full"
-                          style={{ width: totalGames > 0 ? `${(count / totalGames) * 100}%` : "0%" }}
-                        />
-                      </div>
-                      <div className="text-xs text-[var(--text-dim)] w-6 text-right">{count}</div>
-                    </div>
-                  ))}
+            <div className="text-xs text-[var(--text-dim)] mb-2">MODE</div>
+            <div className="space-y-1">
+              {[{ label: "vs Bot", count: botGames }, { label: "Online", count: onlineGames }].map(({ label, count }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <div className="text-xs text-[var(--text-primary)] w-14">{label}</div>
+                  <div className="flex-1 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--accent-red)] rounded-full"
+                      style={{ width: totalGames > 0 ? `${(count / totalGames) * 100}%` : "0%" }}
+                    />
+                  </div>
+                  <div className="text-xs text-[var(--text-dim)] w-6 text-right">{count}</div>
                 </div>
-              </div>
-              <div>
-                <div className="text-xs text-[var(--text-dim)] mb-2">MODE</div>
-                <div className="space-y-1">
-                  {[{ label: "vs Bot", count: botGames }, { label: "Online", count: onlineGames }].map(({ label, count }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <div className="text-xs text-[var(--text-primary)] w-14">{label}</div>
-                      <div className="flex-1 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[var(--accent-red)] rounded-full"
-                          style={{ width: totalGames > 0 ? `${(count / totalGames) * 100}%` : "0%" }}
-                        />
-                      </div>
-                      <div className="text-xs text-[var(--text-dim)] w-6 text-right">{count}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

@@ -58,7 +58,7 @@ function PracticePageInner() {
   const [player] = useState(() => getPlayer());
   const [pageState, setPageState] = useState<PageState>("setup");
   const [config, setConfig] = useState<PracticeConfig>({
-    language: "javascript",
+    language: "python",
     difficulty: null,
     timeLimit: 90,
     mode: "solo",
@@ -126,7 +126,7 @@ function PracticePageInner() {
         setOpponent({ username: data.username, elo: data.elo, rank: data.rank, title: data.title ?? null });
         if (data.config) {
           setWaitingConfig(data.config);
-          setConfig((c) => ({ ...c, language: data.config!.language as "javascript" | "python", difficulty: data.config!.difficulty as 1 | 2 | 3 | null, timeLimit: data.config!.timeLimit }));
+          setConfig((c) => ({ ...c, language: "python", difficulty: data.config!.difficulty as 1 | 2 | 3 | null, timeLimit: data.config!.timeLimit }));
         }
       }
     );
@@ -311,25 +311,6 @@ function PracticePageInner() {
         </h1>
 
         <div className="w-full max-w-md space-y-4">
-          {/* Language */}
-          <div className="hacker-card hacker-card-red">
-            <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">LANGUAGE</div>
-            <div className="flex gap-2">
-              <OptionButton
-                active={config.language === "javascript"}
-                onClick={() => setConfig((c) => ({ ...c, language: "javascript" }))}
-              >
-                JAVASCRIPT
-              </OptionButton>
-              <OptionButton
-                active={config.language === "python"}
-                onClick={() => setConfig((c) => ({ ...c, language: "python" }))}
-              >
-                PYTHON
-              </OptionButton>
-            </div>
-          </div>
-
           {/* Difficulty */}
           <div className="hacker-card hacker-card-red">
             <div className="text-xs text-[var(--text-dim)] mb-3 tracking-wider">DIFFICULTY</div>
