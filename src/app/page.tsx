@@ -44,8 +44,8 @@ function RankCircle({ player }: { player: Player }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: 196, height: 196 }}>
-        <svg width="196" height="196" viewBox="0 0 196 196">
+      <div className="relative w-[148px] h-[148px] sm:w-[196px] sm:h-[196px]">
+        <svg width="100%" height="100%" viewBox="0 0 196 196">
           {/* Outer decorative ring */}
           <circle
             cx="98" cy="98" r={radius + 10}
@@ -248,7 +248,7 @@ export default function HomePage() {
       )}
       <div className="text-center mb-8 slide-up">
         <h1
-          className="text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
+          className="text-3xl sm:text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
           style={{ fontFamily: "'Orbitron', sans-serif" }}
         >
           BUGRACER
@@ -352,19 +352,17 @@ export default function HomePage() {
           </div>
 
           {/* Leaderboard + Profile + Announcements links */}
-          <div className="flex gap-3 mb-4">
-            <RetroButton variant="primary" onClick={() => router.push("/leaderboard")} className="flex-1">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <RetroButton variant="primary" onClick={() => router.push("/leaderboard")} className="w-full">
               LEADERBOARD
             </RetroButton>
-            <RetroButton variant="primary" onClick={() => router.push("/profile")} className="flex-1">
+            <RetroButton variant="primary" onClick={() => router.push("/profile")} className="w-full">
               MY PROFILE
             </RetroButton>
-          </div>
-          <div className="flex gap-3 mb-4">
-            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="flex-1">
+            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="w-full">
               ANNOUNCEMENTS
             </RetroButton>
-            <RetroButton variant="warning" onClick={() => router.push("/store")} className="flex-1">
+            <RetroButton variant="warning" onClick={() => router.push("/store")} className="w-full">
               STORE
             </RetroButton>
           </div>

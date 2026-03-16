@@ -47,7 +47,7 @@ export default function AnnouncementsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center min-h-[calc(100vh-4rem)] px-4 py-8">
+    <div className="flex flex-col items-center min-h-[calc(100vh-4rem)] px-3 sm:px-4 py-6 sm:py-8">
       <h1
         className="text-lg text-[var(--accent-red)] glow-red mb-6 tracking-widest font-bold"
         style={{ fontFamily: "'Orbitron', sans-serif" }}

@@ -274,7 +274,7 @@ export default function LobbyPage() {
 
       {state === "queuing" && mode === "online" && (
         <div className="text-center slide-up">
-          <div className="hacker-card hacker-card-red inline-block min-w-[300px]">
+          <div className="hacker-card hacker-card-red inline-block min-w-0 w-full max-w-[340px]">
             <div className="text-[var(--accent-red)] glow-red text-sm mb-4 tracking-wider">
               SEARCHING FOR OPPONENT...
             </div>
@@ -316,7 +316,7 @@ export default function LobbyPage() {
 
       {state === "connection_error" && (
         <div className="text-center slide-up">
-          <div className="hacker-card hacker-card-red inline-block min-w-[300px]">
+          <div className="hacker-card hacker-card-red inline-block min-w-0 w-full max-w-[340px]">
             <div className="text-[var(--accent-red)] glow-red text-sm mb-4 tracking-wider">
               CONNECTION FAILED
             </div>
@@ -346,7 +346,7 @@ export default function LobbyPage() {
             MATCH FOUND
           </div>
           <div className="hacker-card hacker-card-red">
-            <div className="flex items-center justify-between gap-8">
+            <div className="flex items-center justify-between gap-4 sm:gap-8">
               <div>
                 <div className="text-xs text-[var(--text-primary)] mb-2">{player.username}</div>
                 <RankBadge rank={player.rank} size="md" />
@@ -372,7 +372,7 @@ export default function LobbyPage() {
             MATCH FOUND
           </div>
           <div className="hacker-card hacker-card-red">
-            <div className="flex items-center justify-between gap-8">
+            <div className="flex items-center justify-between gap-4 sm:gap-8">
               <div className="text-center">
                 <div className="text-xs text-[var(--text-primary)] mb-1">{player.username}</div>
                 {getTitleLabel(player.title) && (

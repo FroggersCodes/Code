@@ -265,7 +265,7 @@ function StoreContent() {
   const hasAllTitles = player && PREMIUM_TITLES.every((t) => (player.unlockedTitles ?? []).includes(t.id));
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1
@@ -310,13 +310,13 @@ function StoreContent() {
           </div>
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.avatars.description}</div>
-        <div className="flex gap-4 mb-4 justify-center">
+        <div className="flex gap-3 sm:gap-4 mb-4 justify-center">
           {PREMIUM_AVATAR_IDS.map((id) => {
             const owned = (player?.unlockedAvatars ?? []).includes(id);
             return (
               <div key={id} className="flex flex-col items-center gap-1">
                 <div
-                  className={`w-16 h-16 rounded overflow-hidden border ${owned ? "border-[var(--accent-green)]" : "border-[var(--border-color)]"}`}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded overflow-hidden border ${owned ? "border-[var(--accent-green)]" : "border-[var(--border-color)]"}`}
                   style={{ boxShadow: owned ? "0 0 8px rgba(0,255,102,0.3)" : undefined }}
                   dangerouslySetInnerHTML={{ __html: AVATARS[id].svg }}
                 />
