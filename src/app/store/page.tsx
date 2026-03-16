@@ -326,8 +326,17 @@ function StoreContent() {
             );
           })}
         </div>
-        {!hasAllAvatars && username && (
-          <BuyButton productId="avatar_pack" label="BUY AVATAR PACK" color={STORE_ITEMS.avatars.color} username={username} />
+        {!hasAllAvatars && (
+          <div
+            className="block w-full py-2 text-xs tracking-widest border rounded text-center opacity-50 cursor-not-allowed"
+            style={{
+              borderColor: STORE_ITEMS.avatars.color,
+              color: STORE_ITEMS.avatars.color,
+              fontFamily: "'Orbitron', sans-serif",
+            }}
+          >
+            CURRENTLY UNAVAILABLE
+          </div>
         )}
       </div>
 
