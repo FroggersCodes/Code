@@ -24,7 +24,7 @@ export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved,
     : title?.startsWith("◈") ? "glitch-title" : title?.startsWith("✦") ? "admin-title" : null;
   return (
     <div
-      className={`p-3 border rounded ${
+      className={`p-2 sm:p-3 border rounded min-w-0 ${
         solved
           ? "border-[var(--accent-green)] glow-box-green"
           : isYou
@@ -43,7 +43,7 @@ export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved,
             {isYou ? ">" : "#"}
           </span>
         )}
-        <span className={`text-xs ${isYou ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}>
+        <span className={`text-xs truncate ${isYou ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}>
           {username}
         </span>
         {winStreak !== undefined && winStreak >= 3 && (

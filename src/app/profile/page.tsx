@@ -163,7 +163,7 @@ export default function ProfilePage() {
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
     <button
       onClick={() => setTab(id)}
-      className={`flex-1 py-2 text-xs tracking-wider transition-all ${
+      className={`flex-1 min-w-0 py-2 text-xs tracking-wider transition-all whitespace-nowrap px-1 sm:px-0 ${
         tab === id
           ? "text-[var(--accent-red)] border-b-2 border-[var(--accent-red)]"
           : "text-[var(--text-dim)] border-b-2 border-transparent hover:text-[var(--text-primary)]"
@@ -188,7 +188,7 @@ export default function ProfilePage() {
   const avatarSvg = getAvatarSvg(player.avatar);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       {/* Player header */}
       <div className="hacker-card hacker-card-red mb-4 text-center slide-up">
         {/* Avatar display */}
@@ -234,7 +234,7 @@ export default function ProfilePage() {
           </div>
           <div className="text-[9px] text-[var(--text-muted)] mt-0.5 text-right">{rankProgress}%</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-center mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center mb-4">
           <StatCard label="WINS" value={player.wins} color="var(--accent-green)" />
           <StatCard label="LOSSES" value={player.losses} color="var(--accent-red)" />
           <StatCard label="DRAWS" value={player.draws} />
@@ -244,7 +244,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[var(--border-color)] mb-4">
+      <div className="flex border-b border-[var(--border-color)] mb-4 overflow-x-auto">
         <TabBtn id="stats" label="STATS" />
         <TabBtn id="titles" label="TITLES" />
         <TabBtn id="avatar" label="AVATAR" />
@@ -420,7 +420,7 @@ export default function ProfilePage() {
           <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
             CHOOSE YOUR AVATAR — CLICK TO SELECT
           </div>
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
             {AVATAR_IDS.map((id) => {
               const { label, svg } = AVATARS[id];
               const isPremium = isPremiumAvatar(id);

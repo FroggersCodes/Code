@@ -204,8 +204,8 @@ export function GameArena(props: GameArenaProps) {
   }, [gameEnded, isMultiplayer, props]);
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 py-4 ${shake ? "shake" : ""}`}>
-      <div className="flex items-center justify-between mb-4">
+    <div className={`max-w-7xl mx-auto px-2 sm:px-4 py-4 ${shake ? "shake" : ""}`}>
+      <div className="flex items-center justify-between mb-4 gap-2">
         <PlayerCard
           username={player?.username || "You"}
           elo={player?.elo || 1000}

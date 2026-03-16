@@ -110,14 +110,14 @@ export function PracticeArena({ challenge, timeLimit, onFinished, friendMode }: 
   const diffStars = DIFFICULTY_STARS[challenge.difficulty] || "";
 
   return (
-    <div className={`w-full max-w-4xl mx-auto px-4 ${shake ? "shake" : ""}`}>
+    <div className={`w-full max-w-4xl mx-auto px-2 sm:px-4 ${shake ? "shake" : ""}`}>
       {/* Header row: timer + challenge info */}
-      <div className="flex items-start justify-between mb-4 gap-4">
+      <div className="flex items-start justify-between mb-4 gap-2 sm:gap-4">
         {/* Player info */}
-        <div className="hacker-card hacker-card-red flex items-center gap-3 py-2 px-3 min-w-[160px]">
+        <div className="hacker-card hacker-card-red flex items-center gap-2 sm:gap-3 py-2 px-2 sm:px-3 min-w-0 flex-1">
           <RankBadge rank={player?.rank ?? "Bronze"} size="sm" />
           <div>
-            <div className="text-xs text-[var(--text-primary)] font-bold">
+            <div className="text-xs text-[var(--text-primary)] font-bold truncate">
               {player?.username ?? "PLAYER"}
             </div>
             <div className="text-xs text-[var(--text-dim)]">{player?.elo ?? 0} ELO</div>
@@ -134,7 +134,7 @@ export function PracticeArena({ challenge, timeLimit, onFinished, friendMode }: 
 
         {/* Opponent (friend mode only) or PRACTICE badge */}
         {friendMode ? (
-          <div className="hacker-card hacker-card-red flex items-center gap-3 py-2 px-3 min-w-[160px]">
+          <div className="hacker-card hacker-card-red flex items-center gap-2 sm:gap-3 py-2 px-2 sm:px-3 min-w-0 flex-1">
             <RankBadge rank={friendMode.opponent.rank} size="sm" />
             <div>
               <div className="text-xs text-[var(--text-primary)] font-bold">
