@@ -5,6 +5,7 @@ import { getPlayer, savePlayer } from "@/lib/storage";
 import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
+import { AVATARS, PREMIUM_AVATAR_IDS, isPremiumAvatar } from "@/lib/avatars";
 import type { Player } from "@/types";
 
 interface BugReport { id: string; username: string; challengeTitle: string; reason: string; description: string; createdAt: string; }
@@ -142,6 +143,19 @@ export default function AdminPage() {
   const lockAllTitles = () => {
     if (!player) return;
     const updated = { ...player, unlockedTitles: [], title: null };
+    savePlayer(updated); setPlayer(updated); flash(setSaved);
+  };
+
+  const unlockAllAvatars = () => {
+    if (!player) return;
+    const updated = { ...player, unlockedAvatars: [...PREMIUM_AVATAR_IDS] };
+    savePlayer(updated); setPlayer(updated); flash(setSaved);
+  };
+
+  const lockAllAvatars = () => {
+    if (!player) return;
+    const avatar = player.avatar && isPremiumAvatar(player.avatar) ? null : player.avatar;
+    const updated = { ...player, unlockedAvatars: [], avatar };
     savePlayer(updated); setPlayer(updated); flash(setSaved);
   };
 
@@ -288,6 +302,42 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* ── Premium avatars ── */}
+      <div className="hacker-card mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-xs text-[var(--text-dim)] tracking-wider">
+            PREMIUM AVATARS — {(player.unlockedAvatars ?? []).length}/{PREMIUM_AVATAR_IDS.length} UNLOCKED
+          </div>
+          {saved && <div className="text-xs text-[var(--accent-green)] tracking-wider">✓ SAVED</div>}
+        </div>
+        <div className="space-y-1 mb-4">
+          {PREMIUM_AVATAR_IDS.map((id) => {
+            const unlocked = (player.unlockedAvatars ?? []).includes(id);
+            return (
+              <div key={id} className="flex items-center justify-between text-xs py-1">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-6 h-6 rounded overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: AVATARS[id].svg }}
+                  />
+                  <span className={unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}>
+                    {AVATARS[id].label}
+                    <span className="text-[9px] text-[var(--accent-yellow)] ml-1">★</span>
+                  </span>
+                </div>
+                <span className={`text-[10px] tracking-wider ${unlocked ? "text-[var(--accent-green)]" : "text-[var(--text-muted)]"}`}>
+                  {unlocked ? "UNLOCKED" : "LOCKED"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex gap-2">
+          <AdminBtn onClick={unlockAllAvatars} color="var(--accent-green)">UNLOCK ALL</AdminBtn>
+          <AdminBtn onClick={lockAllAvatars} color="var(--border-color)">LOCK ALL</AdminBtn>
+        </div>
+      </div>
+
       {/* ── Other player ELO ── */}
       <div className="hacker-card mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -320,7 +370,40 @@ export default function AdminPage() {
                 → Rank will become: {getRankFromElo(parseInt(otherElo) || 0)}
               </div>
             </div>
-            <AdminBtn onClick={saveOtherElo}>SAVE CHANGES</AdminBtn>
+            <AdminBtn onClick={saveOtherElo}>SAVE ELO</AdminBtn>
+            <div className="mt-3">
+              <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">PREMIUM AVATARS</div>
+              <div className="space-y-1 mb-2">
+                {PREMIUM_AVATAR_IDS.map((id) => {
+                  const unlocked = (otherPlayer.unlockedAvatars ?? []).includes(id);
+                  return (
+                    <div key={id} className="flex items-center justify-between text-xs py-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded overflow-hidden" dangerouslySetInnerHTML={{ __html: AVATARS[id].svg }} />
+                        <span className={unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}>
+                          {AVATARS[id].label}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const avatars = otherPlayer.unlockedAvatars ?? [];
+                          const updated = unlocked
+                            ? { ...otherPlayer, unlockedAvatars: avatars.filter((a) => a !== id), avatar: otherPlayer.avatar === id ? null : otherPlayer.avatar }
+                            : { ...otherPlayer, unlockedAvatars: [...avatars, id] };
+                          savePlayer(updated);
+                          setOtherPlayer(updated);
+                          flash(setOtherSaved);
+                        }}
+                        className="text-[10px] tracking-wider bg-transparent border-none cursor-pointer transition-colors"
+                        style={{ color: unlocked ? "var(--accent-green)" : "var(--text-muted)", fontFamily: "'Share Tech Mono', monospace" }}
+                      >
+                        {unlocked ? "UNLOCKED" : "LOCKED"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -10,6 +10,7 @@ export interface Player {
   title: string | null;
   unlockedTitles: string[];
   avatar: string | null;
+  unlockedAvatars?: string[];
   winStreak: number;
 }
 
