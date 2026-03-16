@@ -360,9 +360,12 @@ export default function HomePage() {
               MY PROFILE
             </RetroButton>
           </div>
-          <div className="mb-4">
-            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="w-full">
+          <div className="flex gap-3 mb-4">
+            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="flex-1">
               ANNOUNCEMENTS
+            </RetroButton>
+            <RetroButton variant="warning" onClick={() => router.push("/store")} className="flex-1">
+              STORE
             </RetroButton>
           </div>
 

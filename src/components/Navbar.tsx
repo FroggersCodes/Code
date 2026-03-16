@@ -56,6 +56,12 @@ export function Navbar() {
         >
           News
         </Link>
+        <Link
+          href="/store"
+          className="text-[var(--accent-yellow)] text-xs tracking-wider no-underline hover:text-[#ffe066] transition-colors uppercase"
+        >
+          Store
+        </Link>
         <button
           onClick={() => setMuted(toggleMute())}
           className="text-[var(--text-dim)] text-xs hover:text-[var(--text-primary)] transition-colors bg-transparent border-none cursor-pointer"

@@ -61,6 +61,11 @@ export default function AdminPage() {
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
 
+  // Store codes
+  const [storeCodeType, setStoreCodeType] = useState<"avatars" | "titles" | "bundle">("avatars");
+  const [storeCode, setStoreCode] = useState<string | null>(null);
+  const [storeCodeCopied, setStoreCodeCopied] = useState(false);
+
   // Announcements
   const [announcementsList, setAnnouncementsList] = useState<Announcement[]>([]);
   const [announcementTitle, setAnnouncementTitle] = useState("");
@@ -447,6 +452,58 @@ export default function AdminPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Store Code Generator ── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(255,215,0,0.3)" }}>
+        <div className="text-xs text-[var(--accent-yellow)] tracking-wider mb-4" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          STORE CODE GENERATOR
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
+          Generate redeem codes for store purchases. Codes are single-use and stored locally.
+        </div>
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {([["avatars", "AVATARS", "#ff0033"], ["titles", "TITLES", "#9900ff"], ["bundle", "BUNDLE", "#ffd700"]] as const).map(([type, label, color]) => (
+            <button key={type} onClick={() => { setStoreCodeType(type); setStoreCode(null); }}
+              className="flex-1 py-1 text-[10px] tracking-wider border rounded bg-transparent cursor-pointer transition-colors"
+              style={{
+                borderColor: storeCodeType === type ? color : "var(--border-color)",
+                color: storeCodeType === type ? color : "var(--text-muted)",
+                fontFamily: "'Orbitron', sans-serif",
+                minWidth: "60px",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 items-center">
+          <AdminBtn onClick={() => {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let code = storeCodeType === "bundle" ? "BUNDLE-" : storeCodeType === "avatars" ? "AVATAR-" : "TITLE-";
+            for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            // Store in localStorage
+            const key = "bugracer_redeem_codes";
+            const existing = JSON.parse(localStorage.getItem(key) ?? "[]");
+            existing.push({ code, type: storeCodeType, used: false });
+            localStorage.setItem(key, JSON.stringify(existing));
+            setStoreCode(code);
+          }} color="var(--accent-yellow)">GENERATE</AdminBtn>
+          {storeCode && (
+            <>
+              <span className="text-sm font-bold tracking-widest text-[var(--accent-yellow)]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                {storeCode}
+              </span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(storeCode); setStoreCodeCopied(true); setTimeout(() => setStoreCodeCopied(false), 2000); }}
+                className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-none cursor-pointer tracking-wider"
+                style={{ fontFamily: "'Share Tech Mono', monospace" }}
+              >
+                {storeCodeCopied ? "✓ COPIED" : "COPY"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ── Messaging + Grant Codes ── */}

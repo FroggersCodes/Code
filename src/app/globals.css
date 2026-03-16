@@ -394,6 +394,51 @@ body::after {
   letter-spacing: 0.1em;
 }
 
+/* Neon Phantom title — electric cyan/magenta pulse */
+@keyframes neon-phantom-pulse {
+  0%, 100% { color: #00ffff; text-shadow: 0 0 6px #00ffff, 0 0 16px rgba(0,255,255,0.5), 0 0 30px rgba(0,255,255,0.2); }
+  25%       { color: #ff00ff; text-shadow: 0 0 8px #ff00ff, 0 0 20px rgba(255,0,255,0.5); }
+  50%       { color: #00ffcc; text-shadow: 0 0 10px #00ffcc, 0 0 24px rgba(0,255,200,0.4); opacity: 0.7; }
+  51%       { opacity: 1; }
+  75%       { color: #cc00ff; text-shadow: 0 0 6px #cc00ff, 0 0 18px rgba(200,0,255,0.4); }
+}
+.neon-phantom-title {
+  animation: neon-phantom-pulse 2.5s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Void Walker title — deep purple with dark flickers */
+@keyframes void-walker-warp {
+  0%, 100% { color: #9900ff; text-shadow: 0 0 6px #9900ff, 0 0 14px rgba(150,0,255,0.5); }
+  15%       { color: #cc44ff; text-shadow: 0 0 10px #cc44ff, 0 0 22px rgba(200,68,255,0.4); }
+  30%       { color: #330066; text-shadow: 0 0 2px #330066; opacity: 0.4; }
+  32%       { color: #9900ff; opacity: 1; }
+  60%       { color: #bb22ff; text-shadow: 0 0 8px #bb22ff, 0 0 18px rgba(180,34,255,0.5); }
+  78%       { color: #220044; text-shadow: none; opacity: 0.3; }
+  80%       { color: #9900ff; opacity: 1; }
+}
+.void-walker-title {
+  animation: void-walker-warp 3s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+/* Cyber Dragon title — red/orange/gold fire cycle */
+@keyframes cyber-dragon-blaze {
+  0%, 100% { color: #ff2200; text-shadow: 0 0 8px #ff2200, 0 0 18px rgba(255,34,0,0.5); }
+  20%       { color: #ff6600; text-shadow: 0 0 10px #ff6600, 0 0 22px rgba(255,100,0,0.5); }
+  40%       { color: #ffd700; text-shadow: 0 0 12px #ffd700, 0 0 26px rgba(255,215,0,0.4); }
+  42%       { color: #ffffff; text-shadow: 0 0 6px #fff, 0 0 14px #ffd700; opacity: 0.6; }
+  44%       { color: #ff2200; opacity: 1; }
+  70%       { color: #ff4400; text-shadow: 0 0 8px #ff4400, 0 0 16px rgba(255,68,0,0.4); }
+}
+.cyber-dragon-title {
+  animation: cyber-dragon-blaze 2s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+}
+
 /* Card component */
 .hacker-card {
   background: var(--bg-surface);
