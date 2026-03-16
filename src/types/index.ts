@@ -65,7 +65,7 @@ export interface MultiplayerResult {
 }
 
 export interface PracticeConfig {
-  language: "javascript" | "python";
+  language: "python";
   difficulty: 1 | 2 | 3 | null; // null = any
   timeLimit: number; // seconds
   mode: "solo" | "invite";

@@ -3,10 +3,73 @@
 import { useEffect, useState } from "react";
 import { RankBadge } from "./RankBadge";
 import { RetroButton } from "./RetroButton";
-import { getPlayer, addBugReport } from "@/lib/storage";
+import { getPlayer } from "@/lib/storage";
+import { connectSocket } from "@/lib/socket";
+import { RANK_COLORS, type RankTier } from "@/types";
 import type { GameResult } from "@/lib/gameEngine";
 
 const REACTIONS = ["GG", "WELL PLAYED", "UNLUCKY", "NICE TRY", "CLOSE ONE"] as const;
+
+const RANK_ORDER: RankTier[] = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Grandmaster"];
+
+function RankChangePopup({ oldRank, newRank, onDismiss }: { oldRank: string; newRank: string; onDismiss: () => void }) {
+  const isPromotion = RANK_ORDER.indexOf(newRank as RankTier) > RANK_ORDER.indexOf(oldRank as RankTier);
+  const color = RANK_COLORS[newRank as RankTier] || "#666";
+
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 5000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.88)" }}
+      onClick={onDismiss}
+    >
+      <div className="text-center slide-up" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="text-sm tracking-widest mb-4"
+          style={{ color: isPromotion ? "#00ff41" : "var(--accent-red)", fontFamily: "'Orbitron', sans-serif" }}
+        >
+          {isPromotion ? "RANK UP!" : "RANK DOWN"}
+        </div>
+
+        <div className="flex items-center justify-center gap-6 mb-6">
+          <div className="text-center opacity-50">
+            <RankBadge rank={oldRank} size="md" />
+            <div className="text-[10px] text-[var(--text-muted)] mt-1">{oldRank}</div>
+          </div>
+          <div
+            className="text-xl font-bold"
+            style={{ color: isPromotion ? "#00ff41" : "var(--accent-red)", fontFamily: "'Orbitron', sans-serif" }}
+          >
+            {isPromotion ? "▸" : "◂"}
+          </div>
+          <div className="text-center">
+            <div style={{ filter: `drop-shadow(0 0 12px ${color})` }}>
+              <RankBadge rank={newRank} size="lg" />
+            </div>
+            <div
+              className="text-xs font-bold mt-1"
+              style={{ color, textShadow: `0 0 8px ${color}` }}
+            >
+              {newRank}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-4">
+          {isPromotion ? "Congratulations on your promotion!" : "Keep fighting to climb back!"}
+        </div>
+
+        <RetroButton variant={isPromotion ? "success" : "primary"} onClick={onDismiss}>
+          CONTINUE
+        </RetroButton>
+      </div>
+    </div>
+  );
+}
 
 interface ResultsScreenProps {
   result: GameResult;
@@ -97,7 +160,17 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
   const [reportDesc, setReportDesc] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [mySentReaction, setMySentReaction] = useState<string | null>(null);
+  const [showRankChange, setShowRankChange] = useState(false);
   const player = getPlayer();
+
+  const rankChanged = result.previousRank && result.newRank !== result.previousRank;
+
+  useEffect(() => {
+    if (rankChanged) {
+      const timer = setTimeout(() => setShowRankChange(true), 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [rankChanged]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowDetails(true), 1000);
@@ -108,8 +181,16 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
   const opponentTime = result.opponentTime ?? result.botTime;
   const hasDiff = !!(result.buggyCode && result.fixedCode);
 
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 text-center">
+      {showRankChange && rankChanged && (
+        <RankChangePopup
+          oldRank={result.previousRank!}
+          newRank={result.newRank}
+          onDismiss={() => setShowRankChange(false)}
+        />
+      )}
       {result.won && <Confetti />}
 
       <div className="mb-8 slide-up">
@@ -275,11 +356,12 @@ export function ResultsScreen({ result, onPlayAgain, onBackToLobby, onSendReacti
                 <RetroButton
                   variant="warning"
                   onClick={() => {
-                    addBugReport({
+                    const socket = connectSocket();
+                    socket.emit("report:add", {
+                      username: player?.username ?? "Guest",
                       challengeTitle: result.challengeTitle ?? "Unknown",
                       reason: reportReason,
                       description: reportDesc,
-                      createdAt: new Date().toISOString(),
                     });
                     setShowReport(false);
                     setReportSubmitted(true);

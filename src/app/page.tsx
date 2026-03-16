@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RetroButton } from "@/components/RetroButton";
 import { RankBadge } from "@/components/RankBadge";
-import { getPlayer, getMatches, signUp, login, loginAsGuest, addSuggestion, getCotdRecord, type StoredMatch } from "@/lib/storage";
+import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, type StoredMatch } from "@/lib/storage";
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
@@ -206,8 +206,11 @@ export default function HomePage() {
 
   const handleSuggestionSubmit = () => {
     const trimmed = suggestionText.trim();
-    if (!trimmed) return;
-    addSuggestion(trimmed);
+    if (!trimmed || !player) return;
+    import("@/lib/socket").then(({ connectSocket }) => {
+      const socket = connectSocket();
+      socket.emit("suggestion:add", { username: player.username, text: trimmed });
+    });
     setSuggestionText("");
     setSuggestionSent(true);
     setTimeout(() => setSuggestionSent(false), 3000);
@@ -348,13 +351,18 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Leaderboard + Profile links */}
+          {/* Leaderboard + Profile + Announcements links */}
           <div className="flex gap-3 mb-4">
             <RetroButton variant="primary" onClick={() => router.push("/leaderboard")} className="flex-1">
               LEADERBOARD
             </RetroButton>
             <RetroButton variant="primary" onClick={() => router.push("/profile")} className="flex-1">
               MY PROFILE
+            </RetroButton>
+          </div>
+          <div className="mb-4">
+            <RetroButton variant="warning" onClick={() => router.push("/announcements")} className="w-full">
+              ANNOUNCEMENTS
             </RetroButton>
           </div>
 
@@ -488,7 +496,7 @@ export default function HomePage() {
           <div className="mt-8 text-xs text-[var(--text-muted)] space-y-1.5">
             <div className="text-[var(--text-dim)]">$ fix bugs faster than the bot</div>
             <div className="text-[var(--text-dim)]">$ climb the elo rankings</div>
-            <div className="text-[var(--text-dim)]">$ javascript &amp; python challenges</div>
+            <div className="text-[var(--text-dim)]">$ python challenges</div>
           </div>
         </div>
       )}

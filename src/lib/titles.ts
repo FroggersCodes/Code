@@ -58,10 +58,11 @@ export const TITLES: TitleDef[] = [
   {
     id: "polyglot",
     label: "Polyglot",
-    description: "Win in both JavaScript and Python",
-    check: (_p, matches) =>
-      matches.some((m) => m.won && m.challengeLanguage === "javascript") &&
-      matches.some((m) => m.won && m.challengeLanguage === "python"),
+    description: "Win 15 matches across different challenge categories",
+    check: (_p, matches) => {
+      const cats = new Set(matches.filter((m) => m.won).map((m) => m.challengeTitle));
+      return cats.size >= 15;
+    },
   },
   {
     id: "ranked_demon",

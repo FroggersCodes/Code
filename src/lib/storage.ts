@@ -197,6 +197,7 @@ export function updatePlayerAfterMatch(
   if (draw) { player.draws++; }
   else if (won) { player.wins++; player.winStreak = (player.winStreak ?? 0) + 1; }
   else { player.losses++; player.winStreak = 0; }
+
   savePlayer(player);
 }
 
