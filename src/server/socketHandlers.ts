@@ -270,9 +270,9 @@ function saveFriends(): void {
     try {
       fs.mkdirSync(path.dirname(FRIENDS_FILE), { recursive: true });
       const friends: Record<string, string[]> = {};
-      for (const [k, v] of friendsMap) friends[k] = [...v];
+      friendsMap.forEach((v, k) => { friends[k] = Array.from(v); });
       const invites: Record<string, FriendInvite[]> = {};
-      for (const [k, v] of invitesMap) invites[k] = v;
+      invitesMap.forEach((v, k) => { invites[k] = v; });
       fs.writeFileSync(FRIENDS_FILE, JSON.stringify({ friends, invites }, null, 2));
     } catch (err) { console.error("[friends] File save failed:", err); }
   }, 2000);
@@ -872,7 +872,7 @@ export function setupSocketHandlers(io: Server): void {
     // ── Friends & Invites (server-side) ───────────────────────────────────────
     socket.on("friends:get", ({ username }: { username: string }) => {
       const key = username.toLowerCase();
-      const friendsList = [...(friendsMap.get(key) ?? [])];
+      const friendsList = Array.from(friendsMap.get(key) ?? []);
       // Get stats from leaderboard for each friend
       const friendsData = friendsList.map((f) => {
         const entry = leaderboard.get(f);
