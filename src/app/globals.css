@@ -166,7 +166,7 @@ body::after {
 }
 
 .glitch-title {
-  animation: katana-slash 4.5s steps(1, jump-none) infinite;
+  animation: katana-slash 4.5s linear infinite;
   color: #00ff41;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.12em;
