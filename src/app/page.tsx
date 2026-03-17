@@ -237,7 +237,8 @@ export default function HomePage() {
 
   const dismissAnnouncements = () => {
     const seen: string[] = JSON.parse(localStorage.getItem("seenAnnouncements") ?? "[]");
-    const newSeen = [...new Set([...seen, ...unreadAnnouncements.map((a) => a.id)])];
+    const toAdd = unreadAnnouncements.map((a) => a.id).filter((id) => !seen.includes(id));
+    const newSeen = [...seen, ...toAdd];
     localStorage.setItem("seenAnnouncements", JSON.stringify(newSeen));
     setUnreadAnnouncements([]);
   };
