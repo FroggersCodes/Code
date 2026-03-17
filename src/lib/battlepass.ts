@@ -201,7 +201,7 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     // Tier 24: Profile Effect
     { type: "profile_effect", id: "pe_neon_grid", name: "Neon Grid" },
     // Tier 25: Border
-    { type: "border", id: "cyber_grid", name: "Cyber Grid" },
+    { type: "border", id: "gold_frame", name: "Gold Frame" },
     // Tier 26: 200 coins
     { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
     // Tier 27: XP Boost (48h!)
