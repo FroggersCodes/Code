@@ -67,14 +67,22 @@ function cumulativeXpForTier(tier: number): number {
 }
 
 /** Returns the season-specific title ID for tier 30 */
+const SEASON_NAMES: Record<number, string> = {
+  1: "Alpha",
+};
+
+export function getSeasonName(id?: number): string {
+  const s = id ?? getCurrentSeasonId();
+  return SEASON_NAMES[s] ?? `Season ${s}`;
+}
+
 export function getSeasonTitleId(): string {
   const s = getCurrentSeasonId();
   return `bp_s${s}_champion`;
 }
 
 export function getSeasonTitleLabel(): string {
-  const s = getCurrentSeasonId();
-  return `S${s} Champion`;
+  return `${getSeasonName()} Champion`;
 }
 
 const TIER_REWARDS: BattlePassTier[] = (() => {

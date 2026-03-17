@@ -9,6 +9,7 @@ import {
   getXPForNextTier,
   getSeasonDaysLeft,
   getCurrentSeasonId,
+  getSeasonName,
   hasActiveXPBoost,
   TOTAL_TIERS,
   type BattlePassTier,
@@ -170,6 +171,7 @@ export default function BattlePassPage() {
   const xpProgress = getXPForNextTier(player.xp);
   const daysLeft = getSeasonDaysLeft();
   const seasonId = getCurrentSeasonId();
+  const seasonName = getSeasonName(seasonId);
   const progressPercent = currentTier >= TOTAL_TIERS ? 100 : xpProgress.tierXP > 0 ? Math.round((xpProgress.current / xpProgress.tierXP) * 100) : 0;
 
   return (
@@ -184,7 +186,7 @@ export default function BattlePassPage() {
             BATTLE PASS
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-dim)] tracking-wider">
-            SEASON {seasonId} — {daysLeft} DAYS REMAINING
+            SEASON {seasonName.toUpperCase()} — {daysLeft} DAYS REMAINING
           </p>
         </div>
 
