@@ -330,10 +330,10 @@ export default function AdminPage() {
       </div>
 
       {/* ── Season Pass & XP ── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(170,68,255,0.4)" }}>
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(201,162,39,0.5)" }}>
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs tracking-wider" style={{ color: "#aa44ff", fontFamily: "'Orbitron', sans-serif" }}>
-            SEASON PASS &amp; XP
+          <div className="text-xs tracking-wider" style={{ color: "#ffd700", fontFamily: "'Orbitron', sans-serif" }}>
+            ★ SEASON PASS &amp; XP
           </div>
           {xpSaved && <div className="text-xs text-[var(--accent-green)] tracking-wider">✓ SAVED</div>}
         </div>
@@ -342,11 +342,11 @@ export default function AdminPage() {
         <div className="grid grid-cols-3 gap-2 mb-4 text-center">
           <div className="border border-[var(--border-color)] rounded p-2">
             <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-1">CURRENT XP</div>
-            <div className="text-sm font-bold" style={{ color: "#aa44ff" }}>{player.xp.toLocaleString()}</div>
+            <div className="text-sm font-bold" style={{ color: "#ffd700" }}>{player.xp.toLocaleString()}</div>
           </div>
           <div className="border border-[var(--border-color)] rounded p-2">
             <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-1">TIER</div>
-            <div className="text-sm font-bold" style={{ color: "#aa44ff" }}>
+            <div className="text-sm font-bold" style={{ color: "#ffd700" }}>
               {getCurrentTier(player.xp)}/{TOTAL_TIERS}
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function AdminPage() {
             <button
               onClick={handleGrantXP}
               className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
-              style={{ borderColor: "#aa44ff", color: "#aa44ff", fontFamily: "'Orbitron', sans-serif" }}
+              style={{ borderColor: "#c9a227", color: "#ffd700", fontFamily: "'Orbitron', sans-serif" }}
             >
               ADD XP
             </button>
