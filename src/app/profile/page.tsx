@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
-import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, savePlayer } from "@/lib/storage";
+import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, equipBorder, equipNameColor, equipProfileEffect, savePlayer } from "@/lib/storage";
 import { TITLES, ALL_TITLES, getTitleLabel, getTitleClass } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import { AVATARS, getAvatarSvg, AVATAR_IDS, isPremiumAvatar } from "@/lib/avatars";
+import { BORDERS, getBorderClass, RARITY_COLORS } from "@/lib/borders";
+import { NAME_COLORS, PROFILE_EFFECTS, getNameColorStyle, getProfileEffect } from "@/lib/profileEffects";
 import { RANK_THRESHOLDS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 import type { StoredMatch } from "@/lib/storage";
 
-type Tab = "stats" | "history" | "titles" | "friends" | "avatar";
+type Tab = "stats" | "history" | "titles" | "friends" | "avatar" | "cosmetics";
 
 function EloChart({ points }: { points: number[] }) {
   if (points.length < 2) return null;
@@ -186,15 +188,16 @@ export default function ProfilePage() {
   const nextRank = nextRankNames[rankTier];
 
   const avatarSvg = getAvatarSvg(player.avatar);
+  const activeEffect = getProfileEffect(player.profileEffect);
 
   return (
     <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       {/* Player header */}
-      <div className="hacker-card hacker-card-red mb-4 text-center slide-up">
+      <div className={`hacker-card hacker-card-red mb-4 text-center slide-up relative overflow-hidden ${activeEffect?.cssClass ?? ""}`}>
         {/* Avatar display */}
         {avatarSvg ? (
           <div
-            className="mx-auto mb-3 w-16 h-16 rounded border-2 border-[var(--accent-red)] overflow-hidden"
+            className={`mx-auto mb-3 w-16 h-16 rounded border-2 overflow-hidden ${getBorderClass(player.equippedBorder) ?? "border-[var(--accent-red)]"}`}
             style={{ boxShadow: "0 0 12px rgba(255,0,51,0.4)" }}
             dangerouslySetInnerHTML={{ __html: avatarSvg }}
           />
@@ -207,7 +210,7 @@ export default function ProfilePage() {
             <span className="text-[var(--text-muted)] text-xs">?</span>
           </div>
         )}
-        <div className="text-lg text-[var(--text-primary)] mb-1 font-bold">{player.username}</div>
+        <div className="text-lg mb-1 font-bold" style={getNameColorStyle(player.nameColor) ?? { color: "var(--text-primary)" }}>{player.username}</div>
         {getTitleLabel(player.title) && (
           <div
             className={`text-xs tracking-wider mb-2 ${getTitleClass(player.title) ?? "text-[var(--accent-yellow)]"}`}
@@ -248,6 +251,7 @@ export default function ProfilePage() {
         <TabBtn id="stats" label="STATS" />
         <TabBtn id="titles" label="TITLES" />
         <TabBtn id="avatar" label="AVATAR" />
+        <TabBtn id="cosmetics" label="COSMETICS" />
         <TabBtn id="friends" label="FRIENDS" />
         <TabBtn id="history" label="HISTORY" />
       </div>
@@ -458,6 +462,140 @@ export default function ProfilePage() {
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* COSMETICS TAB */}
+      {tab === "cosmetics" && (
+        <div className="space-y-4 slide-up">
+          {/* Borders */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+              BORDERS — CLICK TO EQUIP
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {BORDERS.map((b) => {
+                const unlocked = (player.unlockedBorders ?? []).includes(b.id);
+                const equipped = player.equippedBorder === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    disabled={!unlocked}
+                    onClick={() => {
+                      equipBorder(equipped ? null : b.id);
+                      setPlayer(getPlayer()!);
+                    }}
+                    className={`flex flex-col items-center gap-2 p-3 border rounded transition-all ${
+                      !unlocked
+                        ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
+                        : equipped
+                          ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.06)]"
+                          : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded border-2 ${b.cssClass}`} />
+                    <span className="text-[10px] text-[var(--text-primary)] tracking-wider">
+                      {unlocked ? b.name.toUpperCase() : "???"}
+                    </span>
+                    <span className="text-[8px]" style={{ color: RARITY_COLORS[b.rarity] }}>
+                      {b.rarity.toUpperCase()}
+                    </span>
+                    {equipped && <span className="text-[8px] text-[var(--accent-yellow)]">EQUIPPED</span>}
+                    {!unlocked && <span className="text-[8px] text-[var(--text-muted)]">LOCKED</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Name Colors */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+              NAME COLORS — CLICK TO EQUIP
+            </div>
+            <div className="space-y-2">
+              {NAME_COLORS.map((nc) => {
+                const unlocked = (player.unlockedNameColors ?? []).includes(nc.id);
+                const equipped = player.nameColor === nc.id;
+                const style = getNameColorStyle(nc.id);
+                return (
+                  <button
+                    key={nc.id}
+                    disabled={!unlocked}
+                    onClick={() => {
+                      equipNameColor(equipped ? null : nc.id);
+                      setPlayer(getPlayer()!);
+                    }}
+                    className={`w-full text-left p-3 border rounded transition-all flex items-center justify-between ${
+                      !unlocked
+                        ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
+                        : equipped
+                          ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.06)]"
+                          : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ background: nc.css }}
+                      />
+                      <span
+                        className="text-xs font-bold"
+                        style={unlocked ? style : { color: "var(--text-dim)" }}
+                      >
+                        {unlocked ? nc.name.toUpperCase() : "???"}
+                      </span>
+                    </div>
+                    {equipped && <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider">EQUIPPED</span>}
+                    {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
+                    {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Profile Effects */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
+              PROFILE EFFECTS — CLICK TO EQUIP
+            </div>
+            <div className="space-y-2">
+              {PROFILE_EFFECTS.map((pe) => {
+                const unlocked = (player.unlockedProfileEffects ?? []).includes(pe.id);
+                const equipped = player.profileEffect === pe.id;
+                return (
+                  <button
+                    key={pe.id}
+                    disabled={!unlocked}
+                    onClick={() => {
+                      equipProfileEffect(equipped ? null : pe.id);
+                      setPlayer(getPlayer()!);
+                    }}
+                    className={`w-full text-left p-3 border rounded transition-all ${
+                      !unlocked
+                        ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
+                        : equipped
+                          ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.06)]"
+                          : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className={`text-xs font-bold mb-0.5 ${unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}>
+                          {unlocked ? pe.name.toUpperCase() : "???"}
+                        </div>
+                        <div className="text-[10px] text-[var(--text-dim)]">{pe.description}</div>
+                      </div>
+                      {equipped && <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider">EQUIPPED</span>}
+                      {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
+                      {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
