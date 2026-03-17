@@ -6,6 +6,7 @@ import { getRankFromElo } from "@/lib/elo";
 import { TITLES, ADMIN_TITLES, ALL_TITLES } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import { AVATARS, PREMIUM_AVATAR_IDS, isPremiumAvatar } from "@/lib/avatars";
+import { grantXP, getCurrentTier, unlockPremiumPass, TOTAL_TIERS, getTierRewards } from "@/lib/battlepass";
 import type { Player } from "@/types";
 
 interface BugReport { id: string; username: string; challengeTitle: string; reason: string; description: string; createdAt: string; }
@@ -46,6 +47,10 @@ export default function AdminPage() {
   const [otherElo, setOtherElo] = useState("");
   const [otherError, setOtherError] = useState("");
   const [otherSaved, setOtherSaved] = useState(false);
+
+  // XP & Season Pass
+  const [xpAmount, setXpAmount] = useState("500");
+  const [xpSaved, setXpSaved] = useState(false);
 
   // Bug reports
   const [bugReports, setBugReports] = useState<BugReport[]>([]);
@@ -137,6 +142,52 @@ export default function AdminPage() {
     savePlayer(updated); setPlayer(updated);
     setElo("1000"); setWins("0"); setLosses("0"); setDraws("0"); setWinStreak("0");
     flash(setSaved);
+  };
+
+  // ── XP & Season Pass ─────────────────────────────────────────────────────
+  const handleGrantXP = () => {
+    const amount = Math.max(1, parseInt(xpAmount) || 0);
+    const result = grantXP(amount);
+    const updated = getPlayer();
+    if (updated) setPlayer(updated);
+    flash(setXpSaved);
+  };
+
+  const handleMaxOutXP = () => {
+    const p = getPlayer();
+    if (!p) return;
+    const tiers = getTierRewards();
+    const maxXP = tiers[TOTAL_TIERS - 1].xpRequired;
+    const needed = Math.max(0, maxXP - p.xp);
+    if (needed > 0) grantXP(needed);
+    const updated = getPlayer();
+    if (updated) setPlayer(updated);
+    flash(setXpSaved);
+  };
+
+  const handleResetXP = () => {
+    const p = getPlayer();
+    if (!p) return;
+    const updated = { ...p, xp: 0, claimedTiers: [] };
+    savePlayer(updated);
+    setPlayer(updated);
+    flash(setXpSaved);
+  };
+
+  const handleGrantPremiumPass = () => {
+    unlockPremiumPass();
+    const updated = getPlayer();
+    if (updated) setPlayer(updated);
+    flash(setXpSaved);
+  };
+
+  const handleRevokePremiumPass = () => {
+    const p = getPlayer();
+    if (!p) return;
+    const updated = { ...p, premiumPass: false };
+    savePlayer(updated);
+    setPlayer(updated);
+    flash(setXpSaved);
   };
 
   const unlockAllTitles = () => {
@@ -278,6 +329,109 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* ── Season Pass & XP ── */}
+      <div className="hacker-card mb-4" style={{ borderColor: "rgba(201,162,39,0.5)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs tracking-wider" style={{ color: "#ffd700", fontFamily: "'Orbitron', sans-serif" }}>
+            ★ SEASON PASS &amp; XP
+          </div>
+          {xpSaved && <div className="text-xs text-[var(--accent-green)] tracking-wider">✓ SAVED</div>}
+        </div>
+
+        {/* Current status */}
+        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+          <div className="border border-[var(--border-color)] rounded p-2">
+            <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-1">CURRENT XP</div>
+            <div className="text-sm font-bold" style={{ color: "#ffd700" }}>{player.xp.toLocaleString()}</div>
+          </div>
+          <div className="border border-[var(--border-color)] rounded p-2">
+            <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-1">TIER</div>
+            <div className="text-sm font-bold" style={{ color: "#ffd700" }}>
+              {getCurrentTier(player.xp)}/{TOTAL_TIERS}
+            </div>
+          </div>
+          <div className="border border-[var(--border-color)] rounded p-2">
+            <div className="text-[10px] text-[var(--text-muted)] tracking-wider mb-1">PREMIUM</div>
+            <div className={`text-sm font-bold ${player.premiumPass ? "text-[var(--accent-green)]" : "text-[var(--text-muted)]"}`}>
+              {player.premiumPass ? "ACTIVE" : "NONE"}
+            </div>
+          </div>
+        </div>
+
+        {/* Grant XP */}
+        <div className="mb-4">
+          <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">GRANT XP</div>
+          <div className="flex gap-2 items-center">
+            <input
+              type="number"
+              min="1"
+              className="hacker-input flex-1 text-sm"
+              value={xpAmount}
+              onChange={(e) => setXpAmount(e.target.value)}
+              style={{ maxWidth: "120px" }}
+            />
+            <button
+              onClick={handleGrantXP}
+              className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
+              style={{ borderColor: "#c9a227", color: "#ffd700", fontFamily: "'Orbitron', sans-serif" }}
+            >
+              ADD XP
+            </button>
+          </div>
+          <div className="flex gap-2 flex-wrap mt-2">
+            {[100, 500, 1000, 5000].map((amt) => (
+              <button
+                key={amt}
+                onClick={() => setXpAmount(String(amt))}
+                className="py-1 px-2 text-[10px] tracking-wider border rounded bg-transparent cursor-pointer transition-colors"
+                style={{ borderColor: "var(--border-color)", color: "var(--text-muted)", fontFamily: "'Share Tech Mono', monospace" }}
+              >
+                +{amt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div className="flex gap-2 flex-wrap mb-4">
+          <button
+            onClick={handleMaxOutXP}
+            className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
+            style={{ borderColor: "var(--accent-yellow)", color: "var(--accent-yellow)", fontFamily: "'Orbitron', sans-serif" }}
+          >
+            MAX OUT (T30)
+          </button>
+          <button
+            onClick={handleResetXP}
+            className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
+            style={{ borderColor: "var(--border-color)", color: "var(--text-muted)", fontFamily: "'Orbitron', sans-serif" }}
+          >
+            RESET XP
+          </button>
+        </div>
+
+        {/* Premium pass */}
+        <div className="border-t border-[var(--border-color)] pt-4">
+          <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">PREMIUM SEASON PASS</div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleGrantPremiumPass}
+              className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
+              style={{ borderColor: "var(--accent-green)", color: "var(--accent-green)", fontFamily: "'Orbitron', sans-serif" }}
+            >
+              GRANT PASS
+            </button>
+            <button
+              onClick={handleRevokePremiumPass}
+              className="flex-1 py-2 text-xs tracking-widest border rounded bg-transparent cursor-pointer transition-colors"
+              style={{ borderColor: "var(--border-color)", color: "var(--text-muted)", fontFamily: "'Orbitron', sans-serif" }}
+            >
+              REVOKE PASS
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ── Regular titles ── */}
       <div className="hacker-card mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -376,6 +530,44 @@ export default function AdminPage() {
               </div>
             </div>
             <AdminBtn onClick={saveOtherElo}>SAVE ELO</AdminBtn>
+            <div className="mt-3">
+              <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">SEASON PASS</div>
+              <div className="flex items-center justify-between mb-2 text-xs">
+                <span className={otherPlayer.premiumPass ? "text-[var(--accent-green)]" : "text-[var(--text-muted)]"}>
+                  {otherPlayer.premiumPass ? "Premium Active" : "No Premium Pass"}
+                </span>
+                <div className="flex gap-2">
+                  {!otherPlayer.premiumPass && (
+                    <button
+                      onClick={() => {
+                        const updated = { ...otherPlayer, premiumPass: true };
+                        savePlayer(updated);
+                        setOtherPlayer(updated);
+                        flash(setOtherSaved);
+                      }}
+                      className="text-[10px] tracking-wider bg-transparent border-none cursor-pointer transition-colors"
+                      style={{ color: "var(--accent-green)", fontFamily: "'Share Tech Mono', monospace" }}
+                    >
+                      [GRANT PASS]
+                    </button>
+                  )}
+                  {otherPlayer.premiumPass && (
+                    <button
+                      onClick={() => {
+                        const updated = { ...otherPlayer, premiumPass: false };
+                        savePlayer(updated);
+                        setOtherPlayer(updated);
+                        flash(setOtherSaved);
+                      }}
+                      className="text-[10px] tracking-wider bg-transparent border-none cursor-pointer transition-colors"
+                      style={{ color: "var(--text-muted)", fontFamily: "'Share Tech Mono', monospace" }}
+                    >
+                      [REVOKE]
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             <div className="mt-3">
               <div className="text-[10px] text-[var(--text-muted)] mb-2 tracking-wider">PREMIUM AVATARS</div>
               <div className="space-y-1 mb-2">

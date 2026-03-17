@@ -9,6 +9,7 @@ import {
   getXPForNextTier,
   getSeasonDaysLeft,
   getCurrentSeasonId,
+  getSeasonName,
   hasActiveXPBoost,
   TOTAL_TIERS,
   type BattlePassTier,
@@ -19,7 +20,7 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
   const icons: Record<string, string> = {
     title: "T",
     avatar: "A",
-    border: "B",
+    border: "✦",
     coins: "$",
     xp_boost: "2x",
     name_color: "C",
@@ -28,25 +29,36 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
   const colors: Record<string, string> = {
     title: "var(--accent-yellow)",
     avatar: "var(--accent-red)",
-    border: "#aa44ff",
+    border: "#ffd700",
     coins: "#ffd700",
     xp_boost: "var(--accent-green)",
     name_color: "#00e5ff",
     profile_effect: "#ff6b35",
   };
+
+  const isBorder = type === "border";
+
   return (
     <div className="flex flex-col items-center gap-1">
       <div
         className="w-8 h-8 sm:w-10 sm:h-10 rounded flex items-center justify-center text-[9px] font-bold border"
         style={{
-          borderColor: colors[type] ?? "var(--border-color)",
-          color: colors[type] ?? "var(--text-dim)",
-          backgroundColor: "rgba(0,0,0,0.4)",
+          borderColor: isBorder ? "#c9a227" : (colors[type] ?? "var(--border-color)"),
+          color: isBorder ? "#ffd700" : (colors[type] ?? "var(--text-dim)"),
+          backgroundColor: isBorder ? "rgba(255,215,0,0.12)" : "rgba(0,0,0,0.4)",
+          boxShadow: isBorder ? "0 0 6px rgba(255,215,0,0.35), inset 0 0 8px rgba(255,200,0,0.08)" : "none",
+          fontSize: isBorder ? "13px" : undefined,
         }}
       >
         {icons[type] ?? "?"}
       </div>
-      <span className="text-[9px] sm:text-[10px] text-center leading-tight max-w-[60px] truncate" style={{ color: colors[type] }}>
+      <span
+        className="text-[9px] sm:text-[10px] text-center leading-tight max-w-[60px] truncate"
+        style={{
+          color: colors[type],
+          textShadow: isBorder ? "0 0 6px rgba(255,215,0,0.6)" : "none",
+        }}
+      >
         {name}
       </span>
     </div>
@@ -101,8 +113,8 @@ function TierCard({
 
       {/* Premium reward */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-[8px] uppercase tracking-wider" style={{ color: isPremiumOwner ? "#aa44ff" : "var(--text-dim)" }}>
-          Premium
+        <span className="text-[8px] uppercase tracking-wider" style={{ color: isPremiumOwner ? "#ffd700" : "var(--text-dim)" }}>
+          ★ Premium
         </span>
         {tier.premiumReward ? (
           <div className={isPremiumOwner ? "" : "opacity-40 grayscale"}>
@@ -159,6 +171,7 @@ export default function BattlePassPage() {
   const xpProgress = getXPForNextTier(player.xp);
   const daysLeft = getSeasonDaysLeft();
   const seasonId = getCurrentSeasonId();
+  const seasonName = getSeasonName(seasonId);
   const progressPercent = currentTier >= TOTAL_TIERS ? 100 : xpProgress.tierXP > 0 ? Math.round((xpProgress.current / xpProgress.tierXP) * 100) : 0;
 
   return (
@@ -173,7 +186,7 @@ export default function BattlePassPage() {
             BATTLE PASS
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-dim)] tracking-wider">
-            SEASON {seasonId} — {daysLeft} DAYS REMAINING
+            SEASON {seasonName.toUpperCase()} — {daysLeft} DAYS REMAINING
           </p>
         </div>
 
@@ -212,28 +225,32 @@ export default function BattlePassPage() {
             {!player.premiumPass && (
               <button
                 onClick={() => router.push("/store")}
-                className="px-4 py-2 rounded border text-xs font-bold uppercase tracking-wider cursor-pointer transition-all hover:shadow-[0_0_12px_rgba(170,68,255,0.4)]"
+                className="px-4 py-2 rounded border text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
                 style={{
-                  borderColor: "#aa44ff",
-                  color: "#aa44ff",
-                  backgroundColor: "transparent",
+                  borderColor: "#c9a227",
+                  color: "#ffd700",
+                  backgroundColor: "rgba(255,215,0,0.06)",
                   fontFamily: "'Orbitron', sans-serif",
+                  boxShadow: "0 0 0 rgba(255,215,0,0)",
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 12px rgba(255,215,0,0.35)")}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 rgba(255,215,0,0)")}
               >
-                Unlock Premium
+                ★ Unlock Premium
               </button>
             )}
             {player.premiumPass && (
               <div
                 className="px-3 py-1.5 rounded border text-xs font-bold uppercase tracking-wider"
                 style={{
-                  borderColor: "#aa44ff",
-                  color: "#aa44ff",
-                  backgroundColor: "rgba(170,68,255,0.1)",
+                  borderColor: "#c9a227",
+                  color: "#ffd700",
+                  backgroundColor: "rgba(255,215,0,0.08)",
                   fontFamily: "'Orbitron', sans-serif",
+                  boxShadow: "0 0 8px rgba(255,215,0,0.2)",
                 }}
               >
-                Premium Active
+                ★ Premium Active
               </div>
             )}
           </div>
