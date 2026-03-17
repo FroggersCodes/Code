@@ -214,6 +214,12 @@ export function getPlayer(): Player | null {
   if (!("weeklyMissionsLastRefresh" in raw)) { player.weeklyMissionsLastRefresh = null; migrated = true; }
   if (!("dailyMissions" in raw)) { player.dailyMissions = []; migrated = true; }
   if (!("weeklyMissions" in raw)) { player.weeklyMissions = []; migrated = true; }
+  // One-time migration: cyber_grid removed from battle pass (replaced by gold_frame)
+  if (player.unlockedBorders.includes("cyber_grid")) {
+    player.unlockedBorders = player.unlockedBorders.filter((b) => b !== "cyber_grid");
+    if (player.equippedBorder === "cyber_grid") player.equippedBorder = null;
+    migrated = true;
+  }
   if (migrated) savePlayer(player);
   return player;
 }

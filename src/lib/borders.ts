@@ -12,7 +12,7 @@ export const BORDERS: BorderDef[] = [
   { id: "red_circuit", name: "Red Circuit", rarity: "free", cssClass: "border-red-circuit" },
   { id: "green_terminal", name: "Green Terminal", rarity: "free", cssClass: "border-green-terminal" },
   { id: "blue_neon", name: "Blue Neon", rarity: "free", cssClass: "border-blue-neon" },
-  { id: "gold_frame", name: "Gold Frame", rarity: "free", cssClass: "border-gold-frame" },
+  { id: "gold_frame", name: "Gold Frame", rarity: "legendary", cssClass: "border-gold-frame" },
   // Premium borders (battle pass premium track)
   { id: "plasma_ring", name: "Plasma Ring", rarity: "premium", cssClass: "border-plasma-ring" },
   { id: "void_aura", name: "Void Aura", rarity: "premium", cssClass: "border-void-aura" },
