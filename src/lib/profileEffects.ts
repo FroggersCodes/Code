@@ -8,14 +8,17 @@ export interface NameColorDef {
 }
 
 export const NAME_COLORS: NameColorDef[] = [
-  { id: "nc_crimson", name: "Crimson", css: "#ff2244" },
-  { id: "nc_cyan", name: "Cyan Pulse", css: "#00e5ff" },
-  { id: "nc_gold", name: "Gold", css: "#ffd700" },
-  { id: "nc_toxic", name: "Toxic Green", css: "#39ff14" },
-  { id: "nc_purple", name: "Royal Purple", css: "#aa44ff" },
-  { id: "nc_sunset", name: "Sunset Fade", css: "linear-gradient(90deg, #ff6b35, #ff2244, #aa44ff)" },
-  { id: "nc_ice", name: "Ice Blue", css: "linear-gradient(90deg, #00e5ff, #e0f7fa)" },
-  { id: "nc_fire", name: "Flame", css: "linear-gradient(90deg, #ff4400, #ffd700)" },
+  { id: "nc_crimson",    name: "Crimson",      css: "#ff2244" },
+  { id: "nc_cyan",       name: "Cyan Pulse",   css: "#00e5ff" },
+  { id: "nc_gold",       name: "Gold",         css: "#ffd700" },
+  { id: "nc_toxic",      name: "Toxic Green",  css: "#39ff14" },
+  { id: "nc_purple",     name: "Royal Purple", css: "#aa44ff" },
+  { id: "nc_sunset",     name: "Sunset Fade",  css: "linear-gradient(90deg, #ff6b35, #ff2244, #aa44ff)" },
+  { id: "nc_ice",        name: "Ice Blue",     css: "linear-gradient(90deg, #00e5ff, #e0f7fa)" },
+  { id: "nc_fire",       name: "Flame",        css: "linear-gradient(90deg, #ff4400, #ffd700)" },
+  // Chapter 2 Battle Pass name colors
+  { id: "nc_neon_green", name: "Neon Green",   css: "#00ff88" },
+  { id: "nc_violet",     name: "Violet",       css: "#cc55ff" },
 ];
 
 // ── Profile Effects (animated overlays / card backgrounds) ──────────────────

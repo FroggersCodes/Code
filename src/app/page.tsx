@@ -8,8 +8,16 @@ import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, save
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { getCurrentTier, getXPForNextTier, TOTAL_TIERS } from "@/lib/battlepass";
 import { refreshMissions } from "@/lib/missions";
+import { getBorderClass } from "@/lib/borders";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
+
+interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+}
 
 type AuthTab = "login" | "signup";
 
@@ -144,6 +152,7 @@ export default function HomePage() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [suggestionText, setSuggestionText] = useState("");
   const [suggestionSent, setSuggestionSent] = useState(false);
+  const [unreadAnnouncements, setUnreadAnnouncements] = useState<Announcement[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -154,6 +163,26 @@ export default function HomePage() {
       setRecentMatches(getMatches().slice(0, 5));
     }
   }, []);
+
+  // Fetch unread announcements once logged in
+  useEffect(() => {
+    if (!loggedIn) return;
+    const seen: string[] = JSON.parse(localStorage.getItem("seenAnnouncements") ?? "[]");
+    import("@/lib/socket").then(({ connectSocket }) => {
+      const socket = connectSocket();
+      const handler = (data: Announcement[]) => {
+        const unread = data.filter((a) => !seen.includes(a.id));
+        if (unread.length > 0) setUnreadAnnouncements(unread);
+      };
+      socket.on("announcements:data", handler);
+      if (socket.connected) {
+        socket.emit("announcements:get");
+      } else {
+        socket.once("connect", () => socket.emit("announcements:get"));
+      }
+      return () => { socket.off("announcements:data", handler); };
+    });
+  }, [loggedIn]);
 
   const handleLogin = (p: Player) => {
     setLoggedIn(true);
@@ -206,6 +235,13 @@ export default function HomePage() {
     if (e.key === "Enter") handleSubmit();
   };
 
+  const dismissAnnouncements = () => {
+    const seen: string[] = JSON.parse(localStorage.getItem("seenAnnouncements") ?? "[]");
+    const newSeen = [...new Set([...seen, ...unreadAnnouncements.map((a) => a.id)])];
+    localStorage.setItem("seenAnnouncements", JSON.stringify(newSeen));
+    setUnreadAnnouncements([]);
+  };
+
   const handleSuggestionSubmit = () => {
     const trimmed = suggestionText.trim();
     if (!trimmed || !player) return;
@@ -220,6 +256,53 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+      {/* Announcement popup — shows once per announcement per user */}
+      {unreadAnnouncements.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.88)" }}
+        >
+          <div
+            className="hacker-card max-w-sm w-full slide-up"
+            style={{ borderColor: "rgba(0,212,255,0.45)", boxShadow: "0 0 22px rgba(0,212,255,0.2)" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div
+                className="text-xs font-bold tracking-widest"
+                style={{ color: "#00d4ff", fontFamily: "'Orbitron', sans-serif" }}
+              >
+                📢 ANNOUNCEMENT{unreadAnnouncements.length > 1 ? "S" : ""}
+              </div>
+              {unreadAnnouncements.length > 1 && (
+                <span
+                  className="text-[9px] tracking-widest border rounded px-1.5 py-0.5"
+                  style={{ color: "#00d4ff", borderColor: "rgba(0,212,255,0.4)" }}
+                >
+                  {unreadAnnouncements.length} NEW
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {unreadAnnouncements.map((a, i) => (
+                <div
+                  key={a.id}
+                  className={i > 0 ? "pt-3 border-t border-[var(--border-color)]" : ""}
+                >
+                  <div className="text-xs font-bold text-[var(--text-primary)] mb-1 tracking-wider">{a.title}</div>
+                  <div className="text-xs text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap mb-1">{a.body}</div>
+                  <div className="text-[9px] text-[var(--text-muted)]">
+                    {new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <RetroButton variant="primary" onClick={dismissAnnouncements} className="w-full mt-4">
+              GOT IT
+            </RetroButton>
+          </div>
+        </div>
+      )}
+
       {/* Welcome modal for new sign-ups */}
       {showWelcome && (
         <div
@@ -263,7 +346,7 @@ export default function HomePage() {
       {loggedIn && player ? (
         <div className="slide-up w-full max-w-lg">
           {/* Welcome + Rank Circle */}
-          <div className="hacker-card hacker-card-red mb-4">
+          <div className={`hacker-card hacker-card-red mb-4 ${getBorderClass(player.equippedBorder) ?? ""}`}>
             <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider text-center">WELCOME BACK</div>
             <div className="text-[var(--accent-red)] text-lg mb-4 font-bold text-center">{player.username}</div>
             <RankCircle player={player} />

@@ -147,7 +147,7 @@ export function isBPSeasonTitle(id: string | null | undefined): boolean {
 export const PREMIUM_TITLES: TitleDef[] = [
   { id: "neon_phantom", label: "⚡ Neon Phantom", description: "Premium title — spectral neon energy", adminOnly: true, check: () => false },
   { id: "void_walker",  label: "◉ Void Walker",  description: "Premium title — walks between dimensions", adminOnly: true, check: () => false },
-  { id: "cyber_dragon", label: "🐉 Cyber Dragon", description: "Premium title — digital dragon lord", adminOnly: true, check: () => false },
+  { id: "cyber_dragon", label: "◎ Nova Surge",   description: "Premium title — born from a cosmic nova",   adminOnly: true, check: () => false },
 ];
 
 export const PREMIUM_TITLE_IDS = new Set(PREMIUM_TITLES.map((t) => t.id));

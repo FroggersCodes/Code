@@ -14,7 +14,7 @@ const STORE_ITEMS = {
   battlepass: {
     id: "battle_pass",
     name: "PREMIUM BATTLE PASS",
-    description: "Unlock the premium track — exclusive avatars, animated borders, and rare titles across 30 tiers",
+    description: "Unlock the premium track — exclusive avatars, animated borders, and rare titles across 60 tiers",
     price: "$4.99",
     coins: 10000,
     color: "#aa44ff",
@@ -30,7 +30,7 @@ const STORE_ITEMS = {
   titles: {
     id: "title_pack",
     name: "TITLE PACK",
-    description: "3 premium animated titles: Neon Phantom, Void Walker & Cyber Dragon",
+    description: "3 premium animated titles: Neon Phantom, Void Walker & Nova Surge",
     price: "$2.99",
     coins: 2999,
     color: "#9900ff",
