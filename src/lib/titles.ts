@@ -107,9 +107,27 @@ export const TITLES: TitleDef[] = [
 ];
 
 // ─── Battle Pass titles (season-unique, granted at tier 30 premium) ───────
-// These are dynamically generated per season. We keep a helper to check if a title is a BP season title.
-export const BP_TITLES: TitleDef[] = [];
-export const BP_TITLE_IDS = new Set<string>();
+// Minimal season helpers duplicated here to avoid importing the "use client" battlepass module.
+const _BP_SEASON_EPOCH = new Date("2026-03-01T00:00:00Z").getTime();
+const _BP_SEASON_LENGTH_MS = 183 * 24 * 60 * 60 * 1000;
+const _BP_SEASON_NAMES: Record<number, string> = { 1: "Alpha" };
+function _getBPCurrentSeasonId(): number {
+  const now = Date.now();
+  if (now < _BP_SEASON_EPOCH) return 0;
+  return Math.floor((now - _BP_SEASON_EPOCH) / _BP_SEASON_LENGTH_MS) + 1;
+}
+const _currentSeason = _getBPCurrentSeasonId();
+const _currentSeasonName = _BP_SEASON_NAMES[_currentSeason] ?? `S${_currentSeason}`;
+
+export const BP_TITLES: TitleDef[] = _currentSeason > 0
+  ? [{
+      id: `bp_s${_currentSeason}_champion`,
+      label: `${_currentSeasonName} Champion`,
+      description: `Reached tier 30 on the premium Battle Pass — Season ${_currentSeasonName}`,
+      check: () => false,
+    }]
+  : [];
+export const BP_TITLE_IDS = new Set(BP_TITLES.map((t) => t.id));
 
 /** Check if a title ID is a battle pass season title (e.g. "bp_s1_champion") */
 export function isBPSeasonTitle(id: string | null | undefined): boolean {
@@ -166,10 +184,15 @@ export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string
 /** Converts a title ID to its display label, or null if not found. */
 export function getTitleLabel(titleId: string | null | undefined): string | null {
   if (!titleId) return null;
-  // Handle dynamic BP season titles (e.g. "bp_s1_champion" → "S1 Champion")
+  // Handle dynamic BP season titles (e.g. "bp_s1_champion" → "Alpha Champion")
   if (isBPSeasonTitle(titleId)) {
     const match = titleId.match(/^bp_s(\d+)_champion$/);
-    return match ? `S${match[1]} Champion` : titleId;
+    if (match) {
+      const s = parseInt(match[1]);
+      const name = _BP_SEASON_NAMES[s] ?? `S${s}`;
+      return `${name} Champion`;
+    }
+    return titleId;
   }
   return ALL_TITLES.find((t) => t.id === titleId)?.label ?? null;
 }

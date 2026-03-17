@@ -6,7 +6,7 @@ import { getPlayer, savePlayer } from "@/lib/storage";
 import { AVATARS, PREMIUM_AVATAR_IDS } from "@/lib/avatars";
 import { PREMIUM_TITLES, getTitleClass } from "@/lib/titles";
 import { BORDERS, isPremiumBorder, RARITY_COLORS } from "@/lib/borders";
-import { unlockPremiumPass, getCurrentTier, getSeasonDaysLeft, getCurrentSeasonId } from "@/lib/battlepass";
+import { unlockPremiumPass, getCurrentTier, getSeasonDaysLeft, getCurrentSeasonId, getSeasonName } from "@/lib/battlepass";
 import type { Player } from "@/types";
 
 // ── Store configuration ────────────────────────────────────────────────────
@@ -16,6 +16,7 @@ const STORE_ITEMS = {
     name: "PREMIUM BATTLE PASS",
     description: "Unlock the premium track — exclusive avatars, animated borders, and rare titles across 30 tiers",
     price: "$4.99",
+    coins: 10000,
     color: "#aa44ff",
   },
   avatars: {
@@ -23,6 +24,7 @@ const STORE_ITEMS = {
     name: "AVATAR PACK",
     description: "3 exclusive animated avatars: Dragon, Phoenix & Void",
     price: "$2.99",
+    coins: 2999,
     color: "#ff0033",
   },
   titles: {
@@ -30,6 +32,7 @@ const STORE_ITEMS = {
     name: "TITLE PACK",
     description: "3 premium animated titles: Neon Phantom, Void Walker & Cyber Dragon",
     price: "$2.99",
+    coins: 2999,
     color: "#9900ff",
   },
   borders: {
@@ -37,6 +40,7 @@ const STORE_ITEMS = {
     name: "BORDER PACK",
     description: "3 premium animated profile borders: Plasma Ring, Void Aura & Fire Ring",
     price: "$2.99",
+    coins: 2999,
     color: "#00ccff",
   },
   bundle: {
@@ -45,6 +49,7 @@ const STORE_ITEMS = {
     description: "All avatars + all titles + all borders — save $3!",
     price: "$5.99",
     priceOriginal: "$8.97",
+    coins: 5990,
     color: "#ffd700",
   },
 } as const;
@@ -350,6 +355,7 @@ function StoreContent() {
           </div>
           <div className="flex items-center gap-2">
             {hasPremiumPass && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.battlepass.coins.toLocaleString()} coins</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.battlepass.price}
             </span>
@@ -359,7 +365,7 @@ function StoreContent() {
 
         {/* Season info */}
         <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)] mb-3 border-t border-b border-[var(--border-color)] py-2">
-          <span>SEASON {getCurrentSeasonId()}</span>
+          <span>SEASON {getSeasonName().toUpperCase()}</span>
           <span>{getSeasonDaysLeft()} DAYS LEFT</span>
           {player && <span>TIER {getCurrentTier(player.xp)}/30</span>}
         </div>
@@ -395,6 +401,7 @@ function StoreContent() {
           </div>
           <div className="flex items-center gap-2">
             {hasAllAvatars && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.avatars.coins.toLocaleString()} coins</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.avatars.price}
             </span>
@@ -439,6 +446,7 @@ function StoreContent() {
           </div>
           <div className="flex items-center gap-2">
             {hasAllTitles && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.titles.coins.toLocaleString()} coins</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.titles.price}
             </span>
@@ -475,6 +483,7 @@ function StoreContent() {
           </div>
           <div className="flex items-center gap-2">
             {hasAllBorders && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.borders.coins.toLocaleString()} coins</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.borders.price}
             </span>
@@ -511,6 +520,7 @@ function StoreContent() {
           </div>
           <div className="flex items-center gap-2">
             {hasAllAvatars && hasAllTitles && hasAllBorders && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
+            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.bundle.coins.toLocaleString()} coins</span>
             <span className="text-[10px] text-[var(--text-muted)] line-through mr-1">{STORE_ITEMS.bundle.priceOriginal}</span>
             <span className="text-sm font-bold" style={{ color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}>
               {STORE_ITEMS.bundle.price}

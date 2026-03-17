@@ -556,47 +556,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Profile Effects */}
-          <div className="hacker-card">
-            <div className="text-xs text-[var(--text-dim)] mb-4 tracking-wider">
-              PROFILE EFFECTS — CLICK TO EQUIP
-            </div>
-            <div className="space-y-2">
-              {PROFILE_EFFECTS.map((pe) => {
-                const unlocked = (player.unlockedProfileEffects ?? []).includes(pe.id);
-                const equipped = player.profileEffect === pe.id;
-                return (
-                  <button
-                    key={pe.id}
-                    disabled={!unlocked}
-                    onClick={() => {
-                      equipProfileEffect(equipped ? null : pe.id);
-                      setPlayer(getPlayer()!);
-                    }}
-                    className={`w-full text-left p-3 border rounded transition-all ${
-                      !unlocked
-                        ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
-                        : equipped
-                          ? "border-[var(--accent-yellow)] bg-[rgba(255,204,0,0.06)]"
-                          : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className={`text-xs font-bold mb-0.5 ${unlocked ? "text-[var(--text-primary)]" : "text-[var(--text-dim)]"}`}>
-                          {unlocked ? pe.name.toUpperCase() : "???"}
-                        </div>
-                        <div className="text-[10px] text-[var(--text-dim)]">{pe.description}</div>
-                      </div>
-                      {equipped && <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider">EQUIPPED</span>}
-                      {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
-                      {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       )}
 
