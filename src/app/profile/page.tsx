@@ -556,6 +556,57 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Profile Effects */}
+          <div className="hacker-card">
+            <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider">
+              PROFILE EFFECTS — CLICK TO EQUIP
+            </div>
+            <div className="text-[9px] text-[var(--text-muted)] mb-4 tracking-wide">
+              Animated overlays applied to your profile card
+            </div>
+            <div className="space-y-2">
+              {PROFILE_EFFECTS.map((pe) => {
+                const unlocked = (player.unlockedProfileEffects ?? []).includes(pe.id);
+                const equipped = player.profileEffect === pe.id;
+                return (
+                  <button
+                    key={pe.id}
+                    disabled={!unlocked}
+                    onClick={() => {
+                      equipProfileEffect(equipped ? null : pe.id);
+                      setPlayer(getPlayer()!);
+                    }}
+                    className={`w-full text-left p-3 border rounded transition-all flex items-center justify-between ${
+                      !unlocked
+                        ? "opacity-40 cursor-not-allowed border-[var(--border-color)] bg-[var(--bg-dark)]"
+                        : equipped
+                          ? "border-[#ff6b35] bg-[rgba(255,107,53,0.06)]"
+                          : "border-[var(--border-color)] hover:border-[var(--accent-red)] bg-[var(--bg-dark)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded flex-shrink-0 border"
+                        style={{ borderColor: unlocked ? "#ff6b35" : "var(--border-color)", backgroundColor: unlocked ? "rgba(255,107,53,0.15)" : "transparent" }}
+                      >
+                        <span className="text-[7px] flex items-center justify-center h-full" style={{ color: "#ff6b35" }}>FX</span>
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold" style={{ color: unlocked ? "#ff6b35" : "var(--text-dim)" }}>
+                          {unlocked ? pe.name.toUpperCase() : "???"}
+                        </div>
+                        {unlocked && <div className="text-[9px] text-[var(--text-muted)]">{pe.description}</div>}
+                      </div>
+                    </div>
+                    {equipped && <span className="text-[10px] text-[var(--accent-yellow)] tracking-wider">EQUIPPED</span>}
+                    {unlocked && !equipped && <span className="text-[10px] text-[var(--text-muted)]">EQUIP</span>}
+                    {!unlocked && <span className="text-[10px] text-[var(--text-muted)]">LOCKED</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       )}
 
