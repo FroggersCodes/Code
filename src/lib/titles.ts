@@ -120,12 +120,21 @@ const _currentSeason = _getBPCurrentSeasonId();
 const _currentSeasonName = _BP_SEASON_NAMES[_currentSeason] ?? `S${_currentSeason}`;
 
 export const BP_TITLES: TitleDef[] = _currentSeason > 0
-  ? [{
+  ? [
+    {
       id: `bp_s${_currentSeason}_champion`,
       label: `${_currentSeasonName} Champion`,
       description: `Reached tier 30 on the premium Battle Pass — Season ${_currentSeasonName}`,
       check: () => false,
-    }]
+    },
+    ...(_currentSeason === 1 ? [{
+      id: "alpha_legend",
+      label: "⚔ Alpha Legend",
+      description: "Conquered all 60 tiers of the Alpha Battle Pass — the ultimate grind",
+      adminOnly: false as const,
+      check: () => false,
+    } satisfies TitleDef] : []),
+  ]
   : [];
 export const BP_TITLE_IDS = new Set(BP_TITLES.map((t) => t.id));
 
@@ -217,6 +226,7 @@ export function getTitleClass(id: string | null | undefined): string | null {
     case "cyber_dragon": return "cyber-dragon-title";
     default:
       if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
+      if (id === "alpha_legend") return "alpha-legend-title";
       if (id === "bp_s1_champion") return "alpha-champion-title";
       if (isBPSeasonTitle(id)) return "bp-victor-title";
       return null;

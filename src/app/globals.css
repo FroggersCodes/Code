@@ -679,6 +679,65 @@ body::after {
   letter-spacing: 0.1em;
 }
 
+/* Alpha Legend — ultra-rare tier 60 title: chrome-platinum with full prizm blast */
+@keyframes alpha-legend-prizm {
+  0%, 100% { color: #e8e8e8; text-shadow: 0 0 8px #e8e8e8, 0 0 18px rgba(200,200,200,0.55); }
+  8%        { color: #ffffff; text-shadow: 0 0 16px #ffffff, 0 0 28px rgba(220,220,220,0.6); }
+  15%       { color: #ffd700; text-shadow: 0 0 20px #ffd700, 0 0 36px rgba(255,215,0,0.7); }
+  22%       { color: #ffffff; text-shadow: 0 0 22px #ffffff, 0 0 40px #fff, -12px 0 20px rgba(0,220,255,0.6), 12px 0 20px rgba(255,0,180,0.6); }
+  30%       { color: #00ffee; text-shadow: -4px 0 #ff00cc, 4px 0 #00ffcc, 0 0 18px #00ffee; }
+  38%       { color: #ff88ff; text-shadow: -3px 0 #ffd700, 3px 0 #00ffee, 0 0 16px #ff88ff; }
+  46%       { color: #ffd700; text-shadow: 0 0 14px #ffd700, 0 0 28px rgba(255,215,0,0.7); }
+  55%       { color: #e8e8e8; text-shadow: 0 0 10px #e8e8e8, 0 0 22px rgba(200,200,200,0.4); }
+}
+.alpha-legend-title {
+  animation: alpha-legend-prizm 4s ease-in-out infinite;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+/* ── Chapter 2 Battle Pass Borders ───────────────────────────────────── */
+
+/* Storm Surge — electric crackling cyan/white */
+@keyframes storm-surge {
+  0%, 100% { border-color: #00ccff; box-shadow: 0 0 8px #00ccff, 0 0 18px rgba(0,204,255,0.5); }
+  20%       { border-color: #ffffff; box-shadow: 0 0 16px #ffffff, 0 0 30px rgba(0,204,255,0.6); }
+  40%       { border-color: #00ffcc; box-shadow: 0 0 10px #00ffcc, 0 0 22px rgba(0,255,204,0.45); }
+  60%       { border-color: #4488ff; box-shadow: 0 0 10px #4488ff, 0 0 22px rgba(68,136,255,0.5); }
+  80%       { border-color: #aaeeff; box-shadow: 0 0 14px #aaeeff, 0 0 26px rgba(170,238,255,0.4); }
+}
+.border-storm-surge {
+  border: 2px solid #00ccff;
+  animation: storm-surge 2.5s ease-in-out infinite;
+}
+
+/* Nebula Drift — cosmic purple/magenta flowing */
+@keyframes nebula-drift {
+  0%, 100% { border-color: #9933ff; box-shadow: 0 0 8px #9933ff, 0 0 20px rgba(153,51,255,0.5); }
+  33%       { border-color: #ff44cc; box-shadow: 0 0 12px #ff44cc, 0 0 26px rgba(255,68,204,0.55); }
+  66%       { border-color: #6600cc; box-shadow: 0 0 10px #6600cc, 0 0 22px rgba(102,0,204,0.4); }
+}
+.border-nebula-drift {
+  border: 2px solid #9933ff;
+  animation: nebula-drift 4s ease-in-out infinite;
+}
+
+/* Prismatic Edge — legendary full-spectrum rainbow cycle */
+@keyframes prismatic-edge {
+  0%   { border-color: #ffd700; box-shadow: 0 0 10px #ffd700, 0 0 22px rgba(255,215,0,0.6); }
+  16%  { border-color: #ff0066; box-shadow: 0 0 10px #ff0066, 0 0 22px rgba(255,0,102,0.6); }
+  33%  { border-color: #0066ff; box-shadow: 0 0 10px #0066ff, 0 0 22px rgba(0,102,255,0.6); }
+  50%  { border-color: #00ffcc; box-shadow: 0 0 10px #00ffcc, 0 0 22px rgba(0,255,204,0.6); }
+  66%  { border-color: #ff44ff; box-shadow: 0 0 10px #ff44ff, 0 0 22px rgba(255,68,255,0.6); }
+  83%  { border-color: #ffffff; box-shadow: 0 0 14px #ffffff, 0 0 28px rgba(255,255,255,0.5); }
+  100% { border-color: #ffd700; box-shadow: 0 0 10px #ffd700, 0 0 22px rgba(255,215,0,0.6); }
+}
+.border-prismatic-edge {
+  border: 2px solid #ffd700;
+  animation: prismatic-edge 3s linear infinite;
+}
+
 /* ── XP Toast ────────────────────────────────────────────────────────── */
 @keyframes xp-float {
   0% { transform: translateY(0); opacity: 1; }

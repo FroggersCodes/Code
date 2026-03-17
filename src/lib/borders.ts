@@ -19,6 +19,10 @@ export const BORDERS: BorderDef[] = [
   { id: "fire_ring", name: "Fire Ring", rarity: "premium", cssClass: "border-fire-ring" },
   { id: "diamond_shimmer", name: "Diamond Shimmer", rarity: "premium", cssClass: "border-diamond-shimmer" },
   { id: "rainbow_pulse", name: "Rainbow Pulse", rarity: "premium", cssClass: "border-rainbow-pulse" },
+  // Chapter 2 borders (battle pass tier 33 free / tier 40 & 48 premium)
+  { id: "storm_surge",    name: "Storm Surge",    rarity: "premium",   cssClass: "border-storm-surge" },
+  { id: "nebula_drift",   name: "Nebula Drift",   rarity: "premium",   cssClass: "border-nebula-drift" },
+  { id: "prismatic_edge", name: "Prismatic Edge", rarity: "legendary", cssClass: "border-prismatic-edge" },
 ];
 
 export const BORDER_IDS = BORDERS.map((b) => b.id);

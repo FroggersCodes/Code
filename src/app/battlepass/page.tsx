@@ -12,6 +12,7 @@ import {
   getSeasonName,
   hasActiveXPBoost,
   TOTAL_TIERS,
+  CHAPTER_BREAKPOINTS,
   type BattlePassTier,
 } from "@/lib/battlepass";
 import type { Player } from "@/types";
@@ -158,7 +159,7 @@ export default function BattlePassPage() {
   useEffect(() => {
     if (!player || !scrollRef.current) return;
     const currentTier = getCurrentTier(player.xp);
-    const tierEl = scrollRef.current.children[Math.max(0, currentTier - 1)] as HTMLElement;
+    const tierEl = scrollRef.current.querySelector<HTMLElement>(`[data-tier="${Math.max(1, currentTier)}"]`);
     if (tierEl) {
       tierEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     }
@@ -282,13 +283,40 @@ export default function BattlePassPage() {
             style={{ scrollbarColor: "var(--border-color) transparent" }}
           >
             {tiers.map((tier) => (
-              <TierCard
-                key={tier.tier}
-                tier={tier}
-                isReached={currentTier >= tier.tier}
-                isCurrent={currentTier === tier.tier - 1}
-                isPremiumOwner={player.premiumPass}
-              />
+              <div key={tier.tier} className="flex-shrink-0 flex items-stretch gap-3">
+                {CHAPTER_BREAKPOINTS.includes(tier.tier) && (
+                  <div
+                    className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-3 rounded-lg border"
+                    style={{
+                      backgroundColor: "rgba(170,68,255,0.08)",
+                      borderColor: "rgba(170,68,255,0.4)",
+                      boxShadow: "0 0 14px rgba(170,68,255,0.2)",
+                      minWidth: "72px",
+                    }}
+                  >
+                    <span
+                      className="text-[8px] uppercase tracking-widest font-bold"
+                      style={{ color: "#aa44ff", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                    >
+                      Chapter 2
+                    </span>
+                    <span
+                      className="text-[7px] uppercase tracking-wider"
+                      style={{ color: "rgba(170,68,255,0.7)", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                    >
+                      Alpha Ascendant
+                    </span>
+                  </div>
+                )}
+                <div data-tier={tier.tier}>
+                  <TierCard
+                    tier={tier}
+                    isReached={currentTier >= tier.tier}
+                    isCurrent={currentTier === tier.tier - 1}
+                    isPremiumOwner={player.premiumPass}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         </div>
