@@ -8,7 +8,6 @@ import { getPlayer, getMatches, signUp, login, loginAsGuest, getCotdRecord, save
 import { getChallengeOfTheDay } from "@/lib/challenges";
 import { getCurrentTier, getXPForNextTier, TOTAL_TIERS } from "@/lib/battlepass";
 import { refreshMissions } from "@/lib/missions";
-import { getBorderClass } from "@/lib/borders";
 import { RANK_THRESHOLDS, RANK_COLORS, type RankTier } from "@/types";
 import type { Player } from "@/types";
 
@@ -347,7 +346,7 @@ export default function HomePage() {
       {loggedIn && player ? (
         <div className="slide-up w-full max-w-lg">
           {/* Welcome + Rank Circle */}
-          <div className={`hacker-card hacker-card-red mb-4 ${getBorderClass(player.equippedBorder) ?? ""}`}>
+          <div className="hacker-card hacker-card-red mb-4">
             <div className="text-xs text-[var(--text-dim)] mb-1 tracking-wider text-center">WELCOME BACK</div>
             <div className="text-[var(--accent-red)] text-lg mb-4 font-bold text-center">{player.username}</div>
             <RankCircle player={player} />
