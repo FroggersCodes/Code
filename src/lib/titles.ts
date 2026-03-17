@@ -217,6 +217,7 @@ export function getTitleClass(id: string | null | undefined): string | null {
     case "cyber_dragon": return "cyber-dragon-title";
     default:
       if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
+      if (id === "bp_s1_champion") return "alpha-champion-title";
       if (isBPSeasonTitle(id)) return "bp-victor-title";
       return null;
   }

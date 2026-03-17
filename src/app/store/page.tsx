@@ -22,7 +22,7 @@ const STORE_ITEMS = {
   avatars: {
     id: "avatar_pack",
     name: "AVATAR PACK",
-    description: "3 exclusive animated avatars: Dragon, Phoenix & Void",
+    description: "3 exclusive animated avatars: Specter, Nova & Void",
     price: "$2.99",
     coins: 2999,
     color: "#ff0033",
@@ -427,7 +427,7 @@ function StoreContent() {
 
         {/* Premium reward preview */}
         <div className="flex gap-2 mb-4 justify-center flex-wrap">
-          {["Demon", "Angel", "Elite", "Apex Predator", "Season Victor"].map((name) => (
+          {["Specter", "Nova", "Elite", "Apex Predator", "Season Victor"].map((name) => (
             <span key={name} className="text-[9px] px-2 py-1 rounded border border-[var(--border-color)] text-[var(--text-dim)]">
               {name}
             </span>
@@ -580,7 +580,7 @@ function StoreContent() {
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-4">{STORE_ITEMS.borders.description}</div>
         <div className="flex gap-3 mb-4 justify-center flex-wrap">
-          {BORDERS.filter((b) => isPremiumBorder(b.id)).slice(0, 3).map((b) => {
+          {BORDERS.filter((b) => b.rarity === "premium").slice(0, 3).map((b) => {
             const owned = player?.unlockedBorders.includes(b.id);
             return (
               <div key={b.id} className="flex flex-col items-center gap-1">

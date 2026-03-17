@@ -158,8 +158,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
     // Tier 3: XP Boost
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
-    // Tier 4: Avatar
-    { type: "avatar", id: "demon", name: "Demon" },
+    // Tier 4: Avatar → replaced with 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
     // Tier 5: 100 coins
     { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
     // Tier 6: Name Color
@@ -170,8 +170,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "border", id: "plasma_ring", name: "Plasma Ring" },
     // Tier 9: XP Boost
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
-    // Tier 10: Avatar
-    { type: "avatar", id: "angel", name: "Angel" },
+    // Tier 10: XP Boost (replaces removed avatar)
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
     // Tier 11: 100 coins
     { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
     // Tier 12: Border

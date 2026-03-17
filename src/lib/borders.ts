@@ -19,7 +19,6 @@ export const BORDERS: BorderDef[] = [
   { id: "fire_ring", name: "Fire Ring", rarity: "premium", cssClass: "border-fire-ring" },
   { id: "diamond_shimmer", name: "Diamond Shimmer", rarity: "premium", cssClass: "border-diamond-shimmer" },
   { id: "rainbow_pulse", name: "Rainbow Pulse", rarity: "premium", cssClass: "border-rainbow-pulse" },
-  { id: "cyber_grid", name: "Cyber Grid", rarity: "legendary", cssClass: "border-cyber-grid" },
 ];
 
 export const BORDER_IDS = BORDERS.map((b) => b.id);
