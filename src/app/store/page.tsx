@@ -92,21 +92,32 @@ function unlockForProduct(player: Player, productId: string): Player {
   return updated;
 }
 
-// ── Checkout button ────────────────────────────────────────────────────────
-function BuyButton({
+// ── Split buy button (half real money / half coins) ─────────────────────────
+function SplitBuyButton({
   productId,
-  label,
+  priceLabel,
+  coinCost,
   color,
   username,
   bold,
+  player,
+  onCoinBuy,
 }: {
   productId: string;
-  label: string;
+  priceLabel: string;
+  coinCost: number;
   color: string;
   username: string;
   bold?: boolean;
+  player: Player | null;
+  onCoinBuy: (updated: Player) => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [coinLoading, setCoinLoading] = useState(false);
+  const [coinSuccess, setCoinSuccess] = useState(false);
+
+  const playerCoins = player?.coins ?? 0;
+  const canAfford = playerCoins >= coinCost;
 
   const handleBuy = async () => {
     setLoading(true);
@@ -129,22 +140,61 @@ function BuyButton({
     }
   };
 
+  const handleCoinBuy = () => {
+    if (!player || !canAfford || coinLoading) return;
+    setCoinLoading(true);
+    const updated = unlockForProduct(
+      { ...player, coins: playerCoins - coinCost },
+      productId
+    );
+    savePlayer(updated);
+    onCoinBuy(updated);
+    setCoinLoading(false);
+    setCoinSuccess(true);
+    setTimeout(() => setCoinSuccess(false), 2500);
+  };
+
+  const py = bold ? "py-3" : "py-2";
+  const borderWidth = bold ? "border-2" : "border";
+
   return (
-    <button
-      onClick={handleBuy}
-      disabled={loading}
-      className={`block w-full ${bold ? "py-3 border-2 font-bold" : "py-2 border"} text-xs tracking-widest rounded text-center transition-colors cursor-pointer`}
-      style={{
-        borderColor: color,
-        color: loading ? "var(--text-muted)" : color,
-        fontFamily: "'Orbitron', sans-serif",
-        backgroundColor: "transparent",
-      }}
-      onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = `${color}1a`)}
-      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+    <div
+      className={`flex w-full rounded overflow-hidden ${borderWidth}`}
+      style={{ borderColor: color }}
     >
-      {loading ? "REDIRECTING..." : label}
-    </button>
+      {/* Left half — real money (Stripe) */}
+      <button
+        onClick={handleBuy}
+        disabled={loading}
+        className={`flex-1 ${py} text-xs tracking-widest text-center transition-colors cursor-pointer bg-transparent`}
+        style={{
+          color: loading ? "var(--text-muted)" : color,
+          fontFamily: "'Orbitron', sans-serif",
+          borderRight: `1px solid ${color}`,
+        }}
+        onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = `${color}1a`)}
+        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+      >
+        {loading ? "..." : priceLabel}
+      </button>
+
+      {/* Right half — coins */}
+      <button
+        onClick={handleCoinBuy}
+        disabled={!canAfford || coinLoading}
+        className={`flex-1 ${py} text-xs tracking-widest text-center transition-colors bg-transparent`}
+        style={{
+          color: coinSuccess ? "var(--accent-green)" : canAfford ? "#ffd700" : "#664400",
+          fontFamily: "'Orbitron', sans-serif",
+          cursor: canAfford ? "pointer" : "not-allowed",
+          opacity: canAfford ? 1 : 0.45,
+        }}
+        onMouseOver={(e) => canAfford && !coinLoading && (e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.08)")}
+        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+      >
+        {coinSuccess ? "UNLOCKED!" : coinLoading ? "..." : `${coinCost.toLocaleString()} COINS`}
+      </button>
+    </div>
   );
 }
 
@@ -268,7 +318,6 @@ function StoreContent() {
         if (data.verified) {
           let updated = unlockForProduct(currentPlayer, productId);
           savePlayer(updated);
-          // If battle pass, also call unlockPremiumPass for retroactive rewards
           if (productId === "battle_pass") {
             unlockPremiumPass();
             updated = getPlayer() ?? updated;
@@ -348,9 +397,15 @@ function StoreContent() {
       </div>
 
       {/* ── BATTLE PASS ─────────────────────────────────────────────── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(170,68,255,0.5)" }}>
+      <div
+        className="hacker-card store-card-battlepass store-card-scan mb-4"
+        style={{ borderColor: "rgba(170,68,255,0.5)" }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}>
+          <div
+            className="text-xs tracking-wider store-name-glow"
+            style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
             {STORE_ITEMS.battlepass.name}
           </div>
           <div className="flex items-center gap-2">
@@ -380,7 +435,16 @@ function StoreContent() {
         </div>
 
         {!hasPremiumPass && username && (
-          <BuyButton productId="battle_pass" label="UNLOCK PREMIUM PASS" color={STORE_ITEMS.battlepass.color} username={username} bold />
+          <SplitBuyButton
+            productId="battle_pass"
+            priceLabel="UNLOCK — $4.99"
+            coinCost={STORE_ITEMS.battlepass.coins}
+            color={STORE_ITEMS.battlepass.color}
+            username={username}
+            bold
+            player={player}
+            onCoinBuy={setPlayer}
+          />
         )}
         {hasPremiumPass && (
           <button
@@ -394,9 +458,15 @@ function StoreContent() {
       </div>
 
       {/* ── AVATAR PACK ─────────────────────────────────────────────── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(255,0,51,0.4)" }}>
+      <div
+        className="hacker-card store-card-avatars store-card-scan mb-4"
+        style={{ borderColor: "rgba(255,0,51,0.4)" }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}>
+          <div
+            className="text-xs tracking-wider store-name-glow"
+            style={{ color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
             {STORE_ITEMS.avatars.name}
           </div>
           <div className="flex items-center gap-2">
@@ -414,8 +484,8 @@ function StoreContent() {
             return (
               <div key={id} className="flex flex-col items-center gap-1">
                 <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded overflow-hidden border ${owned ? "border-[var(--accent-green)]" : "border-[var(--border-color)]"}`}
-                  style={{ boxShadow: owned ? "0 0 8px rgba(0,255,102,0.3)" : undefined }}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded overflow-hidden border store-avatar-float ${owned ? "border-[var(--accent-green)]" : "border-[var(--border-color)]"}`}
+                  style={{ boxShadow: owned ? "0 0 10px rgba(0,255,102,0.35)" : "0 0 8px rgba(255,0,51,0.2)" }}
                   dangerouslySetInnerHTML={{ __html: AVATARS[id].svg }}
                 />
                 <span className="text-[9px] text-[var(--text-muted)] tracking-wider">{AVATARS[id].label.toUpperCase()}</span>
@@ -424,24 +494,29 @@ function StoreContent() {
             );
           })}
         </div>
-        {!hasAllAvatars && (
-          <div
-            className="block w-full py-2 text-xs tracking-widest border rounded text-center opacity-50 cursor-not-allowed"
-            style={{
-              borderColor: STORE_ITEMS.avatars.color,
-              color: STORE_ITEMS.avatars.color,
-              fontFamily: "'Orbitron', sans-serif",
-            }}
-          >
-            CURRENTLY UNAVAILABLE
-          </div>
+        {!hasAllAvatars && username && (
+          <SplitBuyButton
+            productId="avatar_pack"
+            priceLabel="BUY — $2.99"
+            coinCost={STORE_ITEMS.avatars.coins}
+            color={STORE_ITEMS.avatars.color}
+            username={username}
+            player={player}
+            onCoinBuy={setPlayer}
+          />
         )}
       </div>
 
       {/* ── TITLE PACK ─────────────────────────────────────────────── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(153,0,255,0.4)" }}>
+      <div
+        className="hacker-card store-card-titles store-card-scan mb-4"
+        style={{ borderColor: "rgba(153,0,255,0.4)" }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}>
+          <div
+            className="text-xs tracking-wider store-name-glow"
+            style={{ color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
             {STORE_ITEMS.titles.name}
           </div>
           <div className="flex items-center gap-2">
@@ -471,14 +546,28 @@ function StoreContent() {
           })}
         </div>
         {!hasAllTitles && username && (
-          <BuyButton productId="title_pack" label="BUY TITLE PACK" color={STORE_ITEMS.titles.color} username={username} />
+          <SplitBuyButton
+            productId="title_pack"
+            priceLabel="BUY — $2.99"
+            coinCost={STORE_ITEMS.titles.coins}
+            color={STORE_ITEMS.titles.color}
+            username={username}
+            player={player}
+            onCoinBuy={setPlayer}
+          />
         )}
       </div>
 
       {/* ── BORDER PACK ─────────────────────────────────────────────── */}
-      <div className="hacker-card mb-4" style={{ borderColor: "rgba(0,204,255,0.4)" }}>
+      <div
+        className="hacker-card store-card-borders store-card-scan mb-4"
+        style={{ borderColor: "rgba(0,204,255,0.4)" }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}>
+          <div
+            className="text-xs tracking-wider store-name-glow"
+            style={{ color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
             {STORE_ITEMS.borders.name}
           </div>
           <div className="flex items-center gap-2">
@@ -496,7 +585,7 @@ function StoreContent() {
             return (
               <div key={b.id} className="flex flex-col items-center gap-1">
                 <div
-                  className={`w-12 h-12 rounded border-2 ${b.cssClass} flex items-center justify-center ${owned ? "" : "opacity-50"}`}
+                  className={`w-12 h-12 rounded border-2 ${b.cssClass} flex items-center justify-center store-avatar-float ${owned ? "" : "opacity-50"}`}
                   style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
                 >
                   <span className="text-[8px]" style={{ color: RARITY_COLORS[b.rarity] }}>{b.rarity === "legendary" ? "L" : "P"}</span>
@@ -508,14 +597,28 @@ function StoreContent() {
           })}
         </div>
         {!hasAllBorders && username && (
-          <BuyButton productId="border_pack" label="BUY BORDER PACK" color={STORE_ITEMS.borders.color} username={username} />
+          <SplitBuyButton
+            productId="border_pack"
+            priceLabel="BUY — $2.99"
+            coinCost={STORE_ITEMS.borders.coins}
+            color={STORE_ITEMS.borders.color}
+            username={username}
+            player={player}
+            onCoinBuy={setPlayer}
+          />
         )}
       </div>
 
       {/* ── ULTIMATE BUNDLE ─────────────────────────────────────────── */}
-      <div className="hacker-card mb-6" style={{ borderColor: "rgba(255,215,0,0.4)" }}>
+      <div
+        className="hacker-card store-card-bundle store-card-scan mb-6"
+        style={{ borderColor: "rgba(255,215,0,0.4)" }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs tracking-wider" style={{ color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}>
+          <div
+            className="text-xs tracking-wider store-name-glow"
+            style={{ color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
             {STORE_ITEMS.bundle.name}
           </div>
           <div className="flex items-center gap-2">
@@ -532,7 +635,8 @@ function StoreContent() {
           {PREMIUM_AVATAR_IDS.map((id) => (
             <div
               key={id}
-              className="w-12 h-12 rounded overflow-hidden border border-[var(--border-color)]"
+              className="w-12 h-12 rounded overflow-hidden border border-[var(--border-color)] store-avatar-float"
+              style={{ boxShadow: "0 0 8px rgba(255,215,0,0.2)" }}
               dangerouslySetInnerHTML={{ __html: AVATARS[id].svg }}
             />
           ))}
@@ -552,7 +656,16 @@ function StoreContent() {
           })}
         </div>
         {!(hasAllAvatars && hasAllTitles && hasAllBorders) && username && (
-          <BuyButton productId="ultimate_bundle" label="BUY ULTIMATE BUNDLE — SAVE $3" color={STORE_ITEMS.bundle.color} username={username} bold />
+          <SplitBuyButton
+            productId="ultimate_bundle"
+            priceLabel="BUNDLE — $5.99"
+            coinCost={STORE_ITEMS.bundle.coins}
+            color={STORE_ITEMS.bundle.color}
+            username={username}
+            bold
+            player={player}
+            onCoinBuy={setPlayer}
+          />
         )}
       </div>
 
