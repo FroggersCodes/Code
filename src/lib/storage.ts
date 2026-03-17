@@ -4,7 +4,7 @@ import type { Player, MissionProgress, PostMatchXP } from "@/types";
 import { getRankFromElo } from "./elo";
 import { getNewlyUnlocked } from "./titles";
 import { isPremiumAvatar } from "./avatars";
-import { calculateMatchXP, grantXP, checkSeasonReset } from "./battlepass";
+import { calculateMatchXP, grantXP, checkSeasonReset, hasActiveXPBoost } from "./battlepass";
 import { checkAchievements, getAchievement } from "./achievements";
 import { refreshMissions, updateMissionProgress, getTodayMatches, getWeekMatches } from "./missions";
 
@@ -81,8 +81,14 @@ export function signUp(
     seasonId: 0,
     premiumPass: false,
     claimedTiers: [],
+    coins: 0,
+    xpBoostUntil: null,
     unlockedBorders: [],
     equippedBorder: null,
+    nameColor: null,
+    profileEffect: null,
+    unlockedNameColors: [],
+    unlockedProfileEffects: [],
     achievements: {},
     missionsLastRefresh: null,
     weeklyMissionsLastRefresh: null,
@@ -146,8 +152,14 @@ export function login(
     seasonId: 0,
     premiumPass: false,
     claimedTiers: [],
+    coins: 0,
+    xpBoostUntil: null,
     unlockedBorders: [],
     equippedBorder: null,
+    nameColor: null,
+    profileEffect: null,
+    unlockedNameColors: [],
+    unlockedProfileEffects: [],
     achievements: {},
     missionsLastRefresh: null,
     weeklyMissionsLastRefresh: null,
@@ -189,8 +201,14 @@ export function getPlayer(): Player | null {
   if (!("seasonId" in raw)) { player.seasonId = 0; migrated = true; }
   if (!("premiumPass" in raw)) { player.premiumPass = false; migrated = true; }
   if (!("claimedTiers" in raw)) { player.claimedTiers = []; migrated = true; }
+  if (!("coins" in raw)) { player.coins = 0; migrated = true; }
+  if (!("xpBoostUntil" in raw)) { player.xpBoostUntil = null; migrated = true; }
   if (!("unlockedBorders" in raw)) { player.unlockedBorders = []; migrated = true; }
   if (!("equippedBorder" in raw)) { player.equippedBorder = null; migrated = true; }
+  if (!("nameColor" in raw)) { player.nameColor = null; migrated = true; }
+  if (!("profileEffect" in raw)) { player.profileEffect = null; migrated = true; }
+  if (!("unlockedNameColors" in raw)) { player.unlockedNameColors = []; migrated = true; }
+  if (!("unlockedProfileEffects" in raw)) { player.unlockedProfileEffects = []; migrated = true; }
   if (!("achievements" in raw)) { player.achievements = {}; migrated = true; }
   if (!("missionsLastRefresh" in raw)) { player.missionsLastRefresh = null; migrated = true; }
   if (!("weeklyMissionsLastRefresh" in raw)) { player.weeklyMissionsLastRefresh = null; migrated = true; }
@@ -224,8 +242,14 @@ export function createPlayer(username: string, passwordHash = ""): Player {
     seasonId: 0,
     premiumPass: false,
     claimedTiers: [],
+    coins: 0,
+    xpBoostUntil: null,
     unlockedBorders: [],
     equippedBorder: null,
+    nameColor: null,
+    profileEffect: null,
+    unlockedNameColors: [],
+    unlockedProfileEffects: [],
     achievements: {},
     missionsLastRefresh: null,
     weeklyMissionsLastRefresh: null,
@@ -400,7 +424,8 @@ export function processPostMatch(
   savePlayer(player);
 
   // Calculate match XP
-  const xpBreakdown = calculateMatchXP(won, draw, isVsBot, playerTime, player.winStreak, isCotd);
+  const xpBoosted = hasActiveXPBoost(player);
+  const xpBreakdown = calculateMatchXP(won, draw, isVsBot, playerTime, player.winStreak, isCotd, xpBoosted);
 
   // Check missions
   const matches = getMatches();
@@ -458,6 +483,30 @@ export function consumePendingXP(): PostMatchXP | null {
   if (!data) return null;
   localStorage.removeItem(PENDING_XP_KEY);
   return JSON.parse(data);
+}
+
+export function equipNameColor(colorId: string | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  if (colorId !== null && !player.unlockedNameColors.includes(colorId)) return;
+  player.nameColor = colorId;
+  savePlayer(player);
+}
+
+export function equipProfileEffect(effectId: string | null): void {
+  const player = getPlayer();
+  if (!player) return;
+  if (effectId !== null && !player.unlockedProfileEffects.includes(effectId)) return;
+  player.profileEffect = effectId;
+  savePlayer(player);
+}
+
+export function spendCoins(amount: number): boolean {
+  const player = getPlayer();
+  if (!player || (player.coins ?? 0) < amount) return false;
+  player.coins -= amount;
+  savePlayer(player);
+  return true;
 }
 
 export function equipTitle(titleId: string | null): void {

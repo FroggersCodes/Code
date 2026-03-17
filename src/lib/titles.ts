@@ -106,18 +106,15 @@ export const TITLES: TitleDef[] = [
   },
 ];
 
-// ─── Battle Pass titles ───────────────────────────────────────────────────
-export const BP_TITLES: TitleDef[] = [
-  { id: "bp_rookie", label: "Rookie", description: "Battle Pass Tier 1 — just getting started", adminOnly: true, check: () => false },
-  { id: "bp_grinder", label: "Grinder", description: "Battle Pass Tier 9 — the grind never stops", adminOnly: true, check: () => false },
-  { id: "bp_dedicated", label: "Dedicated", description: "Battle Pass Tier 15 — true dedication", adminOnly: true, check: () => false },
-  { id: "bp_elite", label: "Elite", description: "Battle Pass Premium Tier 6 — elite status", adminOnly: true, check: () => false },
-  { id: "bp_apex", label: "Apex Predator", description: "Battle Pass Premium Tier 14 — top of the food chain", adminOnly: true, check: () => false },
-  { id: "bp_season_free", label: "Season Survivor", description: "Battle Pass Tier 30 — survived the season", adminOnly: true, check: () => false },
-  { id: "bp_season_victor", label: "Season Victor", description: "Battle Pass Premium Tier 30 — season champion", adminOnly: true, check: () => false },
-];
+// ─── Battle Pass titles (season-unique, granted at tier 30 premium) ───────
+// These are dynamically generated per season. We keep a helper to check if a title is a BP season title.
+export const BP_TITLES: TitleDef[] = [];
+export const BP_TITLE_IDS = new Set<string>();
 
-export const BP_TITLE_IDS = new Set(BP_TITLES.map((t) => t.id));
+/** Check if a title ID is a battle pass season title (e.g. "bp_s1_champion") */
+export function isBPSeasonTitle(id: string | null | undefined): boolean {
+  return !!id && /^bp_s\d+_champion$/.test(id);
+}
 
 // ─── Premium titles (purchasable) ──────────────────────────────────────────
 export const PREMIUM_TITLES: TitleDef[] = [
@@ -169,6 +166,11 @@ export function getNewlyUnlocked(player: Player, matches: StoredMatch[]): string
 /** Converts a title ID to its display label, or null if not found. */
 export function getTitleLabel(titleId: string | null | undefined): string | null {
   if (!titleId) return null;
+  // Handle dynamic BP season titles (e.g. "bp_s1_champion" → "S1 Champion")
+  if (isBPSeasonTitle(titleId)) {
+    const match = titleId.match(/^bp_s(\d+)_champion$/);
+    return match ? `S${match[1]} Champion` : titleId;
+  }
   return ALL_TITLES.find((t) => t.id === titleId)?.label ?? null;
 }
 
@@ -190,12 +192,9 @@ export function getTitleClass(id: string | null | undefined): string | null {
     case "neon_phantom": return "neon-phantom-title";
     case "void_walker":  return "void-walker-title";
     case "cyber_dragon": return "cyber-dragon-title";
-    case "bp_elite":        return "bp-elite-title";
-    case "bp_apex":         return "bp-apex-title";
-    case "bp_season_victor": return "bp-victor-title";
     default:
       if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
-      if (BP_TITLE_IDS.has(id)) return "admin-title"; // BP free titles use admin-title styling
+      if (isBPSeasonTitle(id)) return "bp-victor-title";
       return null;
   }
 }

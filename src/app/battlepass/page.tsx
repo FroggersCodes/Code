@@ -9,6 +9,7 @@ import {
   getXPForNextTier,
   getSeasonDaysLeft,
   getCurrentSeasonId,
+  hasActiveXPBoost,
   TOTAL_TIERS,
   type BattlePassTier,
 } from "@/lib/battlepass";
@@ -19,16 +20,24 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
     title: "T",
     avatar: "A",
     border: "B",
+    coins: "$",
+    xp_boost: "2x",
+    name_color: "C",
+    profile_effect: "FX",
   };
   const colors: Record<string, string> = {
     title: "var(--accent-yellow)",
     avatar: "var(--accent-red)",
     border: "#aa44ff",
+    coins: "#ffd700",
+    xp_boost: "var(--accent-green)",
+    name_color: "#00e5ff",
+    profile_effect: "#ff6b35",
   };
   return (
     <div className="flex flex-col items-center gap-1">
       <div
-        className="w-8 h-8 sm:w-10 sm:h-10 rounded flex items-center justify-center text-xs font-bold border"
+        className="w-8 h-8 sm:w-10 sm:h-10 rounded flex items-center justify-center text-[9px] font-bold border"
         style={{
           borderColor: colors[type] ?? "var(--border-color)",
           color: colors[type] ?? "var(--text-dim)",
@@ -225,6 +234,23 @@ export default function BattlePassPage() {
                 }}
               >
                 Premium Active
+              </div>
+            )}
+          </div>
+
+          {/* Coin balance + XP boost status */}
+          <div className="flex gap-4 mt-3 justify-center sm:justify-start">
+            <div className="flex items-center gap-1.5 text-xs">
+              <span style={{ color: "#ffd700" }}>$</span>
+              <span className="text-[var(--text-primary)] font-bold">{(player.coins ?? 0).toLocaleString()}</span>
+              <span className="text-[var(--text-dim)]">coins</span>
+            </div>
+            {hasActiveXPBoost(player) && (
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-[var(--accent-green)] font-bold">2x XP ACTIVE</span>
+                <span className="text-[var(--text-dim)]">
+                  ({Math.ceil((player.xpBoostUntil! - Date.now()) / (60 * 60 * 1000))}h left)
+                </span>
               </div>
             )}
           </div>

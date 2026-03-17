@@ -39,12 +39,13 @@ export function checkSeasonReset(player: Player): Player {
 // ── Tiers ───────────────────────────────────────────────────────────────────
 export const TOTAL_TIERS = 30;
 
-export type RewardType = "title" | "avatar" | "border";
+export type RewardType = "title" | "avatar" | "border" | "coins" | "xp_boost" | "name_color" | "profile_effect";
 
 export interface TierReward {
   type: RewardType;
   id: string;
   name: string;
+  amount?: number; // for coins (count) or xp_boost (hours)
 }
 
 export interface BattlePassTier {
@@ -65,74 +66,157 @@ function cumulativeXpForTier(tier: number): number {
   return tier * 100 + 50 * (tier - 1) * tier / 2;
 }
 
+/** Returns the season-specific title ID for tier 30 */
+export function getSeasonTitleId(): string {
+  const s = getCurrentSeasonId();
+  return `bp_s${s}_champion`;
+}
+
+export function getSeasonTitleLabel(): string {
+  const s = getCurrentSeasonId();
+  return `S${s} Champion`;
+}
+
 const TIER_REWARDS: BattlePassTier[] = (() => {
   const tiers: BattlePassTier[] = [];
 
   const freeRewards: (TierReward | null)[] = [
-    // Tier 1-5
-    { type: "title", id: "bp_rookie", name: "Rookie" },
+    // Tier 1: 50 coins
+    { type: "coins", id: "coins_50", name: "50 Coins", amount: 50 },
+    // Tier 2: --
     null,
+    // Tier 3: Border
     { type: "border", id: "red_circuit", name: "Red Circuit" },
-    null,
+    // Tier 4: 50 coins
+    { type: "coins", id: "coins_50", name: "50 Coins", amount: 50 },
+    // Tier 5: Avatar
     { type: "avatar", id: "samurai", name: "Samurai" },
-    // Tier 6-10
+    // Tier 6: --
     null,
+    // Tier 7: Border
     { type: "border", id: "green_terminal", name: "Green Terminal" },
+    // Tier 8: 75 coins
+    { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
+    // Tier 9: --
     null,
-    { type: "title", id: "bp_grinder", name: "Grinder" },
-    null,
-    // Tier 11-15
+    // Tier 10: XP Boost
+    { type: "xp_boost", id: "xpb_12", name: "2x XP (12h)", amount: 12 },
+    // Tier 11: Avatar
     { type: "avatar", id: "wizard", name: "Wizard" },
-    null,
+    // Tier 12: 50 coins
+    { type: "coins", id: "coins_50", name: "50 Coins", amount: 50 },
+    // Tier 13: Border
     { type: "border", id: "blue_neon", name: "Blue Neon" },
+    // Tier 14: --
     null,
-    { type: "title", id: "bp_dedicated", name: "Dedicated" },
-    // Tier 16-20
-    null, null, null, null, null,
-    // Tier 21-25
-    null, null, null, null, null,
-    // Tier 26-30
-    null, null, null, null,
-    { type: "title", id: "bp_season_free", name: "Season Survivor" },
+    // Tier 15: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 16: --
+    null,
+    // Tier 17: 75 coins
+    { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
+    // Tier 18: --
+    null,
+    // Tier 19: Border
+    { type: "border", id: "gold_frame", name: "Gold Frame" },
+    // Tier 20: XP Boost
+    { type: "xp_boost", id: "xpb_12", name: "2x XP (12h)", amount: 12 },
+    // Tier 21: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 22: --
+    null,
+    // Tier 23: 75 coins
+    { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
+    // Tier 24: --
+    null,
+    // Tier 25: 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
+    // Tier 26: --
+    null,
+    // Tier 27: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 28: --
+    null,
+    // Tier 29: 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
+    // Tier 30: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
   ];
 
   const premiumRewards: (TierReward | null)[] = [
-    // Tier 1-5
-    null,
+    // Tier 1: Name Color
+    { type: "name_color", id: "nc_crimson", name: "Crimson" },
+    // Tier 2: 75 coins
+    { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
+    // Tier 3: XP Boost
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 4: Avatar
     { type: "avatar", id: "demon", name: "Demon" },
-    null,
+    // Tier 5: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 6: Name Color
+    { type: "name_color", id: "nc_cyan", name: "Cyan Pulse" },
+    // Tier 7: 75 coins
+    { type: "coins", id: "coins_75", name: "75 Coins", amount: 75 },
+    // Tier 8: Border
     { type: "border", id: "plasma_ring", name: "Plasma Ring" },
-    null,
-    // Tier 6-10
-    { type: "title", id: "bp_elite", name: "Elite" },
-    null,
-    { type: "border", id: "void_aura", name: "Void Aura" },
-    null,
+    // Tier 9: XP Boost
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 10: Avatar
     { type: "avatar", id: "angel", name: "Angel" },
-    // Tier 11-15
-    null,
+    // Tier 11: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 12: Border
+    { type: "border", id: "void_aura", name: "Void Aura" },
+    // Tier 13: Profile Effect
+    { type: "profile_effect", id: "pe_scanlines", name: "Scanlines" },
+    // Tier 14: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
+    // Tier 15: Border
     { type: "border", id: "fire_ring", name: "Fire Ring" },
-    null,
-    { type: "title", id: "bp_apex", name: "Apex Predator" },
-    null,
-    // Tier 16-20
+    // Tier 16: XP Boost
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 17: 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
+    // Tier 18: Border
     { type: "border", id: "diamond_shimmer", name: "Diamond Shimmer" },
-    null, null, null,
+    // Tier 19: Profile Effect
+    { type: "profile_effect", id: "pe_matrix", name: "Matrix Rain" },
+    // Tier 20: Border
     { type: "border", id: "rainbow_pulse", name: "Rainbow Pulse" },
-    // Tier 21-25
-    null, null, null, null,
+    // Tier 21: 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
+    // Tier 22: XP Boost
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 23: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
+    // Tier 24: Profile Effect
+    { type: "profile_effect", id: "pe_neon_grid", name: "Neon Grid" },
+    // Tier 25: Border
     { type: "border", id: "cyber_grid", name: "Cyber Grid" },
-    // Tier 26-30
-    null, null, null, null,
-    { type: "title", id: "bp_season_victor", name: "Season Victor" },
+    // Tier 26: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
+    // Tier 27: XP Boost (48h!)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 28: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
+    // Tier 29: Profile Effect
+    { type: "profile_effect", id: "pe_particles", name: "Particle Field" },
+    // Tier 30: Season Title (unique per season)
+    null, // handled dynamically below
   ];
 
   for (let i = 0; i < TOTAL_TIERS; i++) {
+    let premReward = premiumRewards[i] ?? null;
+    // Tier 30 premium = season-unique title
+    if (i === TOTAL_TIERS - 1 && !premReward) {
+      premReward = { type: "title", id: getSeasonTitleId(), name: getSeasonTitleLabel() };
+    }
     tiers.push({
       tier: i + 1,
       xpRequired: cumulativeXpForTier(i + 1),
       freeReward: freeRewards[i] ?? null,
-      premiumReward: premiumRewards[i] ?? null,
+      premiumReward: premReward,
     });
   }
 
@@ -176,6 +260,7 @@ export function calculateMatchXP(
   playerTime: number | null,
   winStreak: number,
   isCotd?: boolean,
+  xpBoosted?: boolean,
 ): XPBreakdown {
   let base = 0;
   if (isCotd && won) {
@@ -190,12 +275,16 @@ export function calculateMatchXP(
 
   const streakBonus = won ? Math.min(winStreak * 10, 50) : 0;
   const speedBonus = won && playerTime !== null && playerTime < 30000 ? 15 : 0;
+  let total = base + streakBonus + speedBonus;
+
+  // 2x XP boost doubles everything
+  if (xpBoosted) total *= 2;
 
   return {
     base,
     streakBonus,
     speedBonus,
-    total: base + streakBonus + speedBonus,
+    total,
     source: isCotd ? "cotd" : isVsBot ? "bot" : "online",
   };
 }
@@ -249,7 +338,34 @@ function unlockReward(player: Player, reward: TierReward): void {
         player.unlockedBorders.push(reward.id);
       }
       break;
+    case "coins":
+      player.coins = (player.coins ?? 0) + (reward.amount ?? 0);
+      break;
+    case "xp_boost": {
+      const hours = reward.amount ?? 12;
+      const boostEnd = Date.now() + hours * 60 * 60 * 1000;
+      // Extend existing boost or set new one
+      player.xpBoostUntil = player.xpBoostUntil && player.xpBoostUntil > Date.now()
+        ? player.xpBoostUntil + hours * 60 * 60 * 1000
+        : boostEnd;
+      break;
+    }
+    case "name_color":
+      if (!player.unlockedNameColors.includes(reward.id)) {
+        player.unlockedNameColors.push(reward.id);
+      }
+      break;
+    case "profile_effect":
+      if (!player.unlockedProfileEffects.includes(reward.id)) {
+        player.unlockedProfileEffects.push(reward.id);
+      }
+      break;
   }
+}
+
+/** Check if the player currently has an active XP boost */
+export function hasActiveXPBoost(player: Player): boolean {
+  return !!player.xpBoostUntil && player.xpBoostUntil > Date.now();
 }
 
 /** Called when premium pass is purchased — retroactively unlock premium rewards for already-reached tiers */
