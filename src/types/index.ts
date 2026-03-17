@@ -40,9 +40,16 @@ export interface Player {
   seasonId: number;
   premiumPass: boolean;
   claimedTiers: number[];
+  coins: number;
+  xpBoostUntil: number | null; // timestamp when 2x XP expires
   // Borders
   unlockedBorders: string[];
   equippedBorder: string | null;
+  // Profile effects
+  nameColor: string | null;
+  profileEffect: string | null;
+  unlockedNameColors: string[];
+  unlockedProfileEffects: string[];
   // Achievements
   achievements: Record<string, { unlockedAt: string }>;
   // Missions

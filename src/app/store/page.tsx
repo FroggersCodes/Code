@@ -327,8 +327,19 @@ function StoreContent() {
         </div>
       )}
 
-      <div className="text-[10px] text-[var(--text-muted)] mb-6 tracking-wider leading-relaxed">
-        SUPPORT BUGRACER &mdash; GET EXCLUSIVE ANIMATED COSMETICS
+      <div className="flex items-center justify-between mb-6">
+        <div className="text-[10px] text-[var(--text-muted)] tracking-wider leading-relaxed">
+          SUPPORT BUGRACER &mdash; GET EXCLUSIVE ANIMATED COSMETICS
+        </div>
+        {player && (
+          <div className="flex items-center gap-1.5 text-xs flex-shrink-0">
+            <span style={{ color: "#ffd700" }}>$</span>
+            <span className="font-bold" style={{ color: "#ffd700", fontFamily: "'Orbitron', sans-serif" }}>
+              {(player.coins ?? 0).toLocaleString()}
+            </span>
+            <span className="text-[var(--text-dim)]">coins</span>
+          </div>
+        )}
       </div>
 
       {/* ── BATTLE PASS ─────────────────────────────────────────────── */}
