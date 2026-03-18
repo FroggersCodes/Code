@@ -314,7 +314,7 @@ export default function HomePage() {
               className="text-2xl font-black text-[var(--accent-red)] glow-red mb-2 tracking-wider"
               style={{ fontFamily: "'Orbitron', sans-serif" }}
             >
-              WELCOME TO BUGRACER!
+              WELCOME TO BUGRACERS!
             </div>
             <div className="text-xs text-[var(--accent-yellow)] mb-4 tracking-widest">— ALPHA —</div>
             <p className="text-sm text-[var(--text-primary)] mb-3 leading-relaxed">
@@ -336,7 +336,7 @@ export default function HomePage() {
           className="text-3xl sm:text-5xl text-[var(--accent-red)] glow-red mb-3 font-black tracking-wider"
           style={{ fontFamily: "'Orbitron', sans-serif" }}
         >
-          BUGRACER
+          BUGRACERS
         </h1>
         <div className="text-xs text-[var(--text-dim)] tracking-[0.3em] uppercase">
           Competitive Bug Fixing

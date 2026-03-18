@@ -381,7 +381,7 @@ function StoreContent() {
 
       <div className="flex items-center justify-between mb-6">
         <div className="text-[10px] text-[var(--text-muted)] tracking-wider leading-relaxed">
-          SUPPORT BUGRACER &mdash; GET EXCLUSIVE ANIMATED COSMETICS
+          SUPPORT BUGRACERS &mdash; GET EXCLUSIVE ANIMATED COSMETICS
         </div>
         {player && (
           <div className="flex items-center gap-1.5 text-xs flex-shrink-0">
@@ -421,7 +421,7 @@ function StoreContent() {
 
         {/* Premium reward preview */}
         <div className="flex gap-2 mb-4 justify-center flex-wrap">
-          {["Specter", "Nova", "Elite", "Apex Predator", "Season Victor"].map((name) => (
+          {["Plasma Ring", "Void Aura", "Fire Ring", "Alpha Champion", "Rainbow Pulse"].map((name) => (
             <span key={name} className="text-[9px] px-2 py-1 rounded border border-[var(--border-color)] text-[var(--text-dim)]">
               {name}
             </span>
@@ -475,12 +475,29 @@ function StoreContent() {
           })}
         </div>
         {!hasAllAvatars && (
-          <div
-            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
-            style={{ borderColor: STORE_ITEMS.avatars.color, color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}
+          <button
+            onClick={() => {
+              if (!player) return;
+              const cost = STORE_ITEMS.avatars.coins;
+              if ((player.coins ?? 0) < cost) return;
+              const updated = unlockForProduct({ ...player, coins: (player.coins ?? 0) - cost }, "avatar_pack");
+              savePlayer(updated);
+              setPlayer(updated);
+            }}
+            disabled={!player || (player.coins ?? 0) < STORE_ITEMS.avatars.coins}
+            className="w-full py-2 text-xs tracking-widest border rounded text-center transition-colors bg-transparent cursor-pointer"
+            style={{
+              borderColor: "#ffd700",
+              color: player && (player.coins ?? 0) >= STORE_ITEMS.avatars.coins ? "#ffd700" : "#664400",
+              fontFamily: "'Orbitron', sans-serif",
+              opacity: player && (player.coins ?? 0) >= STORE_ITEMS.avatars.coins ? 1 : 0.45,
+              cursor: player && (player.coins ?? 0) >= STORE_ITEMS.avatars.coins ? "pointer" : "not-allowed",
+            }}
+            onMouseOver={(e) => { if (player && (player.coins ?? 0) >= STORE_ITEMS.avatars.coins) e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            UNAVAILABLE
-          </div>
+            BUY WITH {STORE_ITEMS.avatars.coins.toLocaleString()} COINS
+          </button>
         )}
       </div>
 
@@ -523,12 +540,29 @@ function StoreContent() {
           })}
         </div>
         {!hasAllTitles && (
-          <div
-            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
-            style={{ borderColor: STORE_ITEMS.titles.color, color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}
+          <button
+            onClick={() => {
+              if (!player) return;
+              const cost = STORE_ITEMS.titles.coins;
+              if ((player.coins ?? 0) < cost) return;
+              const updated = unlockForProduct({ ...player, coins: (player.coins ?? 0) - cost }, "title_pack");
+              savePlayer(updated);
+              setPlayer(updated);
+            }}
+            disabled={!player || (player.coins ?? 0) < STORE_ITEMS.titles.coins}
+            className="w-full py-2 text-xs tracking-widest border rounded text-center transition-colors bg-transparent cursor-pointer"
+            style={{
+              borderColor: "#ffd700",
+              color: player && (player.coins ?? 0) >= STORE_ITEMS.titles.coins ? "#ffd700" : "#664400",
+              fontFamily: "'Orbitron', sans-serif",
+              opacity: player && (player.coins ?? 0) >= STORE_ITEMS.titles.coins ? 1 : 0.45,
+              cursor: player && (player.coins ?? 0) >= STORE_ITEMS.titles.coins ? "pointer" : "not-allowed",
+            }}
+            onMouseOver={(e) => { if (player && (player.coins ?? 0) >= STORE_ITEMS.titles.coins) e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            UNAVAILABLE
-          </div>
+            BUY WITH {STORE_ITEMS.titles.coins.toLocaleString()} COINS
+          </button>
         )}
       </div>
 
@@ -571,12 +605,29 @@ function StoreContent() {
           })}
         </div>
         {!hasAllBorders && (
-          <div
-            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
-            style={{ borderColor: STORE_ITEMS.borders.color, color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}
+          <button
+            onClick={() => {
+              if (!player) return;
+              const cost = STORE_ITEMS.borders.coins;
+              if ((player.coins ?? 0) < cost) return;
+              const updated = unlockForProduct({ ...player, coins: (player.coins ?? 0) - cost }, "border_pack");
+              savePlayer(updated);
+              setPlayer(updated);
+            }}
+            disabled={!player || (player.coins ?? 0) < STORE_ITEMS.borders.coins}
+            className="w-full py-2 text-xs tracking-widest border rounded text-center transition-colors bg-transparent cursor-pointer"
+            style={{
+              borderColor: "#ffd700",
+              color: player && (player.coins ?? 0) >= STORE_ITEMS.borders.coins ? "#ffd700" : "#664400",
+              fontFamily: "'Orbitron', sans-serif",
+              opacity: player && (player.coins ?? 0) >= STORE_ITEMS.borders.coins ? 1 : 0.45,
+              cursor: player && (player.coins ?? 0) >= STORE_ITEMS.borders.coins ? "pointer" : "not-allowed",
+            }}
+            onMouseOver={(e) => { if (player && (player.coins ?? 0) >= STORE_ITEMS.borders.coins) e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            UNAVAILABLE
-          </div>
+            BUY WITH {STORE_ITEMS.borders.coins.toLocaleString()} COINS
+          </button>
         )}
       </div>
 
@@ -627,12 +678,29 @@ function StoreContent() {
           })}
         </div>
         {!(hasAllAvatars && hasAllTitles && hasAllBorders) && (
-          <div
-            className="w-full py-3 text-xs tracking-widest border-2 rounded text-center opacity-40"
-            style={{ borderColor: STORE_ITEMS.bundle.color, color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}
+          <button
+            onClick={() => {
+              if (!player) return;
+              const cost = STORE_ITEMS.bundle.coins;
+              if ((player.coins ?? 0) < cost) return;
+              const updated = unlockForProduct({ ...player, coins: (player.coins ?? 0) - cost }, "ultimate_bundle");
+              savePlayer(updated);
+              setPlayer(updated);
+            }}
+            disabled={!player || (player.coins ?? 0) < STORE_ITEMS.bundle.coins}
+            className="w-full py-3 text-xs tracking-widest border-2 rounded text-center transition-colors bg-transparent cursor-pointer"
+            style={{
+              borderColor: "#ffd700",
+              color: player && (player.coins ?? 0) >= STORE_ITEMS.bundle.coins ? "#ffd700" : "#664400",
+              fontFamily: "'Orbitron', sans-serif",
+              opacity: player && (player.coins ?? 0) >= STORE_ITEMS.bundle.coins ? 1 : 0.45,
+              cursor: player && (player.coins ?? 0) >= STORE_ITEMS.bundle.coins ? "pointer" : "not-allowed",
+            }}
+            onMouseOver={(e) => { if (player && (player.coins ?? 0) >= STORE_ITEMS.bundle.coins) e.currentTarget.style.backgroundColor = "rgba(255,215,0,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            UNAVAILABLE
-          </div>
+            BUY WITH {STORE_ITEMS.bundle.coins.toLocaleString()} COINS
+          </button>
         )}
       </div>
 
