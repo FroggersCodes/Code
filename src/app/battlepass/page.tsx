@@ -83,7 +83,7 @@ function TierRow({
   return (
     <div
       data-tier={tier.tier}
-      className={`relative flex items-center gap-2 border rounded px-2 py-1.5 transition-all ${
+      className={`relative flex flex-col items-center gap-1.5 border rounded px-2 py-2 transition-all flex-shrink-0 w-20 ${
         isLocked
           ? "border-[var(--border-color)] opacity-30 grayscale"
           : isCurrent
@@ -96,7 +96,7 @@ function TierRow({
     >
       {/* Tier number */}
       <span
-        className="text-[10px] font-bold tracking-wider w-8 text-center flex-shrink-0"
+        className="text-[10px] font-bold tracking-wider text-center"
         style={{
           color: isCurrent ? "var(--accent-red)" : isReached ? "var(--accent-green)" : "var(--text-dim)",
           fontFamily: "'Orbitron', sans-serif",
@@ -106,7 +106,7 @@ function TierRow({
       </span>
 
       {/* Free reward */}
-      <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+      <div className="flex flex-col items-center gap-0.5 w-full">
         <span className="text-[7px] uppercase tracking-wider text-[var(--text-dim)]">Free</span>
         {tier.freeReward ? (
           <RewardIcon type={tier.freeReward.type} name={tier.freeReward.name} />
@@ -116,10 +116,10 @@ function TierRow({
       </div>
 
       {/* Divider */}
-      <div className="w-px self-stretch bg-[var(--border-color)] opacity-40 flex-shrink-0" />
+      <div className="h-px w-full bg-[var(--border-color)] opacity-40" />
 
       {/* Premium reward */}
-      <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+      <div className="flex flex-col items-center gap-0.5 w-full">
         <span className="text-[7px] uppercase tracking-wider" style={{ color: isPremiumOwner ? "#ffd700" : "var(--text-dim)" }}>
           ★ Prem
         </span>
@@ -259,10 +259,10 @@ export default function BattlePassPage() {
           </div>
         </div>
 
-        {/* Tier Track — 3 columns, one per chapter */}
+        {/* Tier Track — 3 rows, one per chapter */}
         <div className="mb-6">
           <h2 className="text-sm font-bold tracking-wider text-[var(--text-dim)] uppercase mb-3">Tier Rewards</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col gap-4">
             {([
               { chapterNum: 1, name: "Chapter 1", subtitle: "Alpha", startTier: 1 },
               { chapterNum: 2, name: "Chapter 2", subtitle: "Alpha Ascendant", startTier: 31 },
@@ -278,7 +278,7 @@ export default function BattlePassPage() {
                 <div key={chapterNum} className="flex flex-col">
                   {/* Chapter header */}
                   <div
-                    className="rounded-t-lg border-x border-t px-4 py-3 text-center"
+                    className="rounded-t-lg border-x border-t px-4 py-3 flex items-center gap-4"
                     style={{
                       backgroundColor: chapterLocked ? "rgba(60,60,60,0.12)" : "rgba(170,68,255,0.1)",
                       borderColor: chapterLocked ? "rgba(100,100,100,0.35)" : "rgba(170,68,255,0.45)",
@@ -295,13 +295,13 @@ export default function BattlePassPage() {
                       {name}
                     </div>
                     <div
-                      className="text-[10px] uppercase tracking-wider mt-0.5"
+                      className="text-[10px] uppercase tracking-wider"
                       style={{ color: chapterLocked ? "#555" : "rgba(204,102,255,0.7)" }}
                     >
                       {subtitle}
                     </div>
                     {chapterLocked && unlockDate && (
-                      <div className="mt-1.5 text-[10px] font-bold tracking-wider" style={{ color: "#888" }}>
+                      <div className="text-[10px] font-bold tracking-wider ml-auto" style={{ color: "#888" }}>
                         🔒 Unlocks{" "}
                         {unlockDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         {daysUntilUnlock > 0 && (
@@ -311,12 +311,11 @@ export default function BattlePassPage() {
                     )}
                   </div>
 
-                  {/* Tier rows */}
+                  {/* Tier columns — horizontal scroll */}
                   <div
                     ref={chapterNum === 1 ? scrollRef : undefined}
-                    className={`flex flex-col gap-1.5 p-2 border-x border-b rounded-b-lg ${chapterLocked ? "overflow-y-hidden" : "overflow-y-auto"}`}
+                    className={`flex flex-row gap-1.5 p-2 border-x border-b rounded-b-lg ${chapterLocked ? "overflow-x-hidden" : "overflow-x-auto"}`}
                     style={{
-                      maxHeight: "520px",
                       borderColor: chapterLocked ? "rgba(100,100,100,0.35)" : "rgba(170,68,255,0.45)",
                       backgroundColor: "rgba(0,0,0,0.2)",
                       scrollbarColor: "var(--border-color) transparent",
