@@ -124,7 +124,6 @@ async function loadLeaderboard(): Promise<void> {
       if (result) {
         const entries: LeaderboardEntry[] = JSON.parse(result);
         for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
-        console.log(`[leaderboard] Loaded ${leaderboard.size} entries from Redis.`);
         return;
       }
     } catch (err) {
@@ -136,7 +135,6 @@ async function loadLeaderboard(): Promise<void> {
     if (fs.existsSync(LEADERBOARD_FILE)) {
       const entries: LeaderboardEntry[] = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8"));
       for (const entry of entries) leaderboard.set(entry.username.toLowerCase(), entry);
-      console.log(`[leaderboard] Loaded ${leaderboard.size} entries from disk.`);
     }
   } catch (err) {
     console.error("[leaderboard] File load failed:", err);
@@ -185,14 +183,12 @@ function loadSuggestionsAndReports(): void {
     if (fs.existsSync(SUGGESTIONS_FILE)) {
       const data: Suggestion[] = JSON.parse(fs.readFileSync(SUGGESTIONS_FILE, "utf8"));
       suggestions.push(...data);
-      console.log(`[suggestions] Loaded ${suggestions.length} suggestions from disk.`);
     }
   } catch (err) { console.error("[suggestions] File load failed:", err); }
   try {
     if (fs.existsSync(REPORTS_FILE)) {
       const data: BugReport[] = JSON.parse(fs.readFileSync(REPORTS_FILE, "utf8"));
       bugReports.push(...data);
-      console.log(`[reports] Loaded ${bugReports.length} bug reports from disk.`);
     }
   } catch (err) { console.error("[reports] File load failed:", err); }
 }
@@ -220,7 +216,6 @@ function loadAnnouncements(): void {
     if (fs.existsSync(ANNOUNCEMENTS_FILE)) {
       const data: Announcement[] = JSON.parse(fs.readFileSync(ANNOUNCEMENTS_FILE, "utf8"));
       announcements.push(...data);
-      console.log(`[announcements] Loaded ${announcements.length} announcements from disk.`);
     }
   } catch (err) { console.error("[announcements] File load failed:", err); }
 }
@@ -251,7 +246,6 @@ function loadFriends(): void {
       const data = JSON.parse(fs.readFileSync(FRIENDS_FILE, "utf8")) as { friends: Record<string, string[]>; invites: Record<string, FriendInvite[]> };
       for (const [k, v] of Object.entries(data.friends)) friendsMap.set(k, new Set(v));
       for (const [k, v] of Object.entries(data.invites)) invitesMap.set(k, v);
-      console.log(`[friends] Loaded friends data from disk.`);
     }
   } catch (err) { console.error("[friends] File load failed:", err); }
 }
@@ -273,7 +267,7 @@ function saveFriends(): void {
 }
 
 // ─── Admin / messaging ────────────────────────────────────────────────────────
-const ADMIN_PASSPHRASE = "FroggersSmiles0407";
+const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE ?? "";
 
 // one-time title grant codes
 const grantCodes = new Map<string, { titleId: string; used: boolean }>();
@@ -443,7 +437,6 @@ export async function setupSocketHandlers(io: Server): Promise<void> {
   }, 1000);
 
   io.on("connection", (socket: Socket) => {
-    console.log(`Player connected: ${socket.id}`);
 
     // Leaderboard events
     socket.on("leaderboard:update", (data: { username: string; elo: number; rank: string; wins: number; losses: number; draws: number; winStreak?: number; title?: string | null; avatar?: string | null; isGuest?: boolean }) => {
@@ -948,7 +941,6 @@ export async function setupSocketHandlers(io: Server): Promise<void> {
     });
 
     socket.on("disconnect", () => {
-      console.log(`Player disconnected: ${socket.id}`);
 
       // Clean up messaging maps
       const username = socketToUser.get(socket.id);

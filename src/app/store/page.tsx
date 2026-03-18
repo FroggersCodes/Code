@@ -131,11 +131,9 @@ function SplitBuyButton({
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("No checkout URL returned:", data);
         setLoading(false);
       }
     } catch (err) {
-      console.error("Checkout error:", err);
       setLoading(false);
     }
   };

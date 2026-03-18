@@ -3,6 +3,7 @@ import {
   createCheckout,
 } from "@lemonsqueezy/lemonsqueezy.js";
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Map our product types to LemonSqueezy variant IDs (set in env)
 const VARIANT_MAP: Record<string, string | undefined> = {
@@ -12,6 +13,11 @@ const VARIANT_MAP: Record<string, string | undefined> = {
 };
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+  if (!rateLimit(`checkout:${ip}`, 5, 60_000).allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const apiKey = process.env.LEMONSQUEEZY_API_KEY;
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
 
