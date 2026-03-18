@@ -228,7 +228,7 @@ export function getTitleClass(id: string | null | undefined): string | null {
       if (ADMIN_TITLE_IDS.has(id)) return "admin-title";
       if (id === "alpha_legend") return "alpha-legend-title";
       if (id === "bp_s1_champion") return "alpha-champion-title";
-      if (isBPSeasonTitle(id)) return "bp-victor-title";
+      if (isBPSeasonTitle(id)) return "alpha-champion-title";
       return null;
   }
 }

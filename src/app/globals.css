@@ -633,18 +633,6 @@ body::after {
 }
 
 /* ── Battle Pass Title Animations ─────────────────────────────────────── */
-@keyframes bp-victor-gold {
-  0%, 100% { color: #ffd700; text-shadow: 0 0 8px #ffd700, 0 0 18px rgba(255,215,0,0.6); }
-  25% { color: #ffe566; text-shadow: 0 0 12px #ffe566, 0 0 24px rgba(255,229,102,0.5); }
-  50% { color: #ffaa00; text-shadow: 0 0 10px #ffaa00, 0 0 22px rgba(255,170,0,0.5); }
-  75% { color: #ffd060; text-shadow: 0 0 8px #ffd060, 0 0 18px rgba(255,208,96,0.6); }
-}
-.bp-victor-title {
-  animation: bp-victor-gold 2.5s ease-in-out infinite;
-  font-family: 'Orbitron', sans-serif;
-  letter-spacing: 0.1em;
-}
-
 /* Alpha Champion — Panini Prizm gold /10 foil shimmer on text */
 @keyframes alpha-champion-prizm {
   0%, 100% { color: #ffd700; text-shadow: 0 0 8px #ffd700, 0 0 18px rgba(255,215,0,0.55); }
