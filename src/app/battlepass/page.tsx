@@ -262,7 +262,7 @@ export default function BattlePassPage() {
         {/* Tier Track — 3 columns, one per chapter */}
         <div className="mb-6">
           <h2 className="text-sm font-bold tracking-wider text-[var(--text-dim)] uppercase mb-3">Tier Rewards</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {([
               { chapterNum: 1, name: "Chapter 1", subtitle: "Alpha", startTier: 1 },
               { chapterNum: 2, name: "Chapter 2", subtitle: "Alpha Ascendant", startTier: 31 },
@@ -314,7 +314,7 @@ export default function BattlePassPage() {
                   {/* Tier rows */}
                   <div
                     ref={chapterNum === 1 ? scrollRef : undefined}
-                    className="flex flex-col gap-1.5 p-2 overflow-y-auto border-x border-b rounded-b-lg"
+                    className={`flex flex-col gap-1.5 p-2 border-x border-b rounded-b-lg ${chapterLocked ? "overflow-y-hidden" : "overflow-y-auto"}`}
                     style={{
                       maxHeight: "520px",
                       borderColor: chapterLocked ? "rgba(100,100,100,0.35)" : "rgba(170,68,255,0.45)",
