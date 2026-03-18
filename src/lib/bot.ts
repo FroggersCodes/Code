@@ -3,6 +3,18 @@
  * The bot simulates a player solving a challenge with difficulty-scaled timing.
  */
 
+import { RANK_THRESHOLDS, type RankTier } from "@/types";
+
+/** Returns the rank tier that matches the given ELO, so the bot visually mirrors the player. */
+export function getBotRank(playerElo: number): RankTier {
+  const tiers: RankTier[] = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Grandmaster"];
+  for (const tier of tiers) {
+    const { min, max } = RANK_THRESHOLDS[tier];
+    if (playerElo >= min && playerElo <= max) return tier;
+  }
+  return "Silver";
+}
+
 export function getBotSolveDelay(playerElo: number, difficulty: number): number {
   // Base delay ranges by player ELO
   // Lower ELO players get a slower bot (easier), higher ELO get faster bot (harder)

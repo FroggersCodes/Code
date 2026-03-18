@@ -8,7 +8,7 @@ import { getPlayer } from "@/lib/storage";
 import { getTitleLabel } from "@/lib/titles";
 import { playMatchFound } from "@/lib/sounds";
 import { startBotGame } from "@/lib/gameEngine";
-import { BOT_PLAYER } from "@/lib/bot";
+import { BOT_PLAYER, getBotRank } from "@/lib/bot";
 import {
   joinQueue,
   leaveQueue,
@@ -354,7 +354,7 @@ export default function LobbyPage() {
               <div className="text-[var(--accent-red)] text-xl pulse-glow font-bold" style={{ fontFamily: "'Orbitron', sans-serif" }}>VS</div>
               <div>
                 <div className="text-xs text-[var(--text-dim)] mb-2">{BOT_PLAYER.username}</div>
-                <RankBadge rank={BOT_PLAYER.rank} size="md" />
+                <RankBadge rank={getBotRank(player.elo)} size="md" />
               </div>
             </div>
           </div>

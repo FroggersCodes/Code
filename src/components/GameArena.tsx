@@ -17,7 +17,7 @@ import {
   setOnOpponentDisconnected,
 } from "@/lib/multiplayerEngine";
 import { getPlayer } from "@/lib/storage";
-import { BOT_PLAYER } from "@/lib/bot";
+import { BOT_PLAYER, getBotRank } from "@/lib/bot";
 import { ALL_TITLES, getTitleLabel } from "@/lib/titles";
 import { playTypingBurst, playSolveSound } from "@/lib/sounds";
 import type { LocalGameState, GameResult } from "@/lib/gameEngine";
@@ -69,7 +69,7 @@ export function GameArena(props: GameArenaProps) {
     : BOT_PLAYER.elo;
   const opponentRank = isMultiplayer
     ? props.multiplayerConfig!.opponent.rank
-    : BOT_PLAYER.rank;
+    : getBotRank(player?.elo ?? 1000);
   const opponentTitle = isMultiplayer
     ? getTitleLabel(props.multiplayerConfig!.opponent.title)
     : null;
