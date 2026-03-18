@@ -10,7 +10,7 @@ const port = parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   const httpServer = createServer((req, res) => {
     handle(req, res);
   });
@@ -22,7 +22,7 @@ app.prepare().then(() => {
     },
   });
 
-  setupSocketHandlers(io);
+  await setupSocketHandlers(io);
 
   httpServer.listen(port, hostname, () => {
     console.log(`> BugRacer ready on http://${hostname}:${port}`);

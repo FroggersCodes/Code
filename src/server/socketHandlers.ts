@@ -171,8 +171,6 @@ function saveLeaderboard(): void {
   }, 2000);
 }
 
-loadLeaderboard();
-
 // ─── Suggestions & Bug Reports (server-side) ─────────────────────────────────
 interface Suggestion { id: string; username: string; text: string; createdAt: string; }
 interface BugReport { id: string; username: string; challengeTitle: string; reason: string; description: string; createdAt: string; }
@@ -212,8 +210,6 @@ function saveSuggestionsAndReports(): void {
   }, 2000);
 }
 
-loadSuggestionsAndReports();
-
 // ─── Announcements (server-side) ──────────────────────────────────────────────
 interface Announcement { id: string; title: string; body: string; createdAt: string; }
 const announcements: Announcement[] = [];
@@ -240,8 +236,6 @@ function saveAnnouncements(): void {
     } catch (err) { console.error("[announcements] File save failed:", err); }
   }, 2000);
 }
-
-loadAnnouncements();
 
 // ─── Friends & Invites (server-side) ──────────────────────────────────────────
 // friends: username.lower() -> Set of friend usernames (lower)
@@ -277,8 +271,6 @@ function saveFriends(): void {
     } catch (err) { console.error("[friends] File save failed:", err); }
   }, 2000);
 }
-
-loadFriends();
 
 // ─── Admin / messaging ────────────────────────────────────────────────────────
 const ADMIN_PASSPHRASE = "FroggersSmiles0407";
@@ -430,7 +422,12 @@ function createRoom(p1: QueuedPlayer, p2: QueuedPlayer, io: Server): void {
   });
 }
 
-export function setupSocketHandlers(io: Server): void {
+export async function setupSocketHandlers(io: Server): Promise<void> {
+  await loadLeaderboard();
+  await loadSuggestionsAndReports();
+  await loadAnnouncements();
+  await loadFriends();
+
   // Matchmaking loop: check for matches every second
   matchmakingInterval = setInterval(() => {
     let match = tryMatch();
