@@ -6,7 +6,7 @@ import { getPlayer, savePlayer } from "@/lib/storage";
 import { AVATARS, PREMIUM_AVATAR_IDS } from "@/lib/avatars";
 import { PREMIUM_TITLES, getTitleClass } from "@/lib/titles";
 import { BORDERS, isPremiumBorder, RARITY_COLORS } from "@/lib/borders";
-import { unlockPremiumPass, getCurrentTier, getSeasonDaysLeft, getCurrentSeasonId, getSeasonName } from "@/lib/battlepass";
+import { unlockPremiumPass, getCurrentTier, getSeasonDaysLeft, getCurrentSeasonId, getSeasonName, getUnlockedTierCount } from "@/lib/battlepass";
 import type { Player } from "@/types";
 
 // ── Store configuration ────────────────────────────────────────────────────
@@ -416,7 +416,7 @@ function StoreContent() {
         <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)] mb-3 border-t border-b border-[var(--border-color)] py-2">
           <span>SEASON {getSeasonName().toUpperCase()}</span>
           <span>{getSeasonDaysLeft()} DAYS LEFT</span>
-          {player && <span>TIER {getCurrentTier(player.xp)}/30</span>}
+          {player && <span>TIER {getCurrentTier(player.xp)}/{getUnlockedTierCount()}</span>}
         </div>
 
         {/* Premium reward preview */}

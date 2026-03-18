@@ -5,8 +5,35 @@ import type { Player } from "@/types";
 
 // ── Season ──────────────────────────────────────────────────────────────────
 const SEASON_EPOCH = new Date("2026-03-01T00:00:00Z").getTime();
-const SEASON_LENGTH_DAYS = 183;
+const SEASON_LENGTH_DAYS = 180;
 const SEASON_LENGTH_MS = SEASON_LENGTH_DAYS * 24 * 60 * 60 * 1000;
+
+// ── Chapter unlocks (each chapter unlocks every 60 days) ─────────────────────
+// Chapter 1: day 1  (tiers 1–30)
+// Chapter 2: day 61 (tiers 31–60)
+// Chapter 3: day 121 (tiers 61–90)
+const CHAPTER_UNLOCK_DAYS = [1, 61, 121] as const;
+
+/** Returns how many chapters are currently unlocked (1, 2, or 3). */
+export function getUnlockedChapters(): number {
+  const now = Date.now();
+  if (now < SEASON_EPOCH) return 1;
+  const dayInSeason = Math.floor((now - SEASON_EPOCH) / (24 * 60 * 60 * 1000)) + 1;
+  if (dayInSeason >= 121) return 3;
+  if (dayInSeason >= 61) return 2;
+  return 1;
+}
+
+/** Returns the max tier currently accessible based on chapter unlocks. */
+export function getUnlockedTierCount(): number {
+  return getUnlockedChapters() * 30;
+}
+
+/** Returns the calendar date when the given chapter (2 or 3) unlocks. */
+export function getChapterUnlockDate(chapter: 2 | 3): Date {
+  const dayOffset = CHAPTER_UNLOCK_DAYS[chapter - 1] - 1; // days after epoch
+  return new Date(SEASON_EPOCH + dayOffset * 24 * 60 * 60 * 1000);
+}
 
 export function getCurrentSeasonId(): number {
   const now = Date.now();
@@ -37,10 +64,10 @@ export function checkSeasonReset(player: Player): Player {
 }
 
 // ── Tiers ───────────────────────────────────────────────────────────────────
-export const TOTAL_TIERS = 60;
+export const TOTAL_TIERS = 90;
 
-/** Tier numbers after which a chapter divider should appear in the UI */
-export const CHAPTER_BREAKPOINTS: number[] = [30];
+/** First tier of each new chapter — a divider appears in the UI before these tiers */
+export const CHAPTER_BREAKPOINTS: number[] = [31, 61];
 
 export type RewardType = "title" | "avatar" | "border" | "coins" | "xp_boost" | "name_color" | "profile_effect";
 
@@ -211,8 +238,69 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     null,
     // Tier 59: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
-    // Tier 60: 500 coins
+    // Tier 60: 500 coins (chapter 2 capstone)
     { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // ── Chapter 3: Alpha Apex (Tiers 61–90) ───────────────────────────────
+    // Tier 61: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
+    // Tier 62: --
+    null,
+    // Tier 63: XP Boost (24h)
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 64: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
+    // Tier 65: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
+    // Tier 66: --
+    null,
+    // Tier 67: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
+    // Tier 68: --
+    null,
+    // Tier 69: XP Boost (24h)
+    { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
+    // Tier 70: 350 coins
+    { type: "coins", id: "coins_350", name: "350 Coins", amount: 350 },
+    // Tier 71: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
+    // Tier 72: --
+    null,
+    // Tier 73: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 74: --
+    null,
+    // Tier 75: 400 coins
+    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 76: --
+    null,
+    // Tier 77: 300 coins
+    { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
+    // Tier 78: --
+    null,
+    // Tier 79: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 80: 500 coins
+    { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // Tier 81: 300 coins
+    { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
+    // Tier 82: --
+    null,
+    // Tier 83: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 84: --
+    null,
+    // Tier 85: 400 coins
+    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 86: --
+    null,
+    // Tier 87: 500 coins
+    { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // Tier 88: --
+    null,
+    // Tier 89: 600 coins
+    { type: "coins", id: "coins_600", name: "600 Coins", amount: 600 },
+    // Tier 90: 1000 coins (chapter 3 free capstone)
+    { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
   ];
 
   const premiumRewards: (TierReward | null)[] = [
@@ -335,7 +423,68 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
     // Tier 59: 500 coins
     { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
-    // Tier 60: Alpha Legend title — handled dynamically below
+    // Tier 60: 1000 coins (chapter 2 premium capstone — Alpha Legend moves to tier 90)
+    { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
+    // ── Chapter 3: Alpha Apex Premium (Tiers 61–90) ───────────────────────
+    // Tier 61: 350 coins
+    { type: "coins", id: "coins_350", name: "350 Coins", amount: 350 },
+    // Tier 62: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 63: 400 coins
+    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 64: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 65: 400 coins
+    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 66: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 67: 500 coins
+    { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // Tier 68: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 69: 500 coins
+    { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // Tier 70: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 71: 600 coins
+    { type: "coins", id: "coins_600", name: "600 Coins", amount: 600 },
+    // Tier 72: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 73: 600 coins
+    { type: "coins", id: "coins_600", name: "600 Coins", amount: 600 },
+    // Tier 74: 500 coins
+    { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
+    // Tier 75: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 76: 700 coins
+    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
+    // Tier 77: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 78: 750 coins
+    { type: "coins", id: "coins_750", name: "750 Coins", amount: 750 },
+    // Tier 79: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 80: 1000 coins
+    { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
+    // Tier 81: 700 coins
+    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
+    // Tier 82: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 83: 800 coins
+    { type: "coins", id: "coins_800", name: "800 Coins", amount: 800 },
+    // Tier 84: 700 coins
+    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
+    // Tier 85: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 86: 900 coins
+    { type: "coins", id: "coins_900", name: "900 Coins", amount: 900 },
+    // Tier 87: XP Boost (48h)
+    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 88: 1000 coins
+    { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
+    // Tier 89: 1500 coins
+    { type: "coins", id: "coins_1500", name: "1500 Coins", amount: 1500 },
+    // Tier 90: Alpha Legend title — handled dynamically below
     null,
   ];
 
@@ -345,7 +494,7 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     if (i === 29 && !premReward) {
       premReward = { type: "title", id: getSeasonTitleId(), name: getSeasonTitleLabel() };
     }
-    // Tier 60 premium = Alpha Legend title (chapter 2 capstone, season 1 exclusive)
+    // Tier 90 premium = Alpha Legend title (chapter 3 capstone, season 1 exclusive)
     if (i === TOTAL_TIERS - 1 && !premReward) {
       premReward = { type: "title", id: "alpha_legend", name: "Alpha Legend" };
     }

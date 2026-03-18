@@ -12,6 +12,8 @@ import {
   getSeasonName,
   hasActiveXPBoost,
   reconcileBattlePassRewards,
+  getUnlockedChapters,
+  getChapterUnlockDate,
   TOTAL_TIERS,
   CHAPTER_BREAKPOINTS,
   type BattlePassTier,
@@ -72,17 +74,21 @@ function TierCard({
   isReached,
   isCurrent,
   isPremiumOwner,
+  isLocked,
 }: {
   tier: BattlePassTier;
   isReached: boolean;
   isCurrent: boolean;
   isPremiumOwner: boolean;
+  isLocked: boolean;
 }) {
   const reached = isReached;
   return (
     <div
       className={`relative flex-shrink-0 w-[100px] sm:w-[120px] border rounded-lg p-2 sm:p-3 flex flex-col gap-2 transition-all ${
-        isCurrent
+        isLocked
+          ? "border-[var(--border-color)] opacity-30 grayscale"
+          : isCurrent
           ? "border-[var(--accent-red)] shadow-[0_0_12px_rgba(255,0,68,0.3)]"
           : reached
           ? "border-[var(--accent-green)]"
@@ -176,6 +182,13 @@ export default function BattlePassPage() {
   const seasonId = getCurrentSeasonId();
   const seasonName = getSeasonName(seasonId);
   const progressPercent = currentTier >= TOTAL_TIERS ? 100 : xpProgress.tierXP > 0 ? Math.round((xpProgress.current / xpProgress.tierXP) * 100) : 0;
+  const unlockedChapters = getUnlockedChapters();
+  const unlockedTiers = unlockedChapters * 30;
+
+  const CHAPTER_INFO: Record<number, { num: 2 | 3; name: string; subtitle: string }> = {
+    31: { num: 2, name: "Chapter 2", subtitle: "Alpha Ascendant" },
+    61: { num: 3, name: "Chapter 3", subtitle: "Alpha Apex" },
+  };
 
   return (
     <main className="min-h-screen pt-16 pb-12 px-3 sm:px-6" style={{ backgroundColor: "var(--bg-dark)" }}>
@@ -265,42 +278,53 @@ export default function BattlePassPage() {
             className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin"
             style={{ scrollbarColor: "var(--border-color) transparent" }}
           >
-            {tiers.map((tier) => (
-              <div key={tier.tier} className="flex-shrink-0 flex items-stretch gap-3">
-                {CHAPTER_BREAKPOINTS.includes(tier.tier) && (
-                  <div
-                    className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-3 rounded-lg border"
-                    style={{
-                      backgroundColor: "rgba(170,68,255,0.08)",
-                      borderColor: "rgba(170,68,255,0.4)",
-                      boxShadow: "0 0 14px rgba(170,68,255,0.2)",
-                      minWidth: "72px",
-                    }}
-                  >
-                    <span
-                      className="text-[8px] uppercase tracking-widest font-bold"
-                      style={{ color: "#aa44ff", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                    >
-                      Chapter 2
-                    </span>
-                    <span
-                      className="text-[7px] uppercase tracking-wider"
-                      style={{ color: "rgba(170,68,255,0.7)", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                    >
-                      Alpha Ascendant
-                    </span>
+            {tiers.map((tier) => {
+              const chapterInfo = CHAPTER_INFO[tier.tier];
+              const isLocked = tier.tier > unlockedTiers;
+              return (
+                <div key={tier.tier} className="flex-shrink-0 flex items-stretch gap-3">
+                  {chapterInfo && (() => {
+                    const chapterLocked = chapterInfo.num > unlockedChapters;
+                    const unlockDate = chapterLocked ? getChapterUnlockDate(chapterInfo.num) : null;
+                    return (
+                      <div
+                        className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-3 rounded-lg border"
+                        style={{
+                          backgroundColor: chapterLocked ? "rgba(80,80,80,0.08)" : "rgba(170,68,255,0.08)",
+                          borderColor: chapterLocked ? "rgba(120,120,120,0.4)" : "rgba(170,68,255,0.4)",
+                          boxShadow: chapterLocked ? "none" : "0 0 14px rgba(170,68,255,0.2)",
+                          minWidth: "72px",
+                        }}
+                      >
+                        <span
+                          className="text-[8px] uppercase tracking-widest font-bold"
+                          style={{ color: chapterLocked ? "#666" : "#aa44ff", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                        >
+                          {chapterInfo.name}
+                        </span>
+                        <span
+                          className="text-[7px] uppercase tracking-wider"
+                          style={{ color: chapterLocked ? "#555" : "rgba(170,68,255,0.7)", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                        >
+                          {chapterLocked && unlockDate
+                            ? `Unlocks ${unlockDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                            : chapterInfo.subtitle}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                  <div data-tier={tier.tier}>
+                    <TierCard
+                      tier={tier}
+                      isReached={!isLocked && currentTier >= tier.tier}
+                      isCurrent={!isLocked && currentTier === tier.tier - 1}
+                      isPremiumOwner={true}
+                      isLocked={isLocked}
+                    />
                   </div>
-                )}
-                <div data-tier={tier.tier}>
-                  <TierCard
-                    tier={tier}
-                    isReached={currentTier >= tier.tier}
-                    isCurrent={currentTier === tier.tier - 1}
-                    isPremiumOwner={true}
-                  />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
