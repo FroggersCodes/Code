@@ -223,37 +223,18 @@ export default function BattlePassPage() {
               </div>
             </div>
 
-            {!player.premiumPass && (
-              <button
-                onClick={() => router.push("/store")}
-                className="px-4 py-2 rounded border text-xs font-bold uppercase tracking-wider cursor-pointer transition-all"
-                style={{
-                  borderColor: "#c9a227",
-                  color: "#ffd700",
-                  backgroundColor: "rgba(255,215,0,0.06)",
-                  fontFamily: "'Orbitron', sans-serif",
-                  boxShadow: "0 0 0 rgba(255,215,0,0)",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 12px rgba(255,215,0,0.35)")}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 rgba(255,215,0,0)")}
-              >
-                ★ Unlock Premium
-              </button>
-            )}
-            {player.premiumPass && (
-              <div
-                className="px-3 py-1.5 rounded border text-xs font-bold uppercase tracking-wider"
-                style={{
-                  borderColor: "#c9a227",
-                  color: "#ffd700",
-                  backgroundColor: "rgba(255,215,0,0.08)",
-                  fontFamily: "'Orbitron', sans-serif",
-                  boxShadow: "0 0 8px rgba(255,215,0,0.2)",
-                }}
-              >
-                ★ Premium Active
-              </div>
-            )}
+            <div
+              className="px-3 py-1.5 rounded border text-xs font-bold uppercase tracking-wider"
+              style={{
+                borderColor: "#c9a227",
+                color: "#ffd700",
+                backgroundColor: "rgba(255,215,0,0.08)",
+                fontFamily: "'Orbitron', sans-serif",
+                boxShadow: "0 0 8px rgba(255,215,0,0.2)",
+              }}
+            >
+              ★ Premium Active
+            </div>
           </div>
 
           {/* Coin balance + XP boost status */}
@@ -313,7 +294,7 @@ export default function BattlePassPage() {
                     tier={tier}
                     isReached={currentTier >= tier.tier}
                     isCurrent={currentTier === tier.tier - 1}
-                    isPremiumOwner={player.premiumPass}
+                    isPremiumOwner={true}
                   />
                 </div>
               </div>
