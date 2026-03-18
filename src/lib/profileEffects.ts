@@ -7,18 +7,15 @@ export interface NameColorDef {
   css: string; // CSS color or gradient value
 }
 
+// Only colors that are obtainable through the battle pass or store.
+// Chapter 1 premium: nc_crimson (tier 1), nc_cyan (tier 6)
+// Chapter 2 premium: nc_gold (tier 31), nc_neon_green (tier 35), nc_violet (tier 49)
 export const NAME_COLORS: NameColorDef[] = [
-  { id: "nc_crimson",    name: "Crimson",      css: "#ff2244" },
-  { id: "nc_cyan",       name: "Cyan Pulse",   css: "#00e5ff" },
-  { id: "nc_gold",       name: "Gold",         css: "#ffd700" },
-  { id: "nc_toxic",      name: "Toxic Green",  css: "#39ff14" },
-  { id: "nc_purple",     name: "Royal Purple", css: "#aa44ff" },
-  { id: "nc_sunset",     name: "Sunset Fade",  css: "linear-gradient(90deg, #ff6b35, #ff2244, #aa44ff)" },
-  { id: "nc_ice",        name: "Ice Blue",     css: "linear-gradient(90deg, #00e5ff, #e0f7fa)" },
-  { id: "nc_fire",       name: "Flame",        css: "linear-gradient(90deg, #ff4400, #ffd700)" },
-  // Chapter 2 Battle Pass name colors
-  { id: "nc_neon_green", name: "Neon Green",   css: "#00ff88" },
-  { id: "nc_violet",     name: "Violet",       css: "#cc55ff" },
+  { id: "nc_crimson",    name: "Crimson",    css: "#ff2244" },
+  { id: "nc_cyan",       name: "Cyan Pulse", css: "#00e5ff" },
+  { id: "nc_gold",       name: "Gold",       css: "#ffd700" },
+  { id: "nc_neon_green", name: "Neon Green", css: "#00ff88" },
+  { id: "nc_violet",     name: "Violet",     css: "#cc55ff" },
 ];
 
 // ── Profile Effects (animated overlays / card backgrounds) ──────────────────

@@ -11,6 +11,7 @@ import {
   getCurrentSeasonId,
   getSeasonName,
   hasActiveXPBoost,
+  reconcileBattlePassRewards,
   TOTAL_TIERS,
   CHAPTER_BREAKPOINTS,
   type BattlePassTier,
@@ -152,7 +153,8 @@ export default function BattlePassPage() {
       router.push("/");
       return;
     }
-    setPlayer(p);
+    reconcileBattlePassRewards();
+    setPlayer(getPlayer()!);
   }, [router]);
 
   // Auto-scroll to current tier
