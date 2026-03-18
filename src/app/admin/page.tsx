@@ -13,7 +13,7 @@ interface BugReport { id: string; username: string; challengeTitle: string; reas
 interface Suggestion { id: string; username: string; text: string; createdAt: string; }
 interface Announcement { id: string; title: string; body: string; createdAt: string; }
 
-const PASSPHRASE = "FroggersSmiles0407";
+const PASSPHRASE = process.env.NEXT_PUBLIC_ADMIN_PASSPHRASE ?? "";
 
 function flash(set: (v: boolean) => void) {
   set(true);

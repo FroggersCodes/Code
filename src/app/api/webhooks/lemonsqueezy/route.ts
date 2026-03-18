@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
 
     if (username && productId && status === "paid") {
       addFulfilledOrder(productId, username);
-      console.log(`[LemonSqueezy] Fulfilled ${productId} for ${username}`);
     }
   }
 

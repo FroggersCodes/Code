@@ -17,7 +17,7 @@ app.prepare().then(async () => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: dev ? "*" : (process.env.NEXT_PUBLIC_APP_URL ?? "*"),
       methods: ["GET", "POST"],
     },
   });
