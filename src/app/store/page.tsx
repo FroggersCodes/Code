@@ -409,11 +409,7 @@ function StoreContent() {
             {STORE_ITEMS.battlepass.name}
           </div>
           <div className="flex items-center gap-2">
-            {hasPremiumPass && <span className="text-[10px] text-[var(--accent-green)] tracking-wider">OWNED</span>}
-            <span className="text-[10px] text-[var(--text-muted)]">{STORE_ITEMS.battlepass.coins.toLocaleString()} coins</span>
-            <span className="text-sm font-bold" style={{ color: STORE_ITEMS.battlepass.color, fontFamily: "'Orbitron', sans-serif" }}>
-              {STORE_ITEMS.battlepass.price}
-            </span>
+            <span className="text-[10px] text-[var(--accent-green)] tracking-wider">FREE</span>
           </div>
         </div>
         <div className="text-[10px] text-[var(--text-muted)] mb-3">{STORE_ITEMS.battlepass.description}</div>
@@ -434,27 +430,13 @@ function StoreContent() {
           ))}
         </div>
 
-        {!hasPremiumPass && username && (
-          <SplitBuyButton
-            productId="battle_pass"
-            priceLabel="UNLOCK — $4.99"
-            coinCost={STORE_ITEMS.battlepass.coins}
-            color={STORE_ITEMS.battlepass.color}
-            username={username}
-            bold
-            player={player}
-            onCoinBuy={setPlayer}
-          />
-        )}
-        {hasPremiumPass && (
-          <button
-            onClick={() => router.push("/battlepass")}
-            className="block w-full py-2 text-xs tracking-widest border rounded text-center transition-colors cursor-pointer bg-transparent"
-            style={{ borderColor: "var(--accent-green)", color: "var(--accent-green)", fontFamily: "'Orbitron', sans-serif" }}
-          >
-            VIEW BATTLE PASS
-          </button>
-        )}
+        <button
+          onClick={() => router.push("/battlepass")}
+          className="block w-full py-2 text-xs tracking-widest border rounded text-center transition-colors cursor-pointer bg-transparent"
+          style={{ borderColor: "var(--accent-green)", color: "var(--accent-green)", fontFamily: "'Orbitron', sans-serif" }}
+        >
+          VIEW BATTLE PASS
+        </button>
       </div>
 
       {/* ── AVATAR PACK ─────────────────────────────────────────────── */}
@@ -494,16 +476,13 @@ function StoreContent() {
             );
           })}
         </div>
-        {!hasAllAvatars && username && (
-          <SplitBuyButton
-            productId="avatar_pack"
-            priceLabel="BUY — $2.99"
-            coinCost={STORE_ITEMS.avatars.coins}
-            color={STORE_ITEMS.avatars.color}
-            username={username}
-            player={player}
-            onCoinBuy={setPlayer}
-          />
+        {!hasAllAvatars && (
+          <div
+            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
+            style={{ borderColor: STORE_ITEMS.avatars.color, color: STORE_ITEMS.avatars.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
+            UNAVAILABLE
+          </div>
         )}
       </div>
 
@@ -545,16 +524,13 @@ function StoreContent() {
             );
           })}
         </div>
-        {!hasAllTitles && username && (
-          <SplitBuyButton
-            productId="title_pack"
-            priceLabel="BUY — $2.99"
-            coinCost={STORE_ITEMS.titles.coins}
-            color={STORE_ITEMS.titles.color}
-            username={username}
-            player={player}
-            onCoinBuy={setPlayer}
-          />
+        {!hasAllTitles && (
+          <div
+            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
+            style={{ borderColor: STORE_ITEMS.titles.color, color: STORE_ITEMS.titles.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
+            UNAVAILABLE
+          </div>
         )}
       </div>
 
@@ -596,16 +572,13 @@ function StoreContent() {
             );
           })}
         </div>
-        {!hasAllBorders && username && (
-          <SplitBuyButton
-            productId="border_pack"
-            priceLabel="BUY — $2.99"
-            coinCost={STORE_ITEMS.borders.coins}
-            color={STORE_ITEMS.borders.color}
-            username={username}
-            player={player}
-            onCoinBuy={setPlayer}
-          />
+        {!hasAllBorders && (
+          <div
+            className="w-full py-2 text-xs tracking-widest border rounded text-center opacity-40"
+            style={{ borderColor: STORE_ITEMS.borders.color, color: STORE_ITEMS.borders.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
+            UNAVAILABLE
+          </div>
         )}
       </div>
 
@@ -655,17 +628,13 @@ function StoreContent() {
             );
           })}
         </div>
-        {!(hasAllAvatars && hasAllTitles && hasAllBorders) && username && (
-          <SplitBuyButton
-            productId="ultimate_bundle"
-            priceLabel="BUNDLE — $5.99"
-            coinCost={STORE_ITEMS.bundle.coins}
-            color={STORE_ITEMS.bundle.color}
-            username={username}
-            bold
-            player={player}
-            onCoinBuy={setPlayer}
-          />
+        {!(hasAllAvatars && hasAllTitles && hasAllBorders) && (
+          <div
+            className="w-full py-3 text-xs tracking-widest border-2 rounded text-center opacity-40"
+            style={{ borderColor: STORE_ITEMS.bundle.color, color: STORE_ITEMS.bundle.color, fontFamily: "'Orbitron', sans-serif" }}
+          >
+            UNAVAILABLE
+          </div>
         )}
       </div>
 

@@ -215,6 +215,7 @@ export function GameArena(props: GameArenaProps) {
           isYou={true}
           solved={solved}
           avatar={player?.avatar}
+          border={player?.equippedBorder}
           winStreak={player?.winStreak}
         />
 

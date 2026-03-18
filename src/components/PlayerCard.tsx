@@ -3,6 +3,7 @@
 import { RankBadge } from "./RankBadge";
 import { getAvatarSvg } from "@/lib/avatars";
 import { getTitleClass } from "@/lib/titles";
+import { getBorderClass } from "@/lib/borders";
 
 interface PlayerCardProps {
   username: string;
@@ -14,11 +15,13 @@ interface PlayerCardProps {
   solved?: boolean;
   typing?: boolean;
   avatar?: string | null;
+  border?: string | null;
   winStreak?: number;
 }
 
-export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved, typing, avatar, winStreak }: PlayerCardProps) {
+export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved, typing, avatar, border, winStreak }: PlayerCardProps) {
   const avatarSvg = getAvatarSvg(avatar);
+  const borderClass = getBorderClass(border);
   const titleClass = titleId
     ? getTitleClass(titleId)
     : title?.startsWith("◈") ? "glitch-title" : title?.startsWith("✦") ? "admin-title" : null;
@@ -35,7 +38,7 @@ export function PlayerCard({ username, elo, rank, title, titleId, isYou, solved,
       <div className="flex items-center gap-2 mb-1">
         {avatarSvg ? (
           <div
-            className="w-7 h-7 rounded overflow-hidden flex-shrink-0"
+            className={`w-7 h-7 rounded overflow-hidden flex-shrink-0 ${borderClass ?? (isYou ? "border border-[var(--accent-red)]" : "")}`}
             dangerouslySetInnerHTML={{ __html: avatarSvg }}
           />
         ) : (

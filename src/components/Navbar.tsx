@@ -6,12 +6,14 @@ import { getPlayer } from "@/lib/storage";
 import { ALL_TITLES, getTitleClass } from "@/lib/titles";
 import { isMuted, toggleMute } from "@/lib/sounds";
 import { getAvatarSvg } from "@/lib/avatars";
+import { getBorderClass } from "@/lib/borders";
 
 export function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [titleLabel, setTitleLabel] = useState<string | null>(null);
   const [titleId, setTitleId] = useState<string | null>(null);
   const [avatarSvg, setAvatarSvg] = useState<string | null>(null);
+  const [borderClass, setBorderClass] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -25,6 +27,7 @@ export function Navbar() {
         setTitleId(player.title);
       }
       setAvatarSvg(getAvatarSvg(player.avatar));
+      setBorderClass(getBorderClass(player.equippedBorder));
     }
     setMuted(isMuted());
   }, []);
@@ -96,7 +99,7 @@ export function Navbar() {
         >
           {avatarSvg ? (
             <div
-              className="w-6 h-6 rounded overflow-hidden flex-shrink-0 border border-[var(--accent-red)]"
+              className={`w-6 h-6 rounded overflow-hidden flex-shrink-0 ${borderClass ?? "border border-[var(--accent-red)]"}`}
               dangerouslySetInnerHTML={{ __html: avatarSvg }}
             />
           ) : (
