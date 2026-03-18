@@ -67,7 +67,7 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
   );
 }
 
-function TierCard({
+function TierRow({
   tier,
   isReached,
   isCurrent,
@@ -80,65 +80,61 @@ function TierCard({
   isPremiumOwner: boolean;
   isLocked: boolean;
 }) {
-  const reached = isReached;
   return (
     <div
-      className={`relative flex-shrink-0 w-[100px] sm:w-[120px] border rounded-lg p-2 sm:p-3 flex flex-col gap-2 transition-all ${
+      data-tier={tier.tier}
+      className={`relative flex items-center gap-2 border rounded px-2 py-1.5 transition-all ${
         isLocked
           ? "border-[var(--border-color)] opacity-30 grayscale"
           : isCurrent
-          ? "border-[var(--accent-red)] shadow-[0_0_12px_rgba(255,0,68,0.3)]"
-          : reached
+          ? "border-[var(--accent-red)] shadow-[0_0_10px_rgba(255,0,68,0.25)]"
+          : isReached
           ? "border-[var(--accent-green)]"
           : "border-[var(--border-color)] opacity-60"
       }`}
       style={{ backgroundColor: "var(--card-bg)" }}
     >
       {/* Tier number */}
-      <div className="text-center">
-        <span
-          className={`text-xs font-bold tracking-wider ${
-            isCurrent ? "text-[var(--accent-red)]" : reached ? "text-[var(--accent-green)]" : "text-[var(--text-dim)]"
-          }`}
-        >
-          TIER {tier.tier}
-        </span>
-      </div>
+      <span
+        className="text-[10px] font-bold tracking-wider w-8 text-center flex-shrink-0"
+        style={{
+          color: isCurrent ? "var(--accent-red)" : isReached ? "var(--accent-green)" : "var(--text-dim)",
+          fontFamily: "'Orbitron', sans-serif",
+        }}
+      >
+        {tier.tier}
+      </span>
 
       {/* Free reward */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[8px] uppercase tracking-wider text-[var(--text-dim)]">Free</span>
+      <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+        <span className="text-[7px] uppercase tracking-wider text-[var(--text-dim)]">Free</span>
         {tier.freeReward ? (
           <RewardIcon type={tier.freeReward.type} name={tier.freeReward.name} />
         ) : (
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-[var(--border-color)] flex items-center justify-center text-[var(--text-dim)] text-xs opacity-30">
-            —
-          </div>
+          <div className="w-8 h-8 rounded border border-[var(--border-color)] flex items-center justify-center text-[var(--text-dim)] text-xs opacity-30">—</div>
         )}
       </div>
 
+      {/* Divider */}
+      <div className="w-px self-stretch bg-[var(--border-color)] opacity-40 flex-shrink-0" />
+
       {/* Premium reward */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[8px] uppercase tracking-wider" style={{ color: isPremiumOwner ? "#ffd700" : "var(--text-dim)" }}>
-          ★ Premium
+      <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+        <span className="text-[7px] uppercase tracking-wider" style={{ color: isPremiumOwner ? "#ffd700" : "var(--text-dim)" }}>
+          ★ Prem
         </span>
         {tier.premiumReward ? (
           <div className={isPremiumOwner ? "" : "opacity-40 grayscale"}>
             <RewardIcon type={tier.premiumReward.type} name={tier.premiumReward.name} />
           </div>
         ) : (
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-[var(--border-color)] flex items-center justify-center text-[var(--text-dim)] text-xs opacity-30">
-            —
-          </div>
-        )}
-        {tier.premiumReward && !isPremiumOwner && (
-          <span className="text-[8px] text-[var(--text-dim)]">🔒</span>
+          <div className="w-8 h-8 rounded border border-[var(--border-color)] flex items-center justify-center text-[var(--text-dim)] text-xs opacity-30">—</div>
         )}
       </div>
 
-      {/* Reached check */}
-      {reached && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--accent-green)] flex items-center justify-center text-[8px] text-black font-bold">
+      {/* Reached badge */}
+      {isReached && !isLocked && (
+        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[var(--accent-green)] flex items-center justify-center text-[7px] text-black font-bold">
           ✓
         </div>
       )}
@@ -161,13 +157,13 @@ export default function BattlePassPage() {
     setPlayer(getPlayer()!);
   }, [router]);
 
-  // Auto-scroll to current tier
+  // Auto-scroll the current chapter column to show the current tier
   useEffect(() => {
-    if (!player || !scrollRef.current) return;
-    const currentTier = getCurrentTier(player.xp);
-    const tierEl = scrollRef.current.querySelector<HTMLElement>(`[data-tier="${Math.max(1, currentTier)}"]`);
+    if (!player) return;
+    const tier = getCurrentTier(player.xp);
+    const tierEl = document.querySelector<HTMLElement>(`[data-tier="${Math.max(1, tier)}"]`);
     if (tierEl) {
-      tierEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      tierEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [player]);
 
@@ -182,11 +178,6 @@ export default function BattlePassPage() {
   const progressPercent = currentTier >= TOTAL_TIERS ? 100 : xpProgress.tierXP > 0 ? Math.round((xpProgress.current / xpProgress.tierXP) * 100) : 0;
   const unlockedChapters = getUnlockedChapters();
   const unlockedTiers = unlockedChapters * 30;
-
-  const CHAPTER_INFO: Record<number, { num: 2 | 3; name: string; subtitle: string }> = {
-    31: { num: 2, name: "Chapter 2", subtitle: "Alpha Ascendant" },
-    61: { num: 3, name: "Chapter 3", subtitle: "Alpha Apex" },
-  };
 
   return (
     <main className="min-h-screen pt-16 pb-12 px-3 sm:px-6" style={{ backgroundColor: "var(--bg-dark)" }}>
@@ -268,57 +259,82 @@ export default function BattlePassPage() {
           </div>
         </div>
 
-        {/* Tier Track */}
+        {/* Tier Track — 3 columns, one per chapter */}
         <div className="mb-6">
           <h2 className="text-sm font-bold tracking-wider text-[var(--text-dim)] uppercase mb-3">Tier Rewards</h2>
-          <div
-            ref={scrollRef}
-            className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin"
-            style={{ scrollbarColor: "var(--border-color) transparent" }}
-          >
-            {tiers.map((tier) => {
-              const chapterInfo = CHAPTER_INFO[tier.tier];
-              const isLocked = tier.tier > unlockedTiers;
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {([
+              { chapterNum: 1, name: "Chapter 1", subtitle: "Alpha", startTier: 1 },
+              { chapterNum: 2, name: "Chapter 2", subtitle: "Alpha Ascendant", startTier: 31 },
+              { chapterNum: 3, name: "Chapter 3", subtitle: "Alpha Apex", startTier: 61 },
+            ] as const).map(({ chapterNum, name, subtitle, startTier }) => {
+              const chapterLocked = chapterNum > unlockedChapters;
+              const unlockDate = chapterLocked ? getChapterUnlockDate(chapterNum as 2 | 3) : null;
+              const daysUntilUnlock = unlockDate
+                ? Math.ceil((unlockDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+                : 0;
+              const chapterTiers = tiers.filter((t) => t.tier >= startTier && t.tier < startTier + 30);
               return (
-                <div key={tier.tier} className="flex-shrink-0 flex items-stretch gap-3">
-                  {chapterInfo && (() => {
-                    const chapterLocked = chapterInfo.num > unlockedChapters;
-                    const unlockDate = chapterLocked ? getChapterUnlockDate(chapterInfo.num) : null;
-                    return (
-                      <div
-                        className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-3 rounded-lg border"
-                        style={{
-                          backgroundColor: chapterLocked ? "rgba(80,80,80,0.08)" : "rgba(170,68,255,0.08)",
-                          borderColor: chapterLocked ? "rgba(120,120,120,0.4)" : "rgba(170,68,255,0.4)",
-                          boxShadow: chapterLocked ? "none" : "0 0 14px rgba(170,68,255,0.2)",
-                          minWidth: "72px",
-                        }}
-                      >
-                        <span
-                          className="text-[8px] uppercase tracking-widest font-bold"
-                          style={{ color: chapterLocked ? "#666" : "#aa44ff", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                        >
-                          {chapterInfo.name}
-                        </span>
-                        <span
-                          className="text-[7px] uppercase tracking-wider"
-                          style={{ color: chapterLocked ? "#555" : "rgba(170,68,255,0.7)", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                        >
-                          {chapterLocked && unlockDate
-                            ? `Unlocks ${unlockDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                            : chapterInfo.subtitle}
-                        </span>
+                <div key={chapterNum} className="flex flex-col">
+                  {/* Chapter header */}
+                  <div
+                    className="rounded-t-lg border-x border-t px-4 py-3 text-center"
+                    style={{
+                      backgroundColor: chapterLocked ? "rgba(60,60,60,0.12)" : "rgba(170,68,255,0.1)",
+                      borderColor: chapterLocked ? "rgba(100,100,100,0.35)" : "rgba(170,68,255,0.45)",
+                      boxShadow: chapterLocked ? "none" : "0 0 16px rgba(170,68,255,0.18)",
+                    }}
+                  >
+                    <div
+                      className="text-sm font-bold tracking-widest uppercase"
+                      style={{
+                        fontFamily: "'Orbitron', sans-serif",
+                        color: chapterLocked ? "#666" : "#cc66ff",
+                      }}
+                    >
+                      {name}
+                    </div>
+                    <div
+                      className="text-[10px] uppercase tracking-wider mt-0.5"
+                      style={{ color: chapterLocked ? "#555" : "rgba(204,102,255,0.7)" }}
+                    >
+                      {subtitle}
+                    </div>
+                    {chapterLocked && unlockDate && (
+                      <div className="mt-1.5 text-[10px] font-bold tracking-wider" style={{ color: "#888" }}>
+                        🔒 Unlocks{" "}
+                        {unlockDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        {daysUntilUnlock > 0 && (
+                          <span className="text-[9px] font-normal ml-1 text-[#666]">({daysUntilUnlock}d)</span>
+                        )}
                       </div>
-                    );
-                  })()}
-                  <div data-tier={tier.tier}>
-                    <TierCard
-                      tier={tier}
-                      isReached={!isLocked && currentTier >= tier.tier}
-                      isCurrent={!isLocked && currentTier === tier.tier - 1}
-                      isPremiumOwner={true}
-                      isLocked={isLocked}
-                    />
+                    )}
+                  </div>
+
+                  {/* Tier rows */}
+                  <div
+                    ref={chapterNum === 1 ? scrollRef : undefined}
+                    className="flex flex-col gap-1.5 p-2 overflow-y-auto border-x border-b rounded-b-lg"
+                    style={{
+                      maxHeight: "520px",
+                      borderColor: chapterLocked ? "rgba(100,100,100,0.35)" : "rgba(170,68,255,0.45)",
+                      backgroundColor: "rgba(0,0,0,0.2)",
+                      scrollbarColor: "var(--border-color) transparent",
+                    }}
+                  >
+                    {chapterTiers.map((tier) => {
+                      const isLocked = chapterLocked;
+                      return (
+                        <TierRow
+                          key={tier.tier}
+                          tier={tier}
+                          isReached={!isLocked && currentTier >= tier.tier}
+                          isCurrent={!isLocked && currentTier === tier.tier - 1}
+                          isPremiumOwner={true}
+                          isLocked={isLocked}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               );
