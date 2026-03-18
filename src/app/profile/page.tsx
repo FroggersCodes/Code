@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/RankBadge";
 import { RetroButton } from "@/components/RetroButton";
 import { getPlayer, getMatches, logout, checkAndUnlockTitles, equipTitle, equipAvatar, equipBorder, equipNameColor, savePlayer } from "@/lib/storage";
+import { reconcileBattlePassRewards } from "@/lib/battlepass";
 import { TITLES, ALL_TITLES, getTitleLabel, getTitleClass } from "@/lib/titles";
 import { connectSocket } from "@/lib/socket";
 import { AVATARS, getAvatarSvg, AVATAR_IDS, isPremiumAvatar } from "@/lib/avatars";
@@ -78,6 +79,7 @@ export default function ProfilePage() {
       router.push("/");
       return;
     }
+    reconcileBattlePassRewards();
     checkAndUnlockTitles();
     setPlayer(getPlayer()!);
     setMatches(getMatches());

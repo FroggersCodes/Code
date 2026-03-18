@@ -521,3 +521,45 @@ export function unlockPremiumPass(): void {
 
   savePlayer(player);
 }
+
+/**
+ * Retroactively grants any battle pass rewards (free + premium) the player
+ * has earned but not yet received — e.g. when rewards were added after XP
+ * was already gained, or when XP was set outside of grantXP.
+ */
+export function reconcileBattlePassRewards(): void {
+  const player = getPlayer();
+  if (!player) return;
+
+  const currentTier = getCurrentTier(player.xp);
+  if (currentTier === 0) return;
+
+  const before = JSON.stringify({
+    unlockedTitles: player.unlockedTitles,
+    unlockedBorders: player.unlockedBorders,
+    unlockedAvatars: player.unlockedAvatars,
+    unlockedNameColors: player.unlockedNameColors,
+    unlockedProfileEffects: player.unlockedProfileEffects,
+    coins: player.coins,
+  });
+
+  for (let t = 1; t <= currentTier; t++) {
+    const tierData = TIER_REWARDS[t - 1];
+    if (!tierData) continue;
+    if (tierData.freeReward) unlockReward(player, tierData.freeReward);
+    if (tierData.premiumReward && player.premiumPass) {
+      unlockReward(player, tierData.premiumReward);
+    }
+  }
+
+  const after = JSON.stringify({
+    unlockedTitles: player.unlockedTitles,
+    unlockedBorders: player.unlockedBorders,
+    unlockedAvatars: player.unlockedAvatars,
+    unlockedNameColors: player.unlockedNameColors,
+    unlockedProfileEffects: player.unlockedProfileEffects,
+    coins: player.coins,
+  });
+
+  if (before !== after) savePlayer(player);
+}
