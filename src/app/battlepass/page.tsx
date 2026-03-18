@@ -28,7 +28,6 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
     coins: "$",
     xp_boost: "2x",
     name_color: "C",
-    profile_effect: "FX",
   };
   const colors: Record<string, string> = {
     title: "var(--accent-yellow)",
@@ -37,7 +36,6 @@ function RewardIcon({ type, name }: { type: string; name: string }) {
     coins: "#ffd700",
     xp_boost: "var(--accent-green)",
     name_color: "#00e5ff",
-    profile_effect: "#ff6b35",
   };
 
   const isBorder = type === "border";

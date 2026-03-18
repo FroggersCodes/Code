@@ -69,7 +69,7 @@ export const TOTAL_TIERS = 90;
 /** First tier of each new chapter — a divider appears in the UI before these tiers */
 export const CHAPTER_BREAKPOINTS: number[] = [31, 61];
 
-export type RewardType = "title" | "avatar" | "border" | "coins" | "xp_boost" | "name_color" | "profile_effect";
+export type RewardType = "title" | "avatar" | "border" | "coins" | "xp_boost" | "name_color";
 
 export interface TierReward {
   type: RewardType;
@@ -194,8 +194,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     null,
     // Tier 37: 125 coins
     { type: "coins", id: "coins_125", name: "125 Coins", amount: 125 },
-    // Tier 38: --
-    null,
+    // Tier 38: Avatar — Phantom
+    { type: "avatar", id: "phantom", name: "Phantom" },
     // Tier 39: XP Boost (12h)
     { type: "xp_boost", id: "xpb_12", name: "2x XP (12h)", amount: 12 },
     // Tier 40: 200 coins
@@ -206,24 +206,24 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     null,
     // Tier 43: XP Boost (12h)
     { type: "xp_boost", id: "xpb_12", name: "2x XP (12h)", amount: 12 },
-    // Tier 44: --
-    null,
+    // Tier 44: Border — Solar Flare
+    { type: "border", id: "solar_flare", name: "Solar Flare" },
     // Tier 45: 150 coins
     { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
     // Tier 46: --
     null,
     // Tier 47: 150 coins
     { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
-    // Tier 48: --
-    null,
+    // Tier 48: Avatar — Dragon
+    { type: "avatar", id: "dragon", name: "Dragon" },
     // Tier 49: XP Boost (24h)
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
     // Tier 50: 300 coins
     { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
     // Tier 51: 150 coins
     { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
-    // Tier 52: --
-    null,
+    // Tier 52: Border — Cyber Wave
+    { type: "border", id: "cyber_wave", name: "Cyber Wave" },
     // Tier 53: 200 coins
     { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
     // Tier 54: --
@@ -243,20 +243,20 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     // ── Chapter 3: Alpha Apex (Tiers 61–90) ───────────────────────────────
     // Tier 61: 200 coins
     { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
-    // Tier 62: --
-    null,
+    // Tier 62: Border — Void Storm
+    { type: "border", id: "void_storm", name: "Void Storm" },
     // Tier 63: XP Boost (24h)
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
     // Tier 64: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
     // Tier 65: 200 coins
     { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
-    // Tier 66: --
-    null,
+    // Tier 66: Avatar — Cyber Knight
+    { type: "avatar", id: "cyber_knight", name: "Cyber Knight" },
     // Tier 67: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
-    // Tier 68: --
-    null,
+    // Tier 68: Border — Aurora Edge
+    { type: "border", id: "aurora_edge", name: "Aurora Edge" },
     // Tier 69: XP Boost (24h)
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
     // Tier 70: 350 coins
@@ -267,8 +267,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     null,
     // Tier 73: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 74: --
-    null,
+    // Tier 74: Avatar — Void Phantom
+    { type: "avatar", id: "void_phantom", name: "Void Phantom" },
     // Tier 75: 400 coins
     { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
     // Tier 76: --
@@ -283,12 +283,12 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
     // Tier 81: 300 coins
     { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
-    // Tier 82: --
-    null,
+    // Tier 82: 300 coins
+    { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
     // Tier 83: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 84: --
-    null,
+    // Tier 84: Border — Quantum Rift
+    { type: "border", id: "quantum_rift", name: "Quantum Rift" },
     // Tier 85: 400 coins
     { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
     // Tier 86: --
@@ -328,8 +328,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
     // Tier 12: Border
     { type: "border", id: "void_aura", name: "Void Aura" },
-    // Tier 13: Profile Effect
-    { type: "profile_effect", id: "pe_scanlines", name: "Scanlines" },
+    // Tier 13: 100 coins
+    { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
     // Tier 14: 100 coins
     { type: "coins", id: "coins_100", name: "100 Coins", amount: 100 },
     // Tier 15: Border
@@ -340,8 +340,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
     // Tier 18: Border
     { type: "border", id: "diamond_shimmer", name: "Diamond Shimmer" },
-    // Tier 19: Profile Effect
-    { type: "profile_effect", id: "pe_matrix", name: "Matrix Rain" },
+    // Tier 19: 150 coins
+    { type: "coins", id: "coins_150", name: "150 Coins", amount: 150 },
     // Tier 20: Border
     { type: "border", id: "rainbow_pulse", name: "Rainbow Pulse" },
     // Tier 21: 150 coins
@@ -350,8 +350,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "xp_boost", id: "xpb_24", name: "2x XP (24h)", amount: 24 },
     // Tier 23: 200 coins
     { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
-    // Tier 24: Profile Effect
-    { type: "profile_effect", id: "pe_neon_grid", name: "Neon Grid" },
+    // Tier 24: 200 coins
+    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
     // Tier 25: Border
     { type: "border", id: "gold_frame", name: "Gold Frame" },
     // Tier 26: 200 coins
@@ -360,8 +360,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 28: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
-    // Tier 29: Profile Effect
-    { type: "profile_effect", id: "pe_particles", name: "Particle Field" },
+    // Tier 29: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
     // Tier 30: Season Title (unique per season) — handled dynamically below
     null,
     // ── Chapter 2: Alpha Ascendant (Tiers 31–60) ──────────────────────────
@@ -391,8 +391,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 43: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
-    // Tier 44: 200 coins
-    { type: "coins", id: "coins_200", name: "200 Coins", amount: 200 },
+    // Tier 44: 250 coins
+    { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
     // Tier 45: 250 coins
     { type: "coins", id: "coins_250", name: "250 Coins", amount: 250 },
     // Tier 46: XP Boost (48h)
@@ -411,8 +411,8 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 53: 350 coins
     { type: "coins", id: "coins_350", name: "350 Coins", amount: 350 },
-    // Tier 54: 300 coins
-    { type: "coins", id: "coins_300", name: "300 Coins", amount: 300 },
+    // Tier 54: Border — Cosmic Ring
+    { type: "border", id: "cosmic_ring", name: "Cosmic Ring" },
     // Tier 55: 350 coins
     { type: "coins", id: "coins_350", name: "350 Coins", amount: 350 },
     // Tier 56: XP Boost (48h)
@@ -430,12 +430,12 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_350", name: "350 Coins", amount: 350 },
     // Tier 62: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 63: 400 coins
-    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 63: Border — Void Blaze
+    { type: "border", id: "void_blaze", name: "Void Blaze" },
     // Tier 64: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 65: 400 coins
-    { type: "coins", id: "coins_400", name: "400 Coins", amount: 400 },
+    // Tier 65: Name Color — Rose
+    { type: "name_color", id: "nc_rose", name: "Rose" },
     // Tier 66: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 67: 500 coins
@@ -446,40 +446,40 @@ const TIER_REWARDS: BattlePassTier[] = (() => {
     { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
     // Tier 70: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 71: 600 coins
-    { type: "coins", id: "coins_600", name: "600 Coins", amount: 600 },
+    // Tier 71: Name Color — Orange
+    { type: "name_color", id: "nc_orange", name: "Orange" },
     // Tier 72: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 73: 600 coins
     { type: "coins", id: "coins_600", name: "600 Coins", amount: 600 },
     // Tier 74: 500 coins
     { type: "coins", id: "coins_500", name: "500 Coins", amount: 500 },
-    // Tier 75: XP Boost (48h)
-    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 75: 700 coins
+    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
     // Tier 76: 700 coins
     { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
-    // Tier 77: XP Boost (48h)
-    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 77: Border — Solar Corona
+    { type: "border", id: "solar_corona", name: "Solar Corona" },
     // Tier 78: 750 coins
     { type: "coins", id: "coins_750", name: "750 Coins", amount: 750 },
     // Tier 79: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 80: 1000 coins
     { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
-    // Tier 81: 700 coins
-    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
+    // Tier 81: Name Color — White
+    { type: "name_color", id: "nc_white", name: "Pure White" },
     // Tier 82: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
-    // Tier 83: 800 coins
-    { type: "coins", id: "coins_800", name: "800 Coins", amount: 800 },
+    // Tier 83: 700 coins
+    { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
     // Tier 84: 700 coins
     { type: "coins", id: "coins_700", name: "700 Coins", amount: 700 },
     // Tier 85: XP Boost (48h)
     { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
     // Tier 86: 900 coins
     { type: "coins", id: "coins_900", name: "900 Coins", amount: 900 },
-    // Tier 87: XP Boost (48h)
-    { type: "xp_boost", id: "xpb_48", name: "2x XP (48h)", amount: 48 },
+    // Tier 87: 750 coins
+    { type: "coins", id: "coins_750", name: "750 Coins", amount: 750 },
     // Tier 88: 1000 coins
     { type: "coins", id: "coins_1000", name: "1000 Coins", amount: 1000 },
     // Tier 89: 1500 coins
@@ -639,11 +639,6 @@ function unlockReward(player: Player, reward: TierReward): void {
     case "name_color":
       if (!player.unlockedNameColors.includes(reward.id)) {
         player.unlockedNameColors.push(reward.id);
-      }
-      break;
-    case "profile_effect":
-      if (!player.unlockedProfileEffects.includes(reward.id)) {
-        player.unlockedProfileEffects.push(reward.id);
       }
       break;
   }
